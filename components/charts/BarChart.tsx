@@ -51,12 +51,10 @@ export function BarChart({ values, labels, formatValue, formatLabel, formatTick,
           );
         })}
       </View>
+      {/* Oldest and newest ticks only: per-column labels truncate at 12 weeks ("31…"). */}
       <View style={styles.axis} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        {labels.map((date, i) => (
-          <Text key={date.getTime()} style={[styles.axisLabel, i === index && styles.axisLabelSelected]} numberOfLines={1}>
-            {i === 0 || i === labels.length - 1 || i === index ? formatTick(date) : ''}
-          </Text>
-        ))}
+        <Text style={styles.axisLabel}>{labels[0] ? formatTick(labels[0]) : ''}</Text>
+        <Text style={styles.axisLabel}>{labels.length > 1 ? formatTick(labels[labels.length - 1]) : ''}</Text>
       </View>
     </View>
   );
@@ -108,18 +106,13 @@ const useStyles = createStyles((t) =>
     },
     axis: {
       flexDirection: 'row',
-      gap: 2,
+      justifyContent: 'space-between',
       marginTop: t.spacing.xs,
     },
     axisLabel: {
-      flex: 1,
       fontSize: 11,
       color: t.colors.labelSecondary,
-      textAlign: 'center',
-    },
-    axisLabelSelected: {
-      color: t.colors.label,
-      fontWeight: '600',
+      fontVariant: ['tabular-nums'],
     },
   }),
 );

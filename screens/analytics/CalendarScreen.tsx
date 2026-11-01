@@ -11,8 +11,8 @@ import { isCompleted, sessionStats, totalsFor } from '@/domain/analytics/aggrega
 import { monthGrid, sessionsByDay, weeklyStreak, type CalendarDay } from '@/domain/analytics/calendar';
 import { dayKey } from '@/domain/analytics/dates';
 import { useT } from '@/i18n';
-import { formatHoursMinutes, formatMonthYear } from '@/lib/analyticsFormat';
-import { formatKg, formatKgCompact, formatLongDate, formatTime } from '@/lib/format';
+import { formatHoursMinutes, formatLongDateLatin, formatMonthYear, formatTimeLatin } from '@/lib/analyticsFormat';
+import { formatKg, formatKgCompact } from '@/lib/format';
 import { useFocusNow } from '@/lib/useFocusNow';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
@@ -88,7 +88,7 @@ export default function CalendarScreen() {
         {selectedDate ? (
           <View style={styles.section}>
             <Text style={styles.sectionTitle} accessibilityRole="header">
-              {formatLongDate(selectedDate)}
+              {formatLongDateLatin(selectedDate)}
             </Text>
             {selected.length === 0 ? (
               <Text style={styles.secondary}>{t('progress.calendar.restDay')}</Text>
@@ -99,7 +99,7 @@ export default function CalendarScreen() {
                     key={session.id}
                     leading={<CodeBadge code={session.code} />}
                     title={session.code}
-                    subtitle={`${formatTime(session.startedAt)}${session.summary ? ` · ${formatHoursMinutes(session.summary.durationSeconds)}` : ''}`}
+                    subtitle={`${formatTimeLatin(session.startedAt)}${session.summary ? ` · ${formatHoursMinutes(session.summary.durationSeconds, t)}` : ''}`}
                     value={formatKg(sessionStats(session).volumeKg)}
                     isLast={index === selected.length - 1}
                     onPress={() => router.push({ pathname: '/analytics/session/[id]', params: { id: session.id } })}

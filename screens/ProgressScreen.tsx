@@ -19,8 +19,8 @@ import { muscleSetDistribution } from '@/domain/analytics/muscles';
 import { trainedExercises } from '@/domain/analytics/progression';
 import { average, trendOf, weeklySeries } from '@/domain/analytics/trends';
 import { useLocale, useT } from '@/i18n';
-import { formatDayMonth, formatHoursMinutes, formatMonthYear, formatNumber, formatSigned } from '@/lib/analyticsFormat';
-import { formatKg, formatKgCompact, formatShortDate } from '@/lib/format';
+import { formatDayMonth, formatHoursMinutes, formatMonthYear, formatNumber, formatShortDateLatin, formatSigned } from '@/lib/analyticsFormat';
+import { formatKg, formatKgCompact } from '@/lib/format';
 import { useFocusNow } from '@/lib/useFocusNow';
 import { useProgressStore } from '@/store/useProgressStore';
 import { useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
@@ -113,7 +113,7 @@ export default function ProgressScreen() {
                 <StatTile label={t('progress.tiles.sessions')} value={String(comparison.sessions.current)} change={comparison.sessions} />
                 <StatTile label={t('progress.tiles.volume')} value={formatKgCompact(comparison.volumeKg.current)} change={comparison.volumeKg} />
                 <StatTile label={t('progress.tiles.sets')} value={String(comparison.workingSets.current)} change={comparison.workingSets} />
-                <StatTile label={t('progress.tiles.activeTime')} value={formatHoursMinutes(comparison.activeSeconds.current)} change={comparison.activeSeconds} />
+                <StatTile label={t('progress.tiles.activeTime')} value={formatHoursMinutes(comparison.activeSeconds.current, t)} change={comparison.activeSeconds} />
               </View>
               <Text style={[styles.caption, styles.compareNote]}>{t(`progress.compare.${period}`)}</Text>
             </View>
@@ -195,7 +195,7 @@ export default function ProgressScreen() {
                 <View style={styles.bodyRow}>
                   <Text style={styles.bodyValue}>{t('progress.units.kgValue', { value: formatNumber(bodyweight.value) })}</Text>
                   <Text style={styles.caption}>
-                    {bodyChange ? t('progress.body.change30', { diff: formatSigned(bodyChange.diff) }) : formatShortDate(bodyweight.measuredAt)}
+                    {bodyChange ? t('progress.body.change30', { diff: formatSigned(bodyChange.diff) }) : formatShortDateLatin(bodyweight.measuredAt)}
                   </Text>
                 </View>
               ) : (
@@ -234,7 +234,7 @@ export default function ProgressScreen() {
                       key={session.id}
                       leading={<CodeBadge code={session.code} />}
                       title={session.code}
-                      subtitle={formatShortDate(session.startedAt)}
+                      subtitle={formatShortDateLatin(session.startedAt)}
                       value={formatKg(sessionStats(session).volumeKg)}
                       starred={(session.summary?.personalRecords.length ?? 0) > 0}
                       isLast={index === list.length - 1}

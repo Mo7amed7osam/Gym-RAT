@@ -22,7 +22,7 @@ export const progressEn = {
   },
   tiles: { sessions: 'Workouts', volume: 'Volume', sets: 'Working sets', activeTime: 'Active time', trainingDays: 'Training days' },
   trend: { up: 'Trending up', down: 'Trending down', flat: 'Holding steady' },
-  units: { kgValue: '%{value} kg', cmValue: '%{value} cm', percentValue: '%{value}%' },
+  units: { kgValue: '%{value} kg', cmValue: '%{value} cm', percentValue: '%{value}%', minutes: '%{m} min', hours: '%{h} h', hoursMinutes: '%{h} h %{m} min' },
   muscles: {
     title: 'Sets per muscle',
     hint: 'Working sets in this period. Primary muscles count a full set, secondary muscles half.',

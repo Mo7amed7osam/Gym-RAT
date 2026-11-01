@@ -6,8 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CodeBadge, ListRow, ScreenHeader } from '@/components/progress/parts';
 import { isCompleted, sessionStats } from '@/domain/analytics/aggregate';
 import { useT } from '@/i18n';
-import { formatMonthYear } from '@/lib/analyticsFormat';
-import { formatDuration, formatKg, formatShortDate } from '@/lib/format';
+import { formatHoursMinutes, formatMonthYear, formatShortDateLatin } from '@/lib/analyticsFormat';
+import { formatKg } from '@/lib/format';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 import type { WorkoutSession } from '@/types/workout';
@@ -50,13 +50,13 @@ export default function HistoryListScreen() {
         )}
         renderItem={({ item, index, section }) => {
           const stats = sessionStats(item);
-          const duration = item.summary ? formatDuration(item.summary.durationSeconds) : '';
+          const duration = item.summary ? formatHoursMinutes(item.summary.durationSeconds, t) : '';
           return (
             <View style={[styles.item, index === 0 && styles.first, index === section.data.length - 1 && styles.last]}>
               <ListRow
                 leading={<CodeBadge code={item.code} />}
                 title={item.code}
-                subtitle={[formatShortDate(item.startedAt), duration, t('progress.history.setsCount', { count: stats.workingSets })].filter(Boolean).join(' · ')}
+                subtitle={[formatShortDateLatin(item.startedAt), duration, t('progress.history.setsCount', { count: stats.workingSets })].filter(Boolean).join(' · ')}
                 value={formatKg(stats.volumeKg)}
                 starred={(item.summary?.personalRecords.length ?? 0) > 0}
                 isLast={index === section.data.length - 1}

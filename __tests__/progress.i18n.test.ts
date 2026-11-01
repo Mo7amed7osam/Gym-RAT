@@ -34,7 +34,7 @@ const dynamicKeys = [
     (c) => `progress.session.errors.${c}`,
   ),
   ...['top_weight', 'estimated_1rm'].map((k) => `progress.session.recordKinds.${k}`),
-  ...['kgValue', 'cmValue', 'percentValue'].map((u) => `progress.units.${u}`),
+  ...['kgValue', 'cmValue', 'percentValue', 'minutes', 'hours', 'hoursMinutes'].map((u) => `progress.units.${u}`),
 ];
 
 describe('Progress strings', () => {

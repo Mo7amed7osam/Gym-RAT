@@ -22,8 +22,8 @@ import {
 } from '@/domain/history/edit';
 import { endTimeMs } from '@/domain/session/reducer';
 import { useT } from '@/i18n';
-import { formatDayMonthYear, formatHoursMinutes, formatNumber, parseTimeInput, toTimeInput } from '@/lib/analyticsFormat';
-import { formatKg, formatLongDate, formatTime } from '@/lib/format';
+import { formatDayMonthYear, formatHoursMinutes, formatLongDateLatin, formatNumber, formatTimeLatin, parseTimeInput, toTimeInput } from '@/lib/analyticsFormat';
+import { formatKg } from '@/lib/format';
 import { formatInputNumber, parseReps, parseWeight } from '@/lib/parseNumber';
 import { deleteHistorySession, saveHistorySession } from '@/store/historyActions';
 import { useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
@@ -139,7 +139,7 @@ export default function SessionDetailScreen() {
             }
           />
           <Text style={styles.secondary}>
-            {formatLongDate(new Date(shown.startedAt))} · {formatTime(shown.startedAt)}
+            {formatLongDateLatin(new Date(shown.startedAt))} · {formatTimeLatin(shown.startedAt)}
             {shown.kind !== 'plan' ? ` · ${t(shown.kind === 'template' ? 'plan.templateBadge' : 'plan.extraBadge')}` : ''}
           </Text>
 
@@ -159,8 +159,8 @@ export default function SessionDetailScreen() {
             <View style={styles.tiles}>
               <StatTile label={t('progress.tiles.volume')} value={formatKg(stats.volumeKg)} />
               <StatTile label={t('progress.tiles.sets')} value={String(stats.workingSets)} />
-              <StatTile label={t('progress.session.duration')} value={shown.summary ? formatHoursMinutes(shown.summary.durationSeconds) : '—'} />
-              <StatTile label={t('progress.tiles.activeTime')} value={shown.summary ? formatHoursMinutes(shown.summary.activeSeconds) : '—'} />
+              <StatTile label={t('progress.session.duration')} value={shown.summary ? formatHoursMinutes(shown.summary.durationSeconds, t) : '—'} />
+              <StatTile label={t('progress.tiles.activeTime')} value={shown.summary ? formatHoursMinutes(shown.summary.activeSeconds, t) : '—'} />
             </View>
           )}
 
