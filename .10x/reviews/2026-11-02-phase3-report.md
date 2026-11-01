@@ -37,7 +37,7 @@
 11. Every output carries an explanation key; nothing is inferred from missing RPE / RIR.
 
 ## 4. Tests (all green on HEAD)
-- `records.test.ts` (6): e1RM cap, four kinds + trail, exclusions, weight-type rules, variants, set/session detection.
+- `records.test.ts` (7): e1RM cap, four kinds + trail, exclusions, weight-type rules, variants, set/session detection.
 - `progression.test.ts` (9): rules 2–10, running-session exclusion, determinism.
 - `coach.test.ts` (6): rules A–F, ordering, dismissal window, max 3.
 - `substitution.test.ts` (2): tiers, source/archived exclusion, equipment demotion.
@@ -57,16 +57,16 @@ Fixture: `scratchpad/seed_history.py` injected two completed Starter sessions (2
 | Use | all three unlogged sets prefilled 102.5 × 8; `recommendation_json = {"weightKg":102.5,"repsMin":8,"repsMax":12,"decision":"accepted",…}` (DB) | `recommendation-applied.png`, DB query |
 | Tick set 1, set 2 | sets 1–2 stored 102.5 × 8 completed, set 3 pending (DB) | DB query, `rest-after-record-set.png`, `undo-and-rest-pill.png` |
 | PR toast | "New PR · Top weight 102.5 kg" shown above the undo toast after set 2 | `pr-toast.png` |
-| Rest sheet | overtime countdown, "Up next Set 3: 102.5 kg × 8–12, last 100 × 12"; Skip rest returns to the card | `p3-resume` (scratchpad) |
+| Rest sheet | overtime countdown, "Up next Set 3: 102.5 kg × 8–12, last 100 × 12"; Skip rest returns to the card, chip reads "Applied to the sets you have not logged yet" | `rest-sheet-overtime.png`, `chip-after-apply.png` |
 
-**Not captured on the simulator:** session summary PR list, Records section in exercise detail, Suggested group in the substitution picker, Settings → Smart training, Arabic / light-theme renders of the new UI. Reason: at ~01:05 the Mac came into active use by the owner (a browser game in the foreground of the main display and a video on the second display). Synthetic mouse input to the Device Hub window stopped registering reliably and was interfering with the owner's pointer, so driving the simulator was halted rather than fighting for the mouse. Each of these screens is covered by the Jest renders listed in §4 and by the dictionary parity test for Arabic; they remain on the owner checklist below.
+**Not captured on the simulator:** session summary PR list, Records section in exercise detail, Suggested group in the substitution picker, Settings → Smart training, Arabic / light-theme renders of the new UI. Observed: after two successful taps (Resume workout, Skip rest), one drag and four taps produced no visible change in the app; the cause was not determined. During that window the owner's browser game was in the foreground of the main display and a video was playing on the second display, so driving the simulator was halted rather than competing with the owner for the pointer. Each of these screens is covered by the Jest renders listed in §4 and by the dictionary parity test for Arabic; they remain on the owner checklist below.
 
-**Side effects to disclose:** between 01:05 and 01:14 the pointer was moved to the Device Hub window several times and two taps landed at the wrong points (a pixel/point scaling mistake on downscaled screenshots, hitting non-interactive areas). A `screencapture` call raised macOS's Screen Recording prompt for Visual Studio Code ("…requesting to bypass the system private window picker…"). That permission is not needed; the owner may dismiss it.
+**Side effects to disclose:** between 01:05 and 01:14 the pointer was moved to the Device Hub window several times and three taps landed at the wrong points inside the app (a pixel/point scaling mistake on downscaled screenshots; they hit non-interactive areas). Every posted click was checked against the on-screen window stack first and landed inside the Device Hub device window; none reached another app. A `screencapture` call raised macOS's Screen Recording prompt for Visual Studio Code ("…requesting to bypass the system private window picker…"). That permission is not needed; the owner may dismiss it.
 
 ## 6. Owner checklist (simulator or iPhone)
 1. Finish the in-progress Full Body A session → review → summary shows "New PR · Top weight 102.5 kg" for Leg Press.
-2. Library → Leg Press → Records shows the four kinds with the 102.5 kg event on top; PR history lists 100 kg sessions below.
-3. Active workout → ⋯ → Substitute → picker shows a "Suggested" group (hack squat / goblet squat family) above the full list, with reasons.
+2. Library → Leg Press → Records: after the session is finished, top weight reads 102.5 kg and the PR history shows that event on top; estimated 1RM and set volume stay with the 100 × 12 sessions (140 kg / 1,200 kg beat 102.5 × 8); reps at weight gains a 102.5 kg row (8) without an event, since a first exposure at a new load is not a record.
+3. Active workout → ⋯ → Substitute → picker shows a "Suggested" group above the full list with reasons; for Leg Press the listed alternatives are Hack Squat and Leg Extension, ranked equivalent / similar by muscles and equipment.
 4. Settings → Smart training: toggles and steps persist after force-quit.
 5. Arabic (Settings → Language): chip, coach card, records section, toast strings render RTL with Western digits.
 
