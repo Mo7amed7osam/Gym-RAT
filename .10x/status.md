@@ -2,7 +2,7 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
-**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…006 Accepted (ADR-006: extracted program is an ordinary template; schema v3). **Phase 1 complete (M0–M8 merged to main); hardening tests added 2026-11-01 (99 tests).** Simulator verification run 2026-11-01 (owner chose simulator over a physical iPhone): kill test 10/10, rotation advance/repeat, pause, Arabic RTL, theme, Reset All Data, reboot all passed; two defects found and fixed (Library search focus, dialog label truncation). Physical-device rows still pending. Awaiting (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
+**Current phase:** Implementation — product Phase 2 authorized by owner (2026-11-01) and implemented (W1–W7, commits after `e2466f7`). Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…009 Accepted (ADR-006: extracted program is an ordinary template; schema v3). **Phase 1 complete (M0–M8 merged to main); hardening tests added 2026-11-01 (99 tests).** Simulator verification run 2026-11-01 (owner chose simulator over a physical iPhone): kill test 10/10, rotation advance/repeat, pause, Arabic RTL, theme, Reset All Data, reboot all passed; two defects found and fixed (Library search focus, dialog label truncation). Physical-device rows still pending. Awaiting (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
 
 ## Phase tracking
 
@@ -12,7 +12,7 @@
 | 1 Strategy | Done | `decisions/cto/`, `decisions/product-manager/` |
 | 2 Design | Done (Proposed) | ADR-001…005; `decisions/architect/`, `decisions/staff-engineer/` |
 | 3 Planning | Done for Phase 1 | M0–M8 in `decisions/engineering-manager/`, approach in `decisions/senior-engineer/` |
-| 4 Implementation | Phase 1 done | Phase 2 needs explicit approval |
+| 4 Implementation | Phase 1 done; Phase 2 implemented (library, media, plan builder, session engine, sets/rest, templates, video prep) | Phase 3 needs explicit approval |
 | 5 Verification | Not started | |
 | 6 Delivery | Not started | |
 
