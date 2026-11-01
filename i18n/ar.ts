@@ -1,10 +1,12 @@
 import type { Dictionary } from './en';
+import { progressAr } from './progress.ar';
 
 /**
  * Arabic UI strings — machine-authored first draft, pending owner review (D8).
  * Exercise names stay English-first with their Arabic subtitle from the library.
  */
 export const ar: Dictionary = {
+  progress: progressAr,
   common: {
     cancel: 'إلغاء',
     done: 'تم',

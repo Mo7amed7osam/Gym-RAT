@@ -82,6 +82,13 @@ function ThemedNavigation() {
             <Stack.Screen name="exercise/edit" options={{ presentation: 'modal' }} />
             <Stack.Screen name="plan/[id]/index" />
             <Stack.Screen name="plan/[id]/day/[dayId]" />
+            <Stack.Screen name="analytics/history" />
+            <Stack.Screen name="analytics/session/[id]" />
+            <Stack.Screen name="analytics/calendar" />
+            <Stack.Screen name="analytics/exercises" />
+            <Stack.Screen name="analytics/exercise/[id]" />
+            <Stack.Screen name="analytics/body" />
+            <Stack.Screen name="analytics/goals" />
           </Stack.Protected>
         </Stack>
       </NavigationThemeProvider>
