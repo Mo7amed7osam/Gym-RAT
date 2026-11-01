@@ -23,6 +23,21 @@ interface ExercisePickerModalProps {
 /** Searchable picker over the non-archived library, used by the plan builder and the session engine. */
 export function ExercisePickerModal({ visible, title, excludeIds = [], onPick, onClose }: ExercisePickerModalProps) {
   const styles = useStyles();
+  // Track how many times the sheet opened so the search resets each time (state lives in PickerContent).
+  const [openCount, setOpenCount] = useState(0);
+  const [wasVisible, setWasVisible] = useState(visible);
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
+    if (visible) setOpenCount((n) => n + 1);
+  }
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <PickerContent key={openCount} title={title} excludeIds={excludeIds} onPick={onPick} onClose={onClose} styles={styles} />
+    </Modal>
+  );
+}
+
+function PickerContent({ title, excludeIds, onPick, onClose, styles }: Omit<ExercisePickerModalProps, 'visible'> & { excludeIds: readonly string[]; styles: ReturnType<typeof useStyles> }) {
   const theme = useTheme();
   const t = useT();
   const locale = useLocale();
@@ -46,7 +61,7 @@ export function ExercisePickerModal({ visible, title, excludeIds = [], onPick, o
   }, [exercises, excludeIds, query]);
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <>
       <View style={styles.root}>
         <View style={styles.toolbar}>
           <Text style={styles.toolbarTitle}>{title}</Text>
@@ -76,7 +91,7 @@ export function ExercisePickerModal({ visible, title, excludeIds = [], onPick, o
           renderItem={({ item }) => <Row exercise={item} locale={locale} onPress={() => onPick(item.id)} />}
         />
       </View>
-    </Modal>
+    </>
   );
 }
 
