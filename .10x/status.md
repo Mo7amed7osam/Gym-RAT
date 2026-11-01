@@ -39,3 +39,19 @@
 
 ## Quality baseline (measured 2026-11-01)
 `npx tsc --noEmit` 0 errors · `npx expo lint` clean · `npx expo-doctor` 20/20 · local iOS build succeeded (`.expo/xcodebuild.log`) · no tests · never run on a physical device (README).
+
+---
+## Phase 4 — Progress & Analytics (parallel track, branch `feature/phase4-analytics`)
+**Authorized:** owner brief 2026-11-02 (parallel with Phase 3 on another instance). Base `6319c60`. Worktree `../Gym RAT-phase4`.
+**ADR:** 010. **Slug:** `phase4-analytics`.
+| Task | Status |
+|---|---|
+| Design + plan (ADR-010, architect, staff, EM, senior) | Done |
+| A1 analytics core | Pending |
+| A2 history edit + replay | Pending |
+| A3 progression + calendar | Pending |
+| A4 schema v7 + progress store | Pending |
+| A5 body + goals | Pending |
+| A6 Progress tab | Pending |
+| A7 sub-screens | Pending |
+| A8 verification | Pending |

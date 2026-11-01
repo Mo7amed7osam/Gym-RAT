@@ -38,3 +38,7 @@
 
 ## Protected
 Sets Logging UI layout; rest timer model; `lib/workoutMath.ts`, `lib/parseNumber.ts`, `lib/feedback.ts`; theme tokens; Barlow Condensed; PDF program data as reference seed.
+
+---
+## Phase 4 track (2026-11-02) — `feature/phase4-analytics`
+From architect/planning to SDE. Read ADR-010 and `decisions/*/phase4-analytics.md`. Task order A1→A8 in `decisions/engineering-manager/phase4-analytics.md`. Do not edit Phase 3 surfaces listed in `decisions/staff-engineer/phase4-analytics.md`.
