@@ -49,3 +49,8 @@
 - UI: `RecommendationChip` above the stat tiles (Use / Edit / Ignore, explanation, "based on N sessions"); PR toast after a logged set (`detectSetRecords`, hidden kinds respected); `CoachCard` on Today; Records section + PR history + equivalence chips on the exercise detail; "Suggested" group with reasons in the picker when substituting; Settings → Smart training (toggles, suggestion steps, hidden record kinds); summary shows reps-at-weight records.
 - Protected grid untouched: the four snapshots are byte-identical to Phase 2.
 - Tech debt: RPE/RIR still has no entry UI (rule 5a can only fire from data entered programmatically); coach ignores template sessions' volume split; the chip re-evaluates `recommend()` on every render of the card (cheap; history is small).
+
+## Integration — Phase 3 + Phase 4 (2026-11-02, branch `integration/phase3-phase4`)
+- Merge `710f82f` (one conflict: `data/db/schema.ts`; Phase 4 tables renamed `SCHEMA_V8`). `f532fa5` canonical migrations + reconcile. `f15c43a` one strength engine: `domain/records/strengthMetrics.ts` adapter, `domain/analytics/metrics.ts` defaults to it, boot registers the library-backed resolver, chart `pointFor` ignores sets without an estimate, `lib/workoutMath.detectPersonalRecords` deleted. `c1b8c63` integration tests + simulator fixture.
+- Untouched on purpose: Sets grid (4 snapshots identical), `getExerciseBests` "Best" tile (uncapped Epley, Phase 1 display only), Phase 4 screens.
+- Known: `history.edit` expectations already matched Phase 3 semantics (no first-exposure PR, 4 kinds).
