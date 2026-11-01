@@ -47,11 +47,11 @@
 | Task | Status |
 |---|---|
 | Design + plan (ADR-010, architect, staff, EM, senior) | Done |
-| A1 analytics core | Pending |
-| A2 history edit + replay | Pending |
-| A3 progression + calendar | Pending |
-| A4 schema v7 + progress store | Pending |
-| A5 body + goals | Pending |
-| A6 Progress tab | Pending |
-| A7 sub-screens | Pending |
-| A8 verification | Pending |
+| A1 analytics core | Done (`56c3842`) |
+| A2 history edit + replay | Done (`56c3842`) |
+| A3 progression + calendar | Done (`56c3842`) |
+| A4 schema v7 + progress store | Done (`73f05eb`) |
+| A5 body + goals | Done (`73f05eb`) |
+| A6 Progress tab | Done (`42394fe`) |
+| A7 sub-screens | Done (`42394fe`) |
+| A8 verification | Jest 197/197, tsc 0, lint clean; simulator run in progress |
