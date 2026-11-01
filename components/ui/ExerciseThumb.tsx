@@ -1,8 +1,8 @@
 import { Dumbbell } from 'lucide-react-native';
 import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { EXERCISE_IMAGES } from '@/assets/exercises';
-import { getExercise } from '@/data/exercisesData';
+import { getExerciseMedia } from '@/data/media';
+import { useExercise } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 
 interface ExerciseThumbProps {
@@ -13,16 +13,17 @@ interface ExerciseThumbProps {
   style?: StyleProp<ViewStyle>;
 }
 
-/** Square crop of the exercise's PDF photo on white; dumbbell glyph when there is none. */
+/** Square start-position still (or the custom photo); dumbbell glyph when the exercise has no illustration. */
 export function ExerciseThumb({ exerciseId, size = 56, fill = false, style }: ExerciseThumbProps) {
   const styles = useStyles();
   const theme = useTheme();
-  const key = getExercise(exerciseId)?.thumbnailKey;
+  const exercise = useExercise(exerciseId);
+  const media = getExerciseMedia(exercise);
   const box: ViewStyle = fill
     ? { flex: 1, aspectRatio: 1, borderRadius: theme.radii.row }
     : { width: size, height: size, borderRadius: size >= 48 ? theme.radii.row : 8 };
 
-  if (!key) {
+  if (media.kind === 'none' || !media.start) {
     return (
       <View style={[styles.base, styles.fallback, box, style]} accessibilityElementsHidden importantForAccessibility="no">
         <Dumbbell size={fill ? 22 : size * 0.45} color={theme.colors.labelSecondary} strokeWidth={1.75} />
@@ -31,14 +32,14 @@ export function ExerciseThumb({ exerciseId, size = 56, fill = false, style }: Ex
   }
 
   return (
-    <View style={[styles.base, styles.photo, box, style]} accessibilityElementsHidden importantForAccessibility="no">
-      <Image source={EXERCISE_IMAGES[key]} style={styles.image} resizeMode="cover" />
+    <View style={[styles.base, media.kind === 'user_photo' ? styles.photo : styles.artwork, box, style]} accessibilityElementsHidden importantForAccessibility="no">
+      <Image source={media.start} style={styles.image} resizeMode="cover" />
     </View>
   );
 }
 
 const useStyles = createStyles((t) =>
-  StyleSheet.create(  {
+  StyleSheet.create({
     base: {
       overflow: 'hidden',
       alignItems: 'center',
@@ -46,6 +47,9 @@ const useStyles = createStyles((t) =>
     },
     photo: {
       backgroundColor: t.colors.photoBackground,
+    },
+    artwork: {
+      backgroundColor: t.colors.illustrationBackground,
     },
     fallback: {
       backgroundColor: t.colors.surfaceRaised,

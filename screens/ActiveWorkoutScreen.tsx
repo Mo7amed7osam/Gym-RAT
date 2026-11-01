@@ -15,20 +15,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExerciseCard } from '@/components/ExerciseCard';
 import { RestTimerModal, RestTimerPill } from '@/components/RestTimerModal';
-import { VideoModal } from '@/components/VideoModal';
+import { ExerciseGuideModal } from '@/components/ExerciseGuideModal';
 import { WarmupRoutine, getRoutineProgress } from '@/components/WarmupRoutine';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT } from '@/constants/theme';
-import { getExercise } from '@/data/exercisesData';
 import { isSessionForDay } from '@/data/plans';
 import { formatDuration, formatElapsed, formatKg, formatLongDate, formatTime, percentChange } from '@/lib/format';
 import { countSets } from '@/lib/workoutMath';
 import { activeSeconds, isPaused } from '@/domain/session/reducer';
 import { useT } from '@/i18n';
-import { selectIsWorkoutPaused, selectNextDay, useWorkoutStore } from '@/store/useWorkoutStore';
+import { selectIsWorkoutPaused, selectNextDay, useWorkoutStore, useExerciseMap } from '@/store/useWorkoutStore';
 import type { PersonalRecord, SessionExercise, WorkoutSession } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
 
@@ -105,6 +104,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
   const pauseWorkout = useWorkoutStore((state) => state.pauseWorkout);
   const resumeWorkout = useWorkoutStore((state) => state.resumeWorkout);
   const paused = useWorkoutStore(selectIsWorkoutPaused);
+  const exerciseMap = useExerciseMap();
 
   const day = { code: session.code, firstExerciseId: session.exercises[0]?.exerciseId };
   const index = session.currentExerciseIndex;
@@ -208,7 +208,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                       accessibilityState={{ selected }}
                       accessibilityLabel={t('workout.exerciseA11y', {
                         n: i + 1,
-                        name: getExercise(exercise.exerciseId)?.name.en ?? '',
+                        name: exerciseMap.get(exercise.exerciseId)?.name.en ?? '',
                         done: done ? t('workout.doneSuffix') : '',
                         skipped: exercise.skipped ? t('workout.skippedSuffix') : '',
                       })}
@@ -230,7 +230,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                 sessionExercise={current}
                 position={index + 1}
                 total={session.exercises.length}
-                onOpenVideo={setVideoExerciseId}
+                onOpenGuide={setVideoExerciseId}
               />
 
               {next ? (
@@ -239,7 +239,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                   <View style={styles.flex}>
                     <Text style={styles.upNextLabel}>{t('common.upNext')}</Text>
                     <Text style={styles.upNextName} numberOfLines={1}>
-                      {getExercise(next.exerciseId)?.name.en}
+                      {exerciseMap.get(next.exerciseId)?.name.en}
                     </Text>
                   </View>
                   <Text style={styles.upNextMeta}>
@@ -307,7 +307,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
       </View>
 
       <RestTimerModal visible={restSheetVisible} onMinimize={() => setDismissedRestKey(restKey)} />
-      <VideoModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
+      <ExerciseGuideModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
       <ConfirmDialog
         visible={confirm === 'finish'}
         title={t('workout.finishTitle')}
@@ -341,6 +341,7 @@ const PR_LABEL_KEY: Record<PersonalRecord['kind'], string> = {
 };
 
 function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; onDone: () => void }) {
+  const exerciseMap = useExerciseMap();
   const t = useT();
   const styles = useStyles();
   const theme = useTheme();
@@ -421,7 +422,7 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
                   </View>
                   <View style={styles.flex}>
                     <Text style={styles.prName} numberOfLines={1}>
-                      {getExercise(record.exerciseId)?.name.en}
+                      {exerciseMap.get(record.exerciseId)?.name.en}
                     </Text>
                     <Text style={styles.prDetail}>{t('workout.prWas', { kind: t(PR_LABEL_KEY[record.kind]), previous: record.previous ?? t('common.none') })}</Text>
                   </View>

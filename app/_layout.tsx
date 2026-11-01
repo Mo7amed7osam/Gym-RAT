@@ -78,6 +78,8 @@ function ThemedNavigation() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="workout" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
             <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="exercise/[id]" />
+            <Stack.Screen name="exercise/edit" options={{ presentation: 'modal' }} />
           </Stack.Protected>
         </Stack>
       </NavigationThemeProvider>

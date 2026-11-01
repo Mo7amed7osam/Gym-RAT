@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SQLite from 'expo-sqlite';
 import { AppState } from 'react-native';
 
+import { deleteAllCustomExercisePhotos } from '@/lib/customMedia';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, useWorkoutStore } from '@/store/useWorkoutStore';
 
 import { createExpoDriver } from './driver.expo';
@@ -10,7 +11,7 @@ import { importFromAsyncStorage } from './importer';
 import { SCHEMA_VERSION, getUserVersion, migrate } from './migrations';
 import { WorkoutRepository } from './repository';
 import { BACKUP_DATABASE_NAME, DATABASE_NAME } from './schema';
-import { seedPlans } from './seed';
+import { seedExercises, seedPlans } from './seed';
 
 /**
  * Opens the database, migrates it, imports legacy AsyncStorage data once,
@@ -70,10 +71,10 @@ async function boot(): Promise<void> {
     else if (imported.status === 'imported') console.log(`[db] imported ${imported.sessions} legacy sessions`);
 
     const loaded = repo.loadAll(defaults);
-    const seeded = seedPlans(loaded);
+    const seeded = seedExercises(seedPlans(loaded));
     if (seeded !== loaded) {
       repo.persistDiff(loaded, seeded);
-      console.log('[db] seeded bundled plans');
+      console.log('[db] seeded bundled plans and exercises');
     }
     useWorkoutStore.getState().hydrate(seeded);
     attachPersistence({ persist: (prev, next) => repo.persistDiff(prev, next) });
@@ -108,6 +109,7 @@ async function boot(): Promise<void> {
 export async function resetAllData(): Promise<void> {
   attachPersistence(null);
   useWorkoutStore.getState().hydrate({
+    exercises: [],
     plans: [],
     activeSession: null,
     history: [],
@@ -134,6 +136,7 @@ export async function resetAllData(): Promise<void> {
   } catch (error) {
     console.warn('[db] AsyncStorage clear failed', error);
   }
+  await deleteAllCustomExercisePhotos();
   bootPromise = boot();
   await bootPromise;
 }

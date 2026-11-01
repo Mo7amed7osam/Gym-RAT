@@ -60,6 +60,13 @@
             ]
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Gym RAT uses your photos to illustrate custom exercises you create.",
+          "cameraPermission": "Gym RAT uses the camera to photograph custom exercises you create."
+        }
       ]
     ],
     "experiments": {

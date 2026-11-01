@@ -13,7 +13,7 @@ function freshRepo() {
   return { driver, repo: new WorkoutRepository(driver) };
 }
 
-const empty = () => ({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
+const empty = () => ({ exercises: [], plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
 
 function resetStore() {
   useWorkoutStore.setState({ previewDayIndex: null, persistenceError: null, ...empty() });
@@ -79,7 +79,7 @@ describe('WorkoutRepository with the store attached', () => {
 
     // Delete history → rows gone.
     store.deleteSession(finished.id);
-    expect(repo.counts()).toEqual({ sessions: 0, exercises: 0, sets: 0, plans: 3 });
+    expect(repo.counts()).toEqual({ sessions: 0, exercises: 0, sets: 0, plans: 3, library: 0 });
 
     // A fresh store hydrated from the DB equals the current store.
     const reloaded = repo.loadAll(defaults);
@@ -128,7 +128,7 @@ describe('WorkoutRepository primitives', () => {
     const session = start(0);
     const broken = { ...session, exercises: [{ ...session.exercises[0], sets: [{ ...session.exercises[0].sets[0], type: 'bogus' as never }] }] };
     expect(() => repo.persistDiff(empty(), { ...empty(), activeSession: broken })).toThrow();
-    expect(repo.counts()).toEqual({ sessions: 0, exercises: 0, sets: 0, plans: 0 });
+    expect(repo.counts()).toEqual({ sessions: 0, exercises: 0, sets: 0, plans: 0, library: 0 });
     expect(driver.get('SELECT 1 AS ok')).toEqual({ ok: 1 }); // connection still usable
   });
 });

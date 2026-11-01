@@ -13,7 +13,7 @@ import type { AccentId, AppearanceSettings, Density, TextScale, ThemeMode } from
  */
 
 export type ColorScheme = 'light' | 'dark';
-export type ThemeColors = { [K in keyof typeof base.colors]: string } & { photoBackground: string };
+export type ThemeColors = { [K in keyof typeof base.colors]: string } & { photoBackground: string; illustrationBackground: string };
 
 export interface Theme {
   /** Stable key for memoization: mode + accent + scale + density. */
@@ -31,7 +31,10 @@ export interface Theme {
 // ─── Palettes ────────────────────────────────────────────────────────────────
 
 /** The app's original look: true-black OLED ground. */
-const TRUE_BLACK: ThemeColors = { ...base.colors, photoBackground: '#ffffff' };
+/** RepDB stills ship on this light blue; the frame matches it so custom crops never show a seam. */
+const ILLUSTRATION_BACKGROUND = '#dcebf5';
+
+const TRUE_BLACK: ThemeColors = { ...base.colors, photoBackground: '#ffffff', illustrationBackground: ILLUSTRATION_BACKGROUND };
 
 /** Same hierarchy on a soft dark grey ground. */
 const DARK: ThemeColors = {
@@ -66,6 +69,7 @@ const LIGHT: ThemeColors = {
   onTint: '#000000',
   scrim: 'rgba(0,0,0,0.4)',
   photoBackground: '#ffffff',
+  illustrationBackground: ILLUSTRATION_BACKGROUND,
 };
 
 /** Accent colours: iOS system colours, dark and light variants. */

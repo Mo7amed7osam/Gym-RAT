@@ -1,11 +1,13 @@
-import type { ExerciseSet, Plan, PlanDay, RestTimerState, SessionExercise, WorkoutSession, WorkoutSettings } from '@/types/workout';
+import type { Exercise, ExerciseSet, Plan, PlanDay, RestTimerState, SessionExercise, WorkoutSession, WorkoutSettings } from '@/types/workout';
 
 import type { Driver } from './driver';
 import { KV } from './schema';
 
 /** The slices of store state that live in the database. */
 export interface PersistedWorkoutState {
-  /** Every plan (active, templates, references). */
+  /** The exercise library: built-ins (seeded) and customs, archived ones included. */
+  exercises: Exercise[];
+  /** Every plan (active and templates). */
   plans: Plan[];
   activeSession: WorkoutSession | null;
   /** Finished sessions, newest first. */
@@ -19,6 +21,31 @@ export interface RowCounts {
   exercises: number;
   sets: number;
   plans: number;
+  library: number;
+}
+
+interface LibraryRow {
+  id: string;
+  origin: string;
+  name_json: string;
+  arabic_name_source: string;
+  primary_muscles_json: string;
+  secondary_muscles_json: string;
+  equipment_json: string;
+  weight_type: string;
+  is_unilateral: number;
+  instructions_json: string;
+  breathing_json: string | null;
+  range_of_motion_json: string | null;
+  common_mistakes_json: string;
+  alternatives_json: string;
+  video_id: string | null;
+  image_uri: string | null;
+  user_notes: string;
+  user_rest_seconds: number | null;
+  archived: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface SessionRow {
@@ -129,6 +156,7 @@ export class WorkoutRepository {
       console.warn(`[db] ${active.length} in-progress sessions found; keeping the most recent`);
     }
     return {
+      exercises: this.loadExercises(),
       plans: this.loadPlans(),
       activeSession: active[0] ?? null,
       history: sessions.filter((session) => session.status !== 'in_progress'),
@@ -139,7 +167,13 @@ export class WorkoutRepository {
 
   counts(): RowCounts {
     const count = (table: string) => Number(this.driver.get<{ n: number }>(`SELECT COUNT(*) AS n FROM ${table}`)?.n ?? 0);
-    return { sessions: count('sessions'), exercises: count('session_exercises'), sets: count('sets'), plans: count('plans') };
+    return {
+      sessions: count('sessions'),
+      exercises: count('session_exercises'),
+      sets: count('sets'),
+      plans: count('plans'),
+      library: count('exercises'),
+    };
   }
 
   readKv<T>(key: string): T | null {
@@ -155,6 +189,7 @@ export class WorkoutRepository {
    */
   persistDiff(prev: PersistedWorkoutState, next: PersistedWorkoutState): void {
     if (
+      prev.exercises === next.exercises &&
       prev.plans === next.plans &&
       prev.activeSession === next.activeSession &&
       prev.history === next.history &&
@@ -164,6 +199,16 @@ export class WorkoutRepository {
       return;
     }
     this.driver.transaction(() => {
+      if (prev.exercises !== next.exercises) {
+        const prevById = new Map(prev.exercises.map((exercise) => [exercise.id, exercise]));
+        const nextIds = new Set(next.exercises.map((exercise) => exercise.id));
+        for (const exercise of next.exercises) {
+          if (prevById.get(exercise.id) !== exercise) this.upsertExercise(exercise);
+        }
+        for (const id of prevById.keys()) {
+          if (!nextIds.has(id)) this.deleteExercise(id);
+        }
+      }
       if (prev.plans !== next.plans) {
         const prevById = new Map(prev.plans.map((plan) => [plan.id, plan]));
         const nextIds = new Set(next.plans.map((plan) => plan.id));
@@ -201,8 +246,9 @@ export class WorkoutRepository {
   replaceAll(state: PersistedWorkoutState): void {
     this.driver.transaction(() => {
       this.driver.exec(
-        'DELETE FROM sets; DELETE FROM session_exercises; DELETE FROM sessions; DELETE FROM plan_exercises; DELETE FROM plan_days; DELETE FROM plans;',
+        'DELETE FROM sets; DELETE FROM session_exercises; DELETE FROM sessions; DELETE FROM plan_exercises; DELETE FROM plan_days; DELETE FROM plans; DELETE FROM exercises;',
       );
+      for (const exercise of state.exercises) this.upsertExercise(exercise);
       for (const plan of state.plans) this.upsertPlan(plan);
       for (const session of state.history) this.upsertSession(session);
       if (state.activeSession) this.upsertSession(state.activeSession);
@@ -220,6 +266,53 @@ export class WorkoutRepository {
 
   deleteKv(key: string): void {
     this.driver.run('DELETE FROM kv WHERE key = ?', [key]);
+  }
+
+  /** Must be called inside a transaction. */
+  upsertExercise(exercise: Exercise): void {
+    this.driver.run(
+      `INSERT INTO exercises (id, origin, name_json, arabic_name_source, primary_muscles_json, secondary_muscles_json, equipment_json,
+         weight_type, is_unilateral, instructions_json, breathing_json, range_of_motion_json, common_mistakes_json, alternatives_json,
+         video_id, image_uri, user_notes, user_rest_seconds, archived, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT (id) DO UPDATE SET origin = excluded.origin, name_json = excluded.name_json,
+         arabic_name_source = excluded.arabic_name_source, primary_muscles_json = excluded.primary_muscles_json,
+         secondary_muscles_json = excluded.secondary_muscles_json, equipment_json = excluded.equipment_json,
+         weight_type = excluded.weight_type, is_unilateral = excluded.is_unilateral, instructions_json = excluded.instructions_json,
+         breathing_json = excluded.breathing_json, range_of_motion_json = excluded.range_of_motion_json,
+         common_mistakes_json = excluded.common_mistakes_json, alternatives_json = excluded.alternatives_json,
+         video_id = excluded.video_id, image_uri = excluded.image_uri, user_notes = excluded.user_notes,
+         user_rest_seconds = excluded.user_rest_seconds, archived = excluded.archived, created_at = excluded.created_at,
+         updated_at = excluded.updated_at`,
+      [
+        exercise.id,
+        exercise.origin,
+        JSON.stringify(exercise.name),
+        exercise.arabicNameSource,
+        JSON.stringify(exercise.primaryMuscles),
+        JSON.stringify(exercise.secondaryMuscles),
+        JSON.stringify(exercise.equipment),
+        exercise.weightType,
+        exercise.isUnilateral,
+        JSON.stringify(exercise.instructions),
+        exercise.breathing ? JSON.stringify(exercise.breathing) : null,
+        exercise.rangeOfMotion ? JSON.stringify(exercise.rangeOfMotion) : null,
+        JSON.stringify(exercise.commonMistakes),
+        JSON.stringify(exercise.alternatives),
+        exercise.videoId,
+        exercise.imageUri,
+        exercise.userNotes,
+        exercise.userRestSeconds,
+        exercise.archived,
+        exercise.createdAt,
+        exercise.updatedAt,
+      ],
+    );
+  }
+
+  /** Must be called inside a transaction. The store only archives; this exists for the diff writer. */
+  deleteExercise(id: string): void {
+    this.driver.run('DELETE FROM exercises WHERE id = ?', [id]);
   }
 
   /** Must be called inside a transaction. Whole-plan replace. */
@@ -343,6 +436,32 @@ export class WorkoutRepository {
   }
 
   // ── Row mapping ───────────────────────────────────────────────────────
+
+  private loadExercises(): Exercise[] {
+    return this.driver.all<LibraryRow>('SELECT * FROM exercises ORDER BY rowid').map((row) => ({
+      id: row.id,
+      origin: row.origin as Exercise['origin'],
+      name: JSON.parse(row.name_json) as Exercise['name'],
+      arabicNameSource: row.arabic_name_source as Exercise['arabicNameSource'],
+      primaryMuscles: JSON.parse(row.primary_muscles_json) as Exercise['primaryMuscles'],
+      secondaryMuscles: JSON.parse(row.secondary_muscles_json) as Exercise['secondaryMuscles'],
+      equipment: JSON.parse(row.equipment_json) as Exercise['equipment'],
+      weightType: row.weight_type as Exercise['weightType'],
+      isUnilateral: row.is_unilateral === 1,
+      instructions: JSON.parse(row.instructions_json) as Exercise['instructions'],
+      breathing: row.breathing_json ? (JSON.parse(row.breathing_json) as Exercise['breathing']) : null,
+      rangeOfMotion: row.range_of_motion_json ? (JSON.parse(row.range_of_motion_json) as Exercise['rangeOfMotion']) : null,
+      commonMistakes: JSON.parse(row.common_mistakes_json) as Exercise['commonMistakes'],
+      alternatives: JSON.parse(row.alternatives_json) as string[],
+      videoId: row.video_id,
+      imageUri: row.image_uri,
+      userNotes: row.user_notes,
+      userRestSeconds: row.user_rest_seconds,
+      archived: row.archived === 1,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+  }
 
   private loadPlans(): Plan[] {
     // rowid = insertion order (upserts keep it), which mirrors the store's array order.

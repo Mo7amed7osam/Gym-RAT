@@ -23,3 +23,6 @@ Schema v1 as planned (`data/db/schema.ts`). `title_json`, `prescription_json`, `
 
 ## 2026-11-01 — Schema v3
 - `UPDATE plans SET kind = 'template' WHERE kind = 'reference'`. The v2 CHECK constraint still lists the retired value (no table rebuild); nothing writes it any more. Backup taken before the step as for any migration from a non-zero version. Test: `__tests__/db.migrations.test.ts` "v3 turns the retired reference kind into an ordinary template".
+
+## 2026-11-01 — Schema v4 (`exercises`)
+- One table for built-in and custom rows; JSON columns for bilingual text and lists; user columns (`user_notes`, `user_rest_seconds`, `image_uri`, `archived`) separated from authored columns so the boot seed can refresh content. No foreign key from `session_exercises.exercise_id` by design (history survives archiving). Index on `(origin, archived)`. Test: `__tests__/exercises.library.test.ts` migrates v3 → v4 with real rows.

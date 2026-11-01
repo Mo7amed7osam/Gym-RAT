@@ -1,7 +1,8 @@
+import { BUILTIN_EXERCISES, builtinContent } from '@/data/exercisesData';
 import { clonePlan } from '@/data/plans';
 import { PDF_PROGRAM_ID, buildPplUlTemplate } from '@/data/seeds/pdfProgram';
 import { STARTER_PLAN_ID, buildStarterTemplate } from '@/data/seeds/starterPlan';
-import type { Plan } from '@/types/workout';
+import type { Exercise, Plan } from '@/types/workout';
 
 import type { PersistedWorkoutState } from './repository';
 
@@ -54,4 +55,32 @@ function nextIndexAfterHistory(active: Plan, state: PersistedWorkoutState): numb
   const sourceDayId = latest.planDayId!.split(':').slice(1).join(':');
   const index = active.days.findIndex((day) => day.id.endsWith(`:${sourceDayId}`) || day.code === latest.code);
   return index === -1 ? 0 : (index + 1) % active.days.length;
+}
+
+/**
+ * Ensures every built-in exercise exists and carries the current authored
+ * content (ADR-007). Pure: returns the same object when nothing changes.
+ * User-owned columns (`userNotes`, `userRestSeconds`, `imageUri`, `archived`)
+ * and custom exercises are never touched.
+ */
+export function seedExercises(state: PersistedWorkoutState, now: string = new Date().toISOString()): PersistedWorkoutState {
+  const byId = new Map(state.exercises.map((exercise) => [exercise.id, exercise]));
+  let exercises = state.exercises;
+  let changed = false;
+  for (const seed of BUILTIN_EXERCISES) {
+    const existing = byId.get(seed.id);
+    if (!existing) {
+      exercises = [...exercises, seed];
+      changed = true;
+      continue;
+    }
+    if (existing.origin !== 'builtin') continue;
+    const current = JSON.stringify(builtinContent(existing));
+    const authored = JSON.stringify(builtinContent(seed));
+    if (current === authored) continue;
+    const refreshed: Exercise = { ...existing, ...builtinContent(seed), updatedAt: now };
+    exercises = exercises.map((exercise) => (exercise.id === seed.id ? refreshed : exercise));
+    changed = true;
+  }
+  return changed ? { ...state, exercises } : state;
 }

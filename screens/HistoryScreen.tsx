@@ -9,12 +9,11 @@ import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { HIT } from '@/constants/theme';
-import { getExercise } from '@/data/exercisesData';
 import { isSessionForDay } from '@/data/plans';
 import { formatDuration, formatKg, formatKgCompact, formatShortDate, percentChange, startOfWeek } from '@/lib/format';
 import { formatSet, isCountedSet, sessionVolumeKg, weeklyVolumeKg } from '@/lib/workoutMath';
 import { useT } from '@/i18n';
-import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
+import { selectActivePlan, useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { WorkoutSession } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
 
@@ -171,6 +170,7 @@ function SessionRow({
   onToggle: () => void;
   onDelete: () => void;
 }) {
+  const exerciseMap = useExerciseMap();
   const t = useT();
   const styles = useStyles();
   const theme = useTheme();
@@ -219,7 +219,7 @@ function SessionRow({
                 <View key={exercise.id} style={styles.detailRow}>
                   <View style={styles.detailName}>
                     <Text style={styles.detailTitle} numberOfLines={1}>
-                      {getExercise(exercise.exerciseId)?.name.en ?? exercise.exerciseId}
+                      {exerciseMap.get(exercise.exerciseId)?.name.en ?? exercise.exerciseId}
                     </Text>
                     {hasPr ? <Star size={12} color={theme.colors.tint} fill={theme.colors.tint} /> : null}
                   </View>

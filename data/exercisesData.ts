@@ -1,38 +1,46 @@
-import { hasExerciseImage } from '@/assets/exercises';
-import type { Exercise, LocalizedText, MuscleGroup } from '@/types/workout';
+import type { Equipment, Exercise, ExerciseContent, LocalizedText, MuscleGroup } from '@/types/workout';
+
+import { EXERCISE_CONTENT } from './exerciseContent';
 
 /**
- * Exercise dictionary for "Push - Pull - Leg / Upper - Lower Ver 5.0".
- *
- * Names (EN + AR) come from the program PDF. Where the PDF has no Arabic name
+ * Built-in exercise seed (ADR-007). Names (EN + AR), muscles and equipment
+ * come from the original program; where the source has no Arabic name
  * (`arabicNameSource: 'supplied'`) the translation was added by us.
- * Form cues are authored coaching notes — the PDF only links demo videos.
- *
- * Per-day sets / reps / rest live in scheduleData.ts, because the same exercise
- * is programmed differently on different days (e.g. Seated Calf Raise).
+ * Instructional content lives in `exerciseContent.ts`. The runtime library is
+ * the `exercises` table: this file only seeds and refreshes the built-in rows.
  */
 
-const YOUTUBE_SEARCH = 'https://www.youtube.com/results?search_query=';
+/** Bump when authored content changes so existing installs refresh their built-in rows. */
+export const BUILTIN_CONTENT_VERSION = 2;
+/** Seed timestamp for built-in rows (not the user's install date). */
+export const BUILTIN_SEEDED_AT = '2026-11-01T00:00:00.000Z';
 
-export function youtubeSearchUrl(query: string): string {
-  return `${YOUTUBE_SEARCH}${encodeURIComponent(query)}`;
-}
-
-type ExerciseInput = Omit<Exercise, 'id' | 'videoUrl' | 'thumbnailKey'> & {
-  /** Overrides the default "<english name> proper form" search. */
-  videoQuery?: string;
+type ExerciseInput = Pick<Exercise, 'name' | 'primaryMuscles' | 'secondaryMuscles' | 'equipment' | 'isUnilateral'> & {
+  arabicNameSource: 'pdf' | 'supplied';
 };
 
 function defineExercises<K extends string>(defs: Record<K, ExerciseInput>): Record<K, Exercise> {
   const result = {} as Record<K, Exercise>;
   for (const id of Object.keys(defs) as K[]) {
-    const { videoQuery, ...rest } = defs[id];
+    const content = EXERCISE_CONTENT[id];
+    if (!content) throw new Error(`Missing authored content for built-in exercise "${id}"`);
     result[id] = {
-      ...rest,
+      ...defs[id],
       id,
-      videoUrl: youtubeSearchUrl(videoQuery ?? `${rest.name.en} proper form`),
-      // PDF photos are named after the exercise id.
-      thumbnailKey: hasExerciseImage(id) ? id : undefined,
+      origin: 'builtin',
+      weightType: content.weightType,
+      instructions: content.instructions,
+      breathing: content.breathing,
+      rangeOfMotion: content.rangeOfMotion,
+      commonMistakes: content.commonMistakes,
+      alternatives: content.alternatives,
+      videoId: null,
+      imageUri: null,
+      userNotes: '',
+      userRestSeconds: null,
+      archived: false,
+      createdAt: BUILTIN_SEEDED_AT,
+      updatedAt: BUILTIN_SEEDED_AT,
     };
   }
   return result;
@@ -47,11 +55,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['front_delts', 'triceps'],
     equipment: ['barbell', 'bench'],
     isUnilateral: false,
-    formCues: [
-      'Shoulder blades pinched, feet planted',
-      'Bar to lower chest, elbows ~45°',
-      'Pause, then drive up without bouncing',
-    ],
   },
   incline_dumbbell_bench_press: {
     name: { en: 'Incline Dumbbell Bench Press', ar: 'تقفيل (تجميع) بنش على الكرسي العالي' },
@@ -60,11 +63,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['front_delts', 'triceps'],
     equipment: ['dumbbell', 'bench'],
     isUnilateral: false,
-    formCues: [
-      'Bench at 30–45°',
-      'Lower to upper chest with elbows slightly tucked',
-      'Press up and slightly in, no clanking at the top',
-    ],
   },
   pec_deck_fly: {
     name: { en: 'Pec Deck Fly Machine (Butterfly)', ar: 'تفتيح بنش على الماكينة (الفراشة)' },
@@ -73,11 +71,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['front_delts'],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Handles at mid-chest height',
-      'Soft elbows, hug a big tree',
-      'Squeeze 1 s, open slowly to a full stretch',
-    ],
   },
   high_low_cable_fly: {
     name: { en: 'High-to-Low Cable Chest Fly', ar: 'كابلات بنش من فوق لتحت' },
@@ -86,11 +79,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['front_delts'],
     equipment: ['cable'],
     isUnilateral: false,
-    formCues: [
-      'Pulleys set high, staggered stance',
-      'Sweep down and in toward the hips',
-      'Keep the elbow angle fixed throughout',
-    ],
   },
   overhead_dumbbell_press: {
     name: { en: 'Standing Overhead Dumbbell Press', ar: 'كتف واقف بالدمبل' },
@@ -99,12 +87,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['side_delts', 'triceps'],
     equipment: ['dumbbell'],
     isUnilateral: false,
-    videoQuery: 'perfect overhead dumbbell press form',
-    formCues: [
-      'Brace abs and glutes, no lower-back arch',
-      'Start at ear level, press straight up',
-      'Lock out overhead, lower under control',
-    ],
   },
   dumbbell_lateral_raise: {
     name: { en: 'Dumbbell Lateral Raise', ar: 'رفرفة جانبي كتف' },
@@ -113,11 +95,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['upper_back'],
     equipment: ['dumbbell'],
     isUnilateral: false,
-    formCues: [
-      'Slight forward lean, soft elbows',
-      'Lead with the elbows to shoulder height',
-      'No swinging — lower over 2–3 s',
-    ],
   },
   dumbbell_skull_crusher: {
     name: { en: 'Dumbbell Skull Crushers', ar: 'دامبل تراي وإنت نايم على الأرض' },
@@ -126,11 +103,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['dumbbell'],
     isUnilateral: false,
-    formCues: [
-      'Lying on the floor, neutral grip',
-      'Upper arms vertical and still',
-      'Lower beside the head, extend fully',
-    ],
   },
   triceps_rope_pushdown: {
     name: { en: 'Triceps Rope Pushdown', ar: 'تراي بالحبل على الماكينة' },
@@ -139,11 +111,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['cable'],
     isUnilateral: false,
-    formCues: [
-      'Elbows pinned to your sides',
-      'Push down and spread the rope at the bottom',
-      'Control the return to ~90°',
-    ],
   },
   lying_leg_raise: {
     name: { en: 'Flat Bench Lying Leg Raises', ar: 'بطن على الكرسي المسطح' },
@@ -152,11 +119,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['hip_flexors'],
     equipment: ['bench', 'bodyweight'],
     isUnilateral: false,
-    formCues: [
-      'Grip the bench behind your head',
-      'Lower back stays pressed down',
-      'Raise legs to vertical, lower slowly',
-    ],
   },
 
   // ── Pull A ────────────────────────────────────────────────────────────────
@@ -167,11 +129,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['upper_back', 'biceps', 'rear_delts'],
     equipment: ['dumbbell', 'bench'],
     isUnilateral: true,
-    formCues: [
-      'Hand and knee on bench, flat back',
-      'Pull the dumbbell to your hip',
-      'Full stretch at the bottom, no torso twist',
-    ],
   },
   seated_close_grip_row: {
     name: { en: 'Seated Close-Grip Cable Row', ar: 'سحب أرضي قبضة ضيقة' },
@@ -180,11 +137,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['biceps', 'rear_delts'],
     equipment: ['cable'],
     isUnilateral: false,
-    formCues: [
-      'Chest up, slight knee bend',
-      'Row to the belly, squeeze shoulder blades',
-      'Let the shoulders reach forward on the return',
-    ],
   },
   standing_lat_pushdown: {
     name: { en: 'Standing Lat Pushdown (Cable)', ar: 'ماكينة سحب ضهر بالبار وإنت واقف' },
@@ -193,12 +145,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['triceps'],
     equipment: ['cable'],
     isUnilateral: false,
-    videoQuery: 'standing straight arm lat pushdown cable form',
-    formCues: [
-      'Hinge slightly, arms nearly straight',
-      'Sweep the bar down to your thighs',
-      'Feel the lats stretch on the way up',
-    ],
   },
   hammer_strength_lat_pulldown: {
     name: { en: 'Seated Lat Pulldown (Hammer Strength)', ar: 'الهامر' },
@@ -207,11 +153,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['biceps', 'upper_back'],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Thighs locked under the pads',
-      'Drive elbows down to your ribs',
-      'Controlled stretch at the top',
-    ],
   },
   dumbbell_front_raise: {
     name: { en: 'Dumbbell Front Raise', ar: 'رفرفة كتف أمامي' },
@@ -220,11 +161,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['upper_chest'],
     equipment: ['dumbbell'],
     isUnilateral: false,
-    formCues: [
-      'Stand tall, soft elbows',
-      'Raise to eye level, no momentum',
-      'Lower over 2–3 s',
-    ],
   },
   reverse_pec_deck: {
     name: { en: 'Reverse Pec Deck Machine', ar: 'ماكينة كتف خلفي' },
@@ -233,11 +169,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['upper_back'],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Chest on the pad, handles at shoulder height',
-      'Sweep arms back, lead with the elbows',
-      "Don't pinch the shoulder blades hard",
-    ],
   },
   close_grip_ez_bar_curl: {
     name: { en: 'Close-Grip EZ Bar Biceps Curl', ar: 'باي بار زجزاج ضيق' },
@@ -246,11 +177,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['forearms'],
     equipment: ['ez_bar'],
     isUnilateral: false,
-    formCues: [
-      'Elbows fixed at your sides',
-      'Curl up without leaning back',
-      'Full extension at the bottom',
-    ],
   },
   dumbbell_hammer_curl: {
     name: { en: 'Dumbbell Hammer Curl', ar: 'مطرقة خارجي باي بالدامبل' },
@@ -259,11 +185,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['biceps', 'forearms'],
     equipment: ['dumbbell'],
     isUnilateral: false,
-    formCues: [
-      'Neutral (thumbs-up) grip',
-      'Elbows still, curl to shoulder height',
-      'Lower slowly, no swinging',
-    ],
   },
 
   // ── Leg A ─────────────────────────────────────────────────────────────────
@@ -274,11 +195,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['lower_back', 'forearms'],
     equipment: ['dumbbell'],
     isUnilateral: false,
-    formCues: [
-      'Hinge at the hips, neutral spine',
-      'Dumbbells close to the legs',
-      'Drive hips forward to stand tall',
-    ],
   },
   leg_extension: {
     name: { en: 'Leg Extensions', ar: 'ماكينة رجل أمامي' },
@@ -287,11 +203,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Knee joint lined up with the machine pivot',
-      'Extend fully and squeeze 1 s',
-      'Lower under control',
-    ],
   },
   lying_leg_curl: {
     name: { en: 'Lying Leg Curls', ar: 'ماكينة رجل خلفي' },
@@ -300,11 +211,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['calves'],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Hips pressed into the pad',
-      'Curl heels toward glutes',
-      'Slow 3 s negative',
-    ],
   },
   leg_press: {
     name: { en: 'Leg Press', ar: 'مكبس' },
@@ -313,11 +219,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['glutes', 'hamstrings'],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Feet shoulder-width, mid-platform',
-      'Lower until knees ~90°, hips stay down',
-      "Press through heels, don't lock knees",
-    ],
   },
   standing_calf_raise: {
     name: { en: 'Machine Standing Calf Raise', ar: 'سمانة وإنت واقف' },
@@ -326,11 +227,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Balls of feet on the edge',
-      'Full stretch at the bottom, pause',
-      'Rise as high as possible, squeeze',
-    ],
   },
   seated_calf_raise: {
     name: { en: 'Seated Calf Raise', ar: 'سمانة وإنت قاعد' },
@@ -339,11 +235,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Pad snug on the lower thighs',
-      'Deep stretch, 1 s pause at the bottom',
-      'Drive up through the big toe',
-    ],
   },
   hip_thrust: {
     name: { en: 'Hip Thrust', ar: 'هيب ثرست' },
@@ -352,11 +243,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['hamstrings'],
     equipment: ['barbell', 'bench'],
     isUnilateral: false,
-    formCues: [
-      'Upper back on the bench edge',
-      'Chin tucked, ribs down',
-      'Drive hips to full lockout, squeeze glutes',
-    ],
   },
 
   // ── Upper B ───────────────────────────────────────────────────────────────
@@ -367,11 +253,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['front_delts', 'triceps'],
     equipment: ['dumbbell', 'bench'],
     isUnilateral: false,
-    formCues: [
-      'Shoulder blades back and down',
-      'Lower to chest level with a deep stretch',
-      'Press up in a slight arc',
-    ],
   },
   hammer_strength_incline_press: {
     name: { en: 'Hammer Strength Incline Chest Press', ar: 'ماكينة تقفيل بنش عالي' },
@@ -380,11 +261,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['front_delts', 'triceps'],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Seat so handles line up with upper chest',
-      'Keep chest up, shoulders down',
-      "Press without locking out, control back",
-    ],
   },
   wide_grip_lat_pulldown: {
     name: { en: 'Wide-Grip Lat Pulldown', ar: 'ماكينة ظهر أمامي واسع' },
@@ -393,11 +269,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['biceps', 'upper_back'],
     equipment: ['cable'],
     isUnilateral: false,
-    formCues: [
-      'Grip just outside shoulder width',
-      'Pull to the upper chest, lean back slightly',
-      'Full stretch overhead each rep',
-    ],
   },
   seated_dumbbell_press: {
     name: { en: 'Seated Dumbbell Shoulder Press', ar: 'تقفيل كتف بالدامبل على كرسي الـ 90' },
@@ -406,11 +277,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['side_delts', 'triceps'],
     equipment: ['dumbbell', 'bench'],
     isUnilateral: false,
-    formCues: [
-      'Bench upright at 90°, back flat',
-      'Lower to ear level',
-      'Press up and slightly together',
-    ],
   },
   leaning_lateral_raise: {
     name: { en: 'Leaning Dumbbell Lateral Raise', ar: 'رفرفة جانبي مائل بالدامبل' },
@@ -419,11 +285,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['dumbbell'],
     isUnilateral: true,
-    formCues: [
-      'Hold a post and lean away',
-      'Raise to shoulder height, lead with the elbow',
-      'Slow negative, then switch sides',
-    ],
   },
   barbell_skull_crusher: {
     name: { en: 'Barbell Skull Crushers (EZ Bar)', ar: 'بار تراي زجزاج وإنت على الأرض' },
@@ -432,12 +293,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['ez_bar'],
     isUnilateral: false,
-    videoQuery: 'EZ bar skull crushers proper form',
-    formCues: [
-      'Lying on the floor, upper arms angled slightly back',
-      'Lower the bar toward your forehead',
-      'Extend without flaring elbows',
-    ],
   },
   dumbbell_kickback: {
     name: { en: 'Triceps Dumbbell Kickback', ar: 'دامبل رفص تراي' },
@@ -446,11 +301,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['dumbbell', 'bench'],
     isUnilateral: true,
-    formCues: [
-      'Torso near parallel, upper arm by your side',
-      'Extend until the arm is straight',
-      'Squeeze 1 s, lower slowly',
-    ],
   },
   overhead_cable_curl: {
     name: { en: 'One-Arm Overhead Cable Curl', ar: 'باي كابل علوي بذراع واحدة' },
@@ -459,11 +309,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['cable'],
     isUnilateral: true,
-    formCues: [
-      'Pulley at shoulder height or above',
-      'Arm out to the side, elbow fixed',
-      'Curl toward your head, squeeze the peak',
-    ],
   },
   straight_barbell_curl: {
     name: { en: 'Straight Barbell Biceps Curl (Wide)', ar: 'باي بار مستقيم واسع' },
@@ -472,11 +317,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['forearms'],
     equipment: ['barbell'],
     isUnilateral: false,
-    formCues: [
-      'Grip slightly wider than shoulders',
-      'Elbows still, no hip swing',
-      'Full range top to bottom',
-    ],
   },
 
   // ── Lower B ───────────────────────────────────────────────────────────────
@@ -487,11 +327,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['glutes'],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Back flat on the pad, feet mid-platform',
-      'Descend until thighs are parallel or lower',
-      'Drive up through the whole foot',
-    ],
   },
   dumbbell_lunge: {
     name: { en: 'Dumbbell Lunge', ar: 'طعن بالدامبل' },
@@ -500,11 +335,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['hamstrings'],
     equipment: ['dumbbell'],
     isUnilateral: true,
-    formCues: [
-      'Long step, torso upright',
-      'Back knee lowers toward the floor',
-      'Push through the front heel',
-    ],
   },
   leg_press_calf_raise: {
     name: { en: 'Leg Press Calf Raise', ar: 'سمانة على المكبس' },
@@ -513,11 +343,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['machine'],
     isUnilateral: false,
-    formCues: [
-      'Balls of feet on the platform edge',
-      'Knees soft but fixed',
-      'Full stretch, full press',
-    ],
   },
   dumbbell_wrist_curl: {
     name: { en: 'Seated Dumbbell Wrist Curl', ar: 'رست بالدامبل' },
@@ -526,11 +351,6 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: [],
     equipment: ['dumbbell', 'bench'],
     isUnilateral: false,
-    formCues: [
-      'Forearms on thighs, wrists past the knees',
-      'Let the dumbbell roll to the fingertips',
-      'Curl the wrist up and squeeze',
-    ],
   },
   forearm_barbell_curl: {
     name: { en: 'Forearm Barbell Curl', ar: 'ساعد بالبار' },
@@ -539,26 +359,45 @@ export const EXERCISES = defineExercises({
     secondaryMuscles: ['brachialis'],
     equipment: ['barbell'],
     isUnilateral: false,
-    videoQuery: 'barbell reverse curl forearms proper form',
-    formCues: [
-      'Overhand grip, shoulder width',
-      'Elbows tight to the sides',
-      'Curl up, lower over 3 s',
-    ],
   },
 });
 
-export type ExerciseId = keyof typeof EXERCISES;
+export type BuiltinExerciseId = keyof typeof EXERCISES;
 
-export const EXERCISE_LIST: readonly Exercise[] = Object.values(EXERCISES);
+/** Built-in seed rows, in program order. */
+export const BUILTIN_EXERCISES: readonly Exercise[] = Object.values(EXERCISES);
 
-export function getExercise(id: string): Exercise | undefined {
-  return isExerciseId(id) ? EXERCISES[id] : undefined;
+export function getBuiltinExercise(id: string): Exercise | undefined {
+  return isBuiltinExerciseId(id) ? EXERCISES[id] : undefined;
 }
 
-export function isExerciseId(id: string): id is ExerciseId {
+export function isBuiltinExerciseId(id: string): id is BuiltinExerciseId {
   return Object.prototype.hasOwnProperty.call(EXERCISES, id);
 }
+
+/** The authored columns of a built-in row (what the seed is allowed to refresh). */
+export function builtinContent(exercise: Exercise): ExerciseContent {
+  const { name, arabicNameSource, primaryMuscles, secondaryMuscles, equipment, weightType, isUnilateral, instructions, breathing, rangeOfMotion, commonMistakes, alternatives, videoId } = exercise;
+  return { name, arabicNameSource, primaryMuscles, secondaryMuscles, equipment, weightType, isUnilateral, instructions, breathing, rangeOfMotion, commonMistakes, alternatives, videoId };
+}
+
+export const EQUIPMENT_LABELS: Record<Equipment, LocalizedText> = {
+  barbell: { en: 'Barbell', ar: 'بار' },
+  ez_bar: { en: 'EZ Bar', ar: 'بار متعرج' },
+  dumbbell: { en: 'Dumbbell', ar: 'دمبل' },
+  cable: { en: 'Cable', ar: 'كابل' },
+  machine: { en: 'Machine', ar: 'ماكينة' },
+  bench: { en: 'Bench', ar: 'مقعد' },
+  bodyweight: { en: 'Bodyweight', ar: 'وزن الجسم' },
+  kettlebell: { en: 'Kettlebell', ar: 'كيتل بل' },
+  band: { en: 'Band', ar: 'حبل مطاطي' },
+  other: { en: 'Other', ar: 'أخرى' },
+};
+
+export const MUSCLE_GROUPS: readonly MuscleGroup[] = [
+  'chest', 'upper_chest', 'front_delts', 'side_delts', 'rear_delts', 'triceps', 'lats', 'upper_back', 'lower_back',
+  'biceps', 'brachialis', 'forearms', 'abs', 'hip_flexors', 'quads', 'hamstrings', 'glutes', 'calves',
+];
 
 export const MUSCLE_LABELS: Record<MuscleGroup, LocalizedText> = {
   chest: { en: 'Chest', ar: 'الصدر' },

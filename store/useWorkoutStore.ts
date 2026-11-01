@@ -1,4 +1,5 @@
 import { randomUUID } from 'expo-crypto';
+import { useMemo } from 'react';
 import { create } from 'zustand';
 
 import type { PersistedWorkoutState } from '@/data/db/repository';
@@ -11,6 +12,8 @@ import {
   type PreviousPerformance,
 } from '@/lib/workoutMath';
 import type {
+  Exercise,
+  ExerciseContent,
   ExerciseSet,
   Plan,
   PlanDay,
@@ -44,7 +47,26 @@ export interface SetValues {
   reps?: number | null;
 }
 
+/** Fields a user may set on any exercise (built-in or custom). */
+export interface ExerciseUserPatch {
+  userNotes?: string;
+  userRestSeconds?: number | null;
+  imageUri?: string | null;
+}
+
+/** What the custom-exercise editor supplies; the store fills ids, origin and timestamps. */
+export type CustomExerciseInput = Omit<ExerciseContent, 'arabicNameSource'> & { imageUri?: string | null };
+
 interface WorkoutActions {
+  // Exercise library (ADR-007)
+  createCustomExercise: (input: CustomExerciseInput) => Exercise;
+  /** Edits the authored fields of a custom exercise; built-ins are refused. */
+  updateCustomExercise: (id: string, patch: Partial<CustomExerciseInput>) => void;
+  /** Notes, rest override and photo: allowed on every exercise. */
+  updateExerciseUser: (id: string, patch: ExerciseUserPatch) => void;
+  /** Archives (never deletes) a custom exercise; history keeps referencing it. */
+  setExerciseArchived: (id: string, archived: boolean) => void;
+
   // Plans & rotation
   /** Makes a template/reference the active plan (copied), replacing the current active plan. */
   adoptPlan: (sourcePlanId: string) => Plan | null;
@@ -147,6 +169,7 @@ export function attachPersistence(adapter: Persistence | null): void {
 }
 
 const pickPersisted = (state: WorkoutState): PersistedWorkoutState => ({
+  exercises: state.exercises,
   plans: state.plans,
   activeSession: state.activeSession,
   history: state.history,
@@ -292,6 +315,7 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
   return {
     previewDayIndex: null,
     persistenceError: null,
+    exercises: [],
     plans: [],
     activeSession: null,
     history: [],
@@ -299,6 +323,45 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
     settings: DEFAULT_SETTINGS,
 
     // ── Plans & rotation ─────────────────────────────────────────────────
+
+    createCustomExercise: (input) => {
+      const now = nowIso();
+      const exercise: Exercise = {
+        ...input,
+        id: randomUUID(),
+        origin: 'custom',
+        arabicNameSource: 'user',
+        imageUri: input.imageUri ?? null,
+        userNotes: '',
+        userRestSeconds: null,
+        archived: false,
+        createdAt: now,
+        updatedAt: now,
+      };
+      set((state) => ({ exercises: [...state.exercises, exercise] }));
+      return exercise;
+    },
+
+    updateCustomExercise: (id, patch) =>
+      set((state) => ({
+        exercises: state.exercises.map((exercise) =>
+          exercise.id === id && exercise.origin === 'custom' ? { ...exercise, ...patch, updatedAt: nowIso() } : exercise,
+        ),
+      })),
+
+    updateExerciseUser: (id, patch) =>
+      set((state) => ({
+        exercises: state.exercises.map((exercise) => (exercise.id === id ? { ...exercise, ...patch, updatedAt: nowIso() } : exercise)),
+      })),
+
+    setExerciseArchived: (id, archived) =>
+      set((state) => ({
+        exercises: state.exercises.map((exercise) =>
+          exercise.id === id && exercise.origin === 'custom' && exercise.archived !== archived
+            ? { ...exercise, archived, updatedAt: nowIso() }
+            : exercise,
+        ),
+      })),
 
     adoptPlan: (sourcePlanId) => {
       const { plans } = get();
@@ -642,4 +705,25 @@ export const selectPreviousExercise =
 /** History sessions for one plan day, newest first — memoize in the component if you need the array. */
 export function getDayHistory(state: WorkoutState, planDayId: string): WorkoutSession[] {
   return state.history.filter((session) => session.planDayId === planDayId);
+}
+
+// ─── Exercise selectors ───────────────────────────────────────────────────────
+
+/** Looks an exercise up by id (archived ones included, so history always resolves). */
+export const selectExercise =
+  (id: string | null | undefined) =>
+  (state: WorkoutState): Exercise | undefined =>
+    id ? state.exercises.find((exercise) => exercise.id === id) : undefined;
+
+/** Non-archived exercises for pickers and the Library, English name order. */
+export const selectLibrary = (state: WorkoutState): Exercise[] =>
+  state.exercises.filter((exercise) => !exercise.archived).sort((a, b) => a.name.en.localeCompare(b.name.en));
+
+/** Hook form of `selectExercise`; re-renders only when that exercise changes. */
+export const useExercise = (id: string | null | undefined): Exercise | undefined => useWorkoutStore(selectExercise(id));
+
+/** Id → exercise map for list renders; memoised on the exercises slice. */
+export function useExerciseMap(): Map<string, Exercise> {
+  const exercises = useWorkoutStore((state) => state.exercises);
+  return useMemo(() => new Map(exercises.map((exercise) => [exercise.id, exercise])), [exercises]);
 }

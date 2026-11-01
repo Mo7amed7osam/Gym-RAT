@@ -4,21 +4,20 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { VideoModal } from '@/components/VideoModal';
+import { ExerciseGuideModal } from '@/components/ExerciseGuideModal';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { HIT } from '@/constants/theme';
-import { getExercise } from '@/data/exercisesData';
 import { estimateDurationMinutes, getTotalSets, isSessionForDay } from '@/data/plans';
 import { PDF_PROGRAM_INFO } from '@/data/seeds/pdfProgram';
 import { COACH_NOTES, WARMUP_STAGES } from '@/data/warmupData';
 import { formatDuration, formatKg, formatLongDate, formatShortDate, formatWeekdayShort, percentChange, startOfWeek } from '@/lib/format';
 import { countSets, formatSet, getExerciseBests, weeklyVolumeKg } from '@/lib/workoutMath';
 import { useLocale, useT } from '@/i18n';
-import { selectActivePlan, selectNextDay, selectPreviewedDay, useWorkoutStore } from '@/store/useWorkoutStore';
+import { selectActivePlan, selectNextDay, selectPreviewedDay, useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Plan, PlanDay, WorkoutSession } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
 
@@ -174,7 +173,7 @@ export default function TodayDashboardScreen() {
         </View>
       </ScrollView>
 
-      <VideoModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
+      <ExerciseGuideModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
       <ConfirmDialog
         visible={confirmDiscard}
         title={t('today.discardTitle')}
@@ -406,10 +405,11 @@ function ExerciseList({
   const styles = useStyles();
   const theme = useTheme();
   const t = useT();
+  const exerciseMap = useExerciseMap();
   return (
     <View style={styles.group}>
       {day.exercises.map((item, index) => {
-        const exercise = getExercise(item.exerciseId);
+        const exercise = exerciseMap.get(item.exerciseId);
         const best = getExerciseBests(history, item.exerciseId).bestSet;
         const reps = item.reps.min === item.reps.max ? item.reps.min : `${item.reps.min}–${item.reps.max}`;
         return (

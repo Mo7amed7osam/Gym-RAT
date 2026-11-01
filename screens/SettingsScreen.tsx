@@ -1,9 +1,10 @@
 import { useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import appConfig from '@/app.json';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { resetAllData } from '@/data/db/boot';
 import { SCHEMA_VERSION } from '@/data/db/migrations';
@@ -248,6 +249,28 @@ export default function SettingsScreen() {
             </Pressable>
           </View>
         </View>
+
+        <View style={styles.section}>
+          <SectionHeader title={t('settings.about')} />
+          <View style={styles.group}>
+            <View style={[styles.row, styles.divider]}>
+              <View style={styles.flex}>
+                <Text style={styles.rowTitle}>{t('settings.creditsRepdb')}</Text>
+                <Text style={styles.rowDetail}>{t('settings.creditsRepdbDetail')}</Text>
+              </View>
+            </View>
+            <Pressable
+              onPress={() => void Linking.openURL('https://repdb.co')}
+              accessibilityRole="link"
+              style={({ pressed }) => [styles.row, styles.divider, pressed && styles.pressed]}
+            >
+              <Text style={styles.link}>{t('settings.openLink')}</Text>
+            </Pressable>
+            <View style={styles.row}>
+              <Text style={styles.rowDetail}>{t('settings.version', { version: appConfig.expo.version })}</Text>
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
       <ConfirmDialog
@@ -413,6 +436,10 @@ const useStyles = createStyles((t) =>
     },
     errorText: {
       color: t.colors.destructive,
+    },
+    link: {
+      ...t.typography.body,
+      color: t.colors.link,
     },
     destructive: {
       ...t.typography.body,

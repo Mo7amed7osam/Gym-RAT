@@ -2,7 +2,7 @@ import { render } from '@testing-library/react-native';
 
 import { ExerciseCard } from '@/components/ExerciseCard';
 import { SetRow } from '@/components/SetRow';
-import { seedPlans } from '@/data/db/seed';
+import { seedExercises, seedPlans } from '@/data/db/seed';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { ExerciseSet } from '@/types/workout';
 
@@ -82,7 +82,7 @@ describe('ExerciseCard', () => {
     useWorkoutStore.setState({
       previewDayIndex: null,
       persistenceError: null,
-      ...seedPlans({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS }),
+      ...seedExercises(seedPlans({ exercises: [], plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS })),
     });
   });
 
@@ -90,7 +90,7 @@ describe('ExerciseCard', () => {
     const result = useWorkoutStore.getState().startWorkout({ planId: 'pdf_ppl_ul_v5', dayIndex: 0 });
     if (!result.ok) throw new Error('expected session');
     const exercise = result.session.exercises[0];
-    const tree = await render(<ExerciseCard sessionExercise={exercise} position={1} total={result.session.exercises.length} onOpenVideo={noop} />);
+    const tree = await render(<ExerciseCard sessionExercise={exercise} position={1} total={result.session.exercises.length} onOpenGuide={noop} />);
     expect(tree.toJSON()).toMatchSnapshot();
   });
 });

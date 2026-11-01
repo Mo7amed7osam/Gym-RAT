@@ -9,7 +9,7 @@
  * cleanly onto relational tables.
  */
 
-import type { ExerciseImageKey, StretchPosterKey } from '@/assets/exercises';
+import type { StretchPosterKey } from '@/assets/exercises';
 
 // ─── Shared primitives ───────────────────────────────────────────────────────
 
@@ -51,27 +51,60 @@ export type Equipment =
   | 'cable'
   | 'machine'
   | 'bench'
-  | 'bodyweight';
+  | 'bodyweight'
+  | 'kettlebell'
+  | 'band'
+  | 'other';
 
 // ─── Program layer ───────────────────────────────────────────────────────────
 
+export type ExerciseOrigin = 'builtin' | 'custom';
+
+/**
+ * How the logged weight is read for analytics and PRs.
+ * `per_hand`: dumbbells, the number entered is one hand. `assisted`: the number is assistance, so lighter is harder.
+ */
+export type WeightType = 'total' | 'per_hand' | 'bodyweight' | 'weighted_bodyweight' | 'assisted';
+
+/**
+ * One exercise in the runtime library (ADR-007). Built-ins are seeded from
+ * `data/exercisesData.ts` and refreshed on update; the user-owned fields
+ * (`userNotes`, `userRestSeconds`, `imageUri`, `archived`) are never touched by the seed.
+ * Sessions reference exercises by id only, so renaming or archiving keeps history intact.
+ */
 export interface Exercise {
   id: string;
+  origin: ExerciseOrigin;
   name: LocalizedText;
-  /** Where the Arabic name came from — the PDF omits it for a few movements. */
-  arabicNameSource: 'pdf' | 'supplied';
+  /** Where the Arabic name came from; `user` for custom exercises. */
+  arabicNameSource: 'pdf' | 'supplied' | 'user';
   primaryMuscles: MuscleGroup[];
   secondaryMuscles: MuscleGroup[];
   equipment: Equipment[];
+  weightType: WeightType;
   /** Performed one side at a time (log per side or per arm). */
   isUnilateral: boolean;
-  /** Short coaching cues, shown in order. */
-  formCues: string[];
-  /** YouTube search URL for a form tutorial. */
-  videoUrl: string;
-  /** Local photo from the program PDF (see assets/exercises); absent when the PDF has none. */
-  thumbnailKey?: ExerciseImageKey;
+  /** Technique steps in order; the first two double as the workout card cues. */
+  instructions: LocalizedText[];
+  breathing: LocalizedText | null;
+  rangeOfMotion: LocalizedText | null;
+  commonMistakes: LocalizedText[];
+  /** Ids of exercises that train the same muscles (substitution candidates). */
+  alternatives: string[];
+  /** Curated YouTube video id for the embedded player (Phase 5); null = none yet. */
+  videoId: string | null;
+  /** Custom media in the app sandbox (file URI); built-ins use the bundled manifest instead. */
+  imageUri: string | null;
+  userNotes: string;
+  /** Per-exercise rest override in seconds; null = use the plan's prescription. */
+  userRestSeconds: number | null;
+  archived: boolean;
+  createdAt: ISODateString;
+  updatedAt: ISODateString;
 }
+
+/** The authored part of an exercise: everything except id, origin, timestamps and user fields. */
+export type ExerciseContent = Omit<Exercise, 'id' | 'origin' | 'imageUri' | 'userNotes' | 'userRestSeconds' | 'archived' | 'createdAt' | 'updatedAt'>;
 
 export interface RepRange {
   min: number;

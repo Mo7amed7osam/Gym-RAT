@@ -8,7 +8,7 @@ const resetStore = () =>
   useWorkoutStore.setState({
     previewDayIndex: null,
     persistenceError: null,
-    ...seedPlans({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS }),
+    ...seedPlans({ exercises: [], plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS }),
   });
 
 const start = (dayIndex?: number) => {
@@ -405,6 +405,7 @@ describe('write-through persistence', () => {
     let writes = 0;
     attachPersistence({ persist: () => void writes++ });
     useWorkoutStore.getState().hydrate({
+      exercises: [],
       plans: [],
       activeSession: null,
       history: [],

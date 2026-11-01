@@ -131,7 +131,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions (status);
 CREATE INDEX IF NOT EXISTS idx_sessions_plan_day ON sessions (plan_day_id);
 `;
 
-export const REQUIRED_TABLES = ['sessions', 'session_exercises', 'sets', 'kv', 'plans', 'plan_days', 'plan_exercises'] as const;
+export const REQUIRED_TABLES = ['sessions', 'session_exercises', 'sets', 'kv', 'plans', 'plan_days', 'plan_exercises', 'exercises'] as const;
 
 /** Keys inside the `kv` table. */
 export const KV = {
@@ -144,4 +144,32 @@ export const KV = {
 /** v3: the bundled program is an ordinary template; the `reference` kind is retired. */
 export const SCHEMA_V3 = `
 UPDATE plans SET kind = 'template' WHERE kind = 'reference';
+`;
+
+/** v4: runtime exercise library (ADR-007). Built-in rows are seeded at boot; customs live here too. */
+export const SCHEMA_V4 = `
+CREATE TABLE IF NOT EXISTS exercises (
+  id TEXT PRIMARY KEY NOT NULL,
+  origin TEXT NOT NULL CHECK (origin IN ('builtin', 'custom')),
+  name_json TEXT NOT NULL,
+  arabic_name_source TEXT NOT NULL DEFAULT 'supplied',
+  primary_muscles_json TEXT NOT NULL DEFAULT '[]',
+  secondary_muscles_json TEXT NOT NULL DEFAULT '[]',
+  equipment_json TEXT NOT NULL DEFAULT '[]',
+  weight_type TEXT NOT NULL DEFAULT 'total',
+  is_unilateral INTEGER NOT NULL DEFAULT 0,
+  instructions_json TEXT NOT NULL DEFAULT '[]',
+  breathing_json TEXT,
+  range_of_motion_json TEXT,
+  common_mistakes_json TEXT NOT NULL DEFAULT '[]',
+  alternatives_json TEXT NOT NULL DEFAULT '[]',
+  video_id TEXT,
+  image_uri TEXT,
+  user_notes TEXT NOT NULL DEFAULT '',
+  user_rest_seconds INTEGER,
+  archived INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_exercises_origin ON exercises (origin, archived);
 `;

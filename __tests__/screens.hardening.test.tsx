@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
-import { EXERCISE_LIST, MUSCLE_LABELS } from '@/data/exercisesData';
+import { BUILTIN_EXERCISES, MUSCLE_LABELS } from '@/data/exercisesData';
 import { resetAllData } from '@/data/db/boot';
-import { seedPlans } from '@/data/db/seed';
+import { seedExercises, seedPlans } from '@/data/db/seed';
 import { PDF_PROGRAM_ID } from '@/data/seeds/pdfProgram';
 import { STARTER_PLAN_ID } from '@/data/seeds/starterPlan';
 import LibraryScreen from '@/screens/LibraryScreen';
@@ -25,10 +25,10 @@ jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace, back
 jest.mock('@/data/db/boot', () => ({
   resetAllData: jest.fn(async () => {
     const { DEFAULT_SETTINGS, IDLE_REST_TIMER, useWorkoutStore } = require('@/store/useWorkoutStore');
-    const { seedPlans } = require('@/data/db/seed');
+    const { seedExercises, seedPlans } = require('@/data/db/seed');
     useWorkoutStore
       .getState()
-      .hydrate(seedPlans({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS }));
+      .hydrate(seedExercises(seedPlans({ exercises: [], plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS })));
   }),
   getBootStatus: () => 'ready',
 }));
@@ -37,7 +37,7 @@ const freshInstall = () =>
   useWorkoutStore.setState({
     previewDayIndex: null,
     persistenceError: null,
-    ...seedPlans({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS }),
+    ...seedExercises(seedPlans({ exercises: [], plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS })),
   });
 
 beforeEach(() => {
@@ -102,7 +102,7 @@ describe('OnboardingScreen', () => {
 describe('LibraryScreen search', () => {
   const matches = (query: string) => {
     const q = query.toLowerCase();
-    return EXERCISE_LIST.filter(
+    return BUILTIN_EXERCISES.filter(
       (e) =>
         e.name.en.toLowerCase().includes(q) ||
         e.name.ar.includes(query) ||
@@ -112,7 +112,7 @@ describe('LibraryScreen search', () => {
 
   it('filters by English name, Arabic name and muscle, and shows the empty state', async () => {
     await render(<LibraryScreen />);
-    expect(screen.getByText(`${EXERCISE_LIST.length} exercises`)).toBeTruthy();
+    expect(screen.getByText(`${BUILTIN_EXERCISES.length} exercises`)).toBeTruthy();
 
     const input = screen.getByLabelText('Search exercises');
     await fireEvent.changeText(input, 'press');
@@ -122,7 +122,7 @@ describe('LibraryScreen search', () => {
     await fireEvent.changeText(input, 'chest');
     expect(screen.getByText(`${matches('chest')} exercises`)).toBeTruthy();
 
-    const arabic = EXERCISE_LIST[0].name.ar.slice(0, 4);
+    const arabic = BUILTIN_EXERCISES[0].name.ar.slice(0, 4);
     await fireEvent.changeText(input, arabic);
     expect(screen.getByText(`${matches(arabic)} exercises`)).toBeTruthy();
 
@@ -131,7 +131,7 @@ describe('LibraryScreen search', () => {
     expect(screen.getByText('No exercises match.')).toBeTruthy();
 
     await fireEvent.changeText(input, '  ');
-    expect(screen.getByText(`${EXERCISE_LIST.length} exercises`)).toBeTruthy();
+    expect(screen.getByText(`${BUILTIN_EXERCISES.length} exercises`)).toBeTruthy();
   });
 });
 

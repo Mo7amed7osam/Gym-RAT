@@ -112,7 +112,7 @@ describe('exercise order', () => {
 });
 
 describe('seedPlans', () => {
-  const empty = () => ({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
+  const empty = () => ({ exercises: [], plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
 
   it('seeds the reference, the starter template and an active Starter copy on a fresh install', () => {
     const seeded = seedPlans(empty(), '2026-11-01T00:00:00.000Z');
@@ -155,7 +155,7 @@ describe('isSessionForDay', () => {
 });
 
 describe('seedPlans onboarding', () => {
-  const empty = () => ({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
+  const empty = () => ({ exercises: [], plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
 
   it('leaves onboarding pending on a fresh install and marks it complete for installs with history', () => {
     expect(seedPlans(empty()).settings.onboardingComplete).toBe(false);

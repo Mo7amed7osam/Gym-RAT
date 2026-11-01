@@ -1,48 +1,78 @@
-import { ChevronRight, Search } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { ChevronRight, Plus, Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { VideoModal } from '@/components/VideoModal';
+import { Chip } from '@/components/ui/Chip';
 import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
+import { SelectChip } from '@/components/ui/SelectChip';
 import { HIT } from '@/constants/theme';
-import { EXERCISE_LIST, MUSCLE_LABELS } from '@/data/exercisesData';
+import { EQUIPMENT_LABELS, MUSCLE_GROUPS, MUSCLE_LABELS } from '@/data/exercisesData';
 import { useLocale, useT } from '@/i18n';
+import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
-import type { Exercise } from '@/types/workout';
+import type { Equipment, Exercise, MuscleGroup } from '@/types/workout';
 
-/**
- * Library tab (Phase 1 shell): searchable catalogue of the built-in exercises.
- * Illustrations, custom exercises and the full detail screen land in Phase 2.
- */
+type Scope = 'all' | 'custom' | 'archived';
+const EQUIPMENT_FILTERS: Equipment[] = ['barbell', 'ez_bar', 'dumbbell', 'cable', 'machine', 'bodyweight', 'kettlebell', 'band'];
+
+/** Pure filter so the screen test and the UI agree. */
+export function filterLibrary(
+  exercises: readonly Exercise[],
+  filters: { query: string; muscle: MuscleGroup | null; equipment: Equipment | null; scope: Scope },
+): Exercise[] {
+  const q = filters.query.trim().toLowerCase();
+  const raw = filters.query.trim();
+  return [...exercises]
+    .filter((exercise) => (filters.scope === 'archived' ? exercise.archived : !exercise.archived))
+    .filter((exercise) => (filters.scope === 'custom' ? exercise.origin === 'custom' : true))
+    .filter((exercise) => (filters.muscle ? exercise.primaryMuscles.includes(filters.muscle) || exercise.secondaryMuscles.includes(filters.muscle) : true))
+    .filter((exercise) => (filters.equipment ? exercise.equipment.includes(filters.equipment) : true))
+    .filter(
+      (exercise) =>
+        !q ||
+        exercise.name.en.toLowerCase().includes(q) ||
+        exercise.name.ar.includes(raw) ||
+        [...exercise.primaryMuscles, ...exercise.secondaryMuscles].some((m) => MUSCLE_LABELS[m].en.toLowerCase().includes(q)),
+    )
+    .sort((a, b) => a.name.en.localeCompare(b.name.en));
+}
+
+/** Library tab: searchable, filterable catalogue of built-in and custom exercises. */
 export default function LibraryScreen() {
   const styles = useStyles();
   const theme = useTheme();
   const t = useT();
   const locale = useLocale();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const exercises = useWorkoutStore((state) => state.exercises);
   const [query, setQuery] = useState('');
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [muscle, setMuscle] = useState<MuscleGroup | null>(null);
+  const [equipment, setEquipment] = useState<Equipment | null>(null);
+  const [scope, setScope] = useState<Scope>('all');
 
-  const exercises = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const sorted = [...EXERCISE_LIST].sort((a, b) => a.name.en.localeCompare(b.name.en));
-    if (!q) return sorted;
-    return sorted.filter(
-      (exercise) =>
-        exercise.name.en.toLowerCase().includes(q) ||
-        exercise.name.ar.includes(query.trim()) ||
-        [...exercise.primaryMuscles, ...exercise.secondaryMuscles].some((m) => MUSCLE_LABELS[m].en.toLowerCase().includes(q)),
-    );
-  }, [query]);
+  const visible = useMemo(() => filterLibrary(exercises, { query, muscle, equipment, scope }), [exercises, query, muscle, equipment, scope]);
+  const hasFilters = muscle !== null || equipment !== null || scope !== 'all';
 
   return (
     <View style={styles.root}>
       {/* The search box lives outside the list: a TextInput inside ListHeaderComponent loses focus on every keystroke when the data changes. */}
       <View style={[styles.header, { paddingTop: insets.top + theme.spacing.lg }]}>
-        <Text style={styles.largeTitle} accessibilityRole="header">
-          {t('library.title')}
-        </Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.largeTitle} accessibilityRole="header">
+            {t('library.title')}
+          </Text>
+          <Pressable
+            onPress={() => router.push('/exercise/edit')}
+            accessibilityRole="button"
+            accessibilityLabel={t('library.newExercise')}
+            style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+          >
+            <Plus size={22} color={theme.colors.onTint} strokeWidth={2.5} />
+          </Pressable>
+        </View>
         <View style={styles.search}>
           <Search size={18} color={theme.colors.labelSecondary} />
           <TextInput
@@ -56,19 +86,51 @@ export default function LibraryScreen() {
             style={styles.searchInput}
           />
         </View>
-        <Text style={styles.count}>{t('library.count', { count: exercises.length })}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow} keyboardShouldPersistTaps="handled">
+          {(['all', 'custom', 'archived'] as const).map((item) => (
+            <SelectChip
+              key={item}
+              label={t(item === 'all' ? 'library.filterAll' : item === 'custom' ? 'library.filterCustom' : 'library.filterArchived')}
+              selected={scope === item}
+              onPress={() => setScope(item)}
+            />
+          ))}
+          <View style={styles.filterGap} />
+          {EQUIPMENT_FILTERS.map((item) => (
+            <SelectChip key={item} label={EQUIPMENT_LABELS[item][locale]} selected={equipment === item} onPress={() => setEquipment(equipment === item ? null : item)} />
+          ))}
+        </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow} keyboardShouldPersistTaps="handled">
+          {MUSCLE_GROUPS.map((item) => (
+            <SelectChip key={item} label={MUSCLE_LABELS[item][locale]} selected={muscle === item} onPress={() => setMuscle(muscle === item ? null : item)} />
+          ))}
+        </ScrollView>
+        <View style={styles.countRow}>
+          <Text style={styles.count}>{t('library.count', { count: visible.length })}</Text>
+          {hasFilters ? (
+            <Pressable
+              onPress={() => {
+                setMuscle(null);
+                setEquipment(null);
+                setScope('all');
+              }}
+              accessibilityRole="button"
+              hitSlop={8}
+            >
+              <Text style={styles.clear}>{t('library.clearFilters')}</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
       <FlatList
-        data={exercises}
+        data={visible}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={<Text style={styles.empty}>{t('library.empty')}</Text>}
-        ListFooterComponent={<Text style={styles.footnote}>{t('library.customSoon')}</Text>}
-        renderItem={({ item }) => <ExerciseRow exercise={item} onPress={() => setOpenId(item.id)} />}
+        renderItem={({ item }) => <ExerciseRow exercise={item} onPress={() => router.push({ pathname: '/exercise/[id]', params: { id: item.id } })} />}
       />
-      <VideoModal exerciseId={openId} onClose={() => setOpenId(null)} />
     </View>
   );
 }
@@ -76,6 +138,7 @@ export default function LibraryScreen() {
 function ExerciseRow({ exercise, onPress }: { exercise: Exercise; onPress: () => void }) {
   const styles = useStyles();
   const theme = useTheme();
+  const t = useT();
   const locale = useLocale();
   const muscles = exercise.primaryMuscles.map((m) => MUSCLE_LABELS[m][locale]).join(' · ');
   return (
@@ -85,14 +148,19 @@ function ExerciseRow({ exercise, onPress }: { exercise: Exercise; onPress: () =>
       accessibilityLabel={`${exercise.name.en}, ${muscles}`}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      <ExerciseThumb exerciseId={exercise.id} />
+      <ExerciseThumb exerciseId={exercise.id} size={56} />
       <View style={styles.flex}>
-        <Text style={styles.headline} numberOfLines={2}>
-          {exercise.name.en}
-        </Text>
-        <Text style={styles.arabic} accessibilityLanguage="ar">
-          {exercise.name.ar}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name} numberOfLines={2}>
+            {exercise.name.en}
+          </Text>
+          {exercise.origin === 'custom' ? <Chip label={t('library.customBadge')} tone="link" /> : null}
+        </View>
+        {exercise.name.ar && exercise.name.ar !== exercise.name.en ? (
+          <Text style={styles.arabic} accessibilityLanguage="ar" numberOfLines={1}>
+            {exercise.name.ar}
+          </Text>
+        ) : null}
         <Text style={styles.secondary} numberOfLines={1}>
           {muscles}
         </Text>
@@ -106,20 +174,34 @@ const useStyles = createStyles((t) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: t.colors.background },
     content: { paddingHorizontal: t.spacing.screen, paddingBottom: t.spacing.xxxl * 2 },
-    header: { gap: t.spacing.md, paddingHorizontal: t.spacing.screen, paddingBottom: t.spacing.md },
+    header: { gap: t.spacing.md, paddingBottom: t.spacing.sm },
+    titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: t.spacing.screen },
     flex: { flex: 1, minWidth: 0 },
     largeTitle: { ...t.typography.largeTitle, color: t.colors.label },
+    addButton: {
+      width: HIT,
+      height: HIT,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.tint,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     search: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: t.spacing.sm,
       minHeight: HIT,
+      marginHorizontal: t.spacing.screen,
       paddingHorizontal: t.spacing.md,
       borderRadius: t.radii.tile,
       backgroundColor: t.colors.surface,
     },
     searchInput: { ...t.typography.body, flex: 1, color: t.colors.label, paddingVertical: 0 },
+    filterRow: { paddingHorizontal: t.spacing.screen, gap: t.spacing.sm },
+    filterGap: { width: t.spacing.sm },
+    countRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: t.spacing.screen },
     count: { ...t.typography.footnote, color: t.colors.labelSecondary },
+    clear: { ...t.typography.footnote, color: t.colors.link },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -129,11 +211,11 @@ const useStyles = createStyles((t) =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: t.colors.separator,
     },
-    headline: { ...t.typography.headline, color: t.colors.label },
-    arabic: { ...t.typography.arabic, fontSize: 13, lineHeight: 18, color: t.colors.labelSecondary, textAlign: 'left', alignSelf: 'flex-start' },
-    secondary: { ...t.typography.caption, color: t.colors.labelSecondary },
-    empty: { ...t.typography.subheadline, color: t.colors.labelSecondary, paddingVertical: t.spacing.xl },
-    footnote: { ...t.typography.caption, color: t.colors.labelTertiary, paddingVertical: t.spacing.xl },
-    pressed: { opacity: 0.7 },
+    pressed: { opacity: 0.6 },
+    nameRow: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm },
+    name: { ...t.typography.headline, color: t.colors.label, flexShrink: 1 },
+    arabic: { ...t.typography.arabic, color: t.colors.labelSecondary, textAlign: 'left' },
+    secondary: { ...t.typography.footnote, fontWeight: '400', color: t.colors.labelSecondary },
+    empty: { ...t.typography.body, color: t.colors.labelSecondary, textAlign: 'center', paddingVertical: t.spacing.xxxl },
   }),
 );

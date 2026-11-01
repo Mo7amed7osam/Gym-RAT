@@ -1,5 +1,5 @@
 import type { ExercisePrescription, Plan, PlanDay, RepRange, RestPeriod } from '@/types/workout';
-import type { ExerciseId } from '../exercisesData';
+import type { BuiltinExerciseId } from '../exercisesData';
 
 /**
  * Full Body Starter — DRAFT. Content is a placeholder until the owner approves
@@ -12,7 +12,7 @@ export const STARTER_PLAN_ID = 'full_body_starter';
 const REST_90: RestPeriod = { defaultSeconds: 90, minSeconds: 60, maxSeconds: 120 };
 const REST_120: RestPeriod = { defaultSeconds: 120, minSeconds: 120, maxSeconds: 150 };
 const reps = (min: number, max: number = min): RepRange => ({ min, max });
-const rx = (exerciseId: ExerciseId, sets: number, r: RepRange, rest: RestPeriod): ExercisePrescription => ({
+const rx = (exerciseId: BuiltinExerciseId, sets: number, r: RepRange, rest: RestPeriod): ExercisePrescription => ({
   exerciseId,
   sets,
   reps: r,

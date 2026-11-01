@@ -6,12 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT } from '@/constants/theme';
-import { getExercise } from '@/data/exercisesData';
 import { hapticSelection, restCompleteFeedback } from '@/lib/feedback';
 import { formatSet, getPreviousSetAt } from '@/lib/workoutMath';
 import { useT } from '@/i18n';
 import { formatRestTime, useRestTimerCountdown, type RestTimerPhase } from '@/store/useRestTimerCountdown';
-import { selectPreviousExercise, useWorkoutStore } from '@/store/useWorkoutStore';
+import { selectPreviousExercise, useWorkoutStore, useExercise } from '@/store/useWorkoutStore';
 import type { ExerciseSet, SessionExercise } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
 
@@ -69,7 +68,8 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
   const { exercise, completed, next } = useRestContext();
   const previousExercise = useWorkoutStore(selectPreviousExercise(exercise?.exerciseId ?? ''));
 
-  const exerciseName = exercise ? getExercise(exercise.exerciseId)?.name.en ?? exercise.exerciseId : t('rest.rest');
+  const exerciseRecord = useExercise(exercise?.exerciseId);
+  const exerciseName = exercise ? exerciseRecord?.name.en ?? exercise.exerciseId : t('rest.rest');
   const ringColor = theme.restPhaseColors[countdown.phase];
   const isPaused = countdown.phase === 'paused';
   // Ring drains as rest runs out; full red once in overtime.

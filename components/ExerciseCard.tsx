@@ -1,22 +1,19 @@
-import { CirclePlay, Dumbbell, Plus } from 'lucide-react-native';
+import { BookOpen, Plus } from 'lucide-react-native';
 import { useMemo } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-
-import { EXERCISE_IMAGES, exerciseImageAspect } from '@/assets/exercises';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Chip } from '@/components/ui/Chip';
+import { ExerciseIllustration } from '@/components/ui/ExerciseIllustration';
 import { SET_GRID_COLUMNS, SetRow } from '@/components/SetRow';
 import { HIT } from '@/constants/theme';
-import { MUSCLE_LABELS, getExercise } from '@/data/exercisesData';
+import { EQUIPMENT_LABELS, MUSCLE_LABELS } from '@/data/exercisesData';
 import { hapticSelection, hapticSetCompleted } from '@/lib/feedback';
 import { formatSet, getExerciseBests, getPreviousSetAt } from '@/lib/workoutMath';
 import { useLocale, useT } from '@/i18n';
 import { formatRestTime } from '@/store/useRestTimerCountdown';
-import { selectPreviousExercise, useWorkoutStore, type SetValues } from '@/store/useWorkoutStore';
-import type { Equipment, RestPeriod, SessionExercise } from '@/types/workout';
+import { selectPreviousExercise, useExercise, useWorkoutStore, type SetValues } from '@/store/useWorkoutStore';
+import type { RestPeriod, SessionExercise } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
-
-const equipmentKey = (equipment: Equipment): string => `exercise.equipment.${equipment}`;
 
 function formatRest(rest: RestPeriod): string {
   return rest.minSeconds === rest.maxSeconds
@@ -29,15 +26,15 @@ interface ExerciseCardProps {
   /** 1-based position in the session, e.g. "2 of 9". */
   position: number;
   total: number;
-  onOpenVideo: (exerciseId: string) => void;
+  onOpenGuide: (exerciseId: string) => void;
 }
 
-export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: ExerciseCardProps) {
+export function ExerciseCard({ sessionExercise, position, total, onOpenGuide }: ExerciseCardProps) {
   const t = useT();
   const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
-  const exercise = getExercise(sessionExercise.exerciseId);
+  const exercise = useExercise(sessionExercise.exerciseId);
   const { prescription, sets } = sessionExercise;
 
   const previousExercise = useWorkoutStore(selectPreviousExercise(sessionExercise.exerciseId));
@@ -55,11 +52,7 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
   const firstIncompleteWorkingSet = sets.find((item) => !item.completed && item.type === 'working');
 
   const name = exercise?.name.en ?? sessionExercise.exerciseId;
-  const imageSource = exercise?.thumbnailKey ? EXERCISE_IMAGES[exercise.thumbnailKey] : null;
-  // Box the photo at its own shape so the whole start→finish sequence shows uncropped;
-  // clamp very tall shots so the set grid stays above the fold.
-  const imageAspect = exercise?.thumbnailKey ? Math.max(exerciseImageAspect(exercise.thumbnailKey), 1.2) : null;
-  const cues = exercise?.formCues.slice(0, 2) ?? [];
+  const cues = exercise?.instructions.slice(0, 2).map((step) => step[locale] || step.en) ?? [];
   const muscles = exercise ? [...exercise.primaryMuscles, ...exercise.secondaryMuscles].slice(0, 3) : [];
 
   const handleComplete = (setId: string, values: SetValues) => {
@@ -88,50 +81,29 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
           {muscles.map((muscle) => (
             <Chip key={muscle} label={MUSCLE_LABELS[muscle][locale]} />
           ))}
-          {exercise?.equipment[0] ? <Chip label={t(equipmentKey(exercise.equipment[0]))} tone="link" /> : null}
+          {exercise?.equipment[0] ? <Chip label={EQUIPMENT_LABELS[exercise.equipment[0]][locale]} tone="link" /> : null}
         </View>
       </View>
 
       <Pressable
-        onPress={() => onOpenVideo(sessionExercise.exerciseId)}
+        onPress={() => onOpenGuide(sessionExercise.exerciseId)}
         accessibilityRole="button"
-        accessibilityLabel={t('exercise.watchTutorial', { name })}
-        style={({ pressed }) => [
-          styles.thumbnail,
-          imageSource && styles.thumbnailPhoto,
-          imageAspect !== null && { aspectRatio: imageAspect },
-          pressed && styles.pressed,
-        ]}
+        accessibilityLabel={t('exercise.openGuide', { name })}
+        style={({ pressed }) => [styles.guideRow, pressed && styles.pressed]}
       >
-        {imageSource ? (
-          <Image source={imageSource} style={styles.photo} resizeMode="cover" accessibilityIgnoresInvertColors />
-        ) : (
-          <>
-            <Dumbbell size={56} color={theme.colors.surfaceHigh} strokeWidth={1.5} />
-            <View style={styles.thumbnailCues}>
-              {cues.map((cue) => (
-                <Text key={cue} style={styles.thumbnailCue} numberOfLines={1}>
-                  • {cue}
-                </Text>
-              ))}
-            </View>
-          </>
-        )}
-        <View style={styles.playBadge}>
-          <CirclePlay size={18} color={theme.colors.link} />
-          <Text style={styles.playText}>{t('exercise.formVideo')}</Text>
-        </View>
-      </Pressable>
-
-      {imageSource && cues.length > 0 ? (
-        <View style={styles.cues}>
+        <ExerciseIllustration exercise={exercise} variant="compact" style={styles.illustration} />
+        <View style={styles.guideText}>
           {cues.map((cue) => (
             <Text key={cue} style={styles.thumbnailCue} numberOfLines={2}>
               • {cue}
             </Text>
           ))}
+          <View style={styles.playBadge}>
+            <BookOpen size={16} color={theme.colors.link} />
+            <Text style={styles.playText}>{t('exercise.guide')}</Text>
+          </View>
         </View>
-      ) : null}
+      </Pressable>
 
       <View style={styles.stats}>
         <Stat label={t('exercise.target')} value={`${prescription.sets} × ${formatRepRange(prescription.reps.min, prescription.reps.max)}`} />
@@ -239,51 +211,35 @@ const useStyles = createStyles((t) =>
       gap: t.spacing.sm,
       marginTop: t.spacing.sm,
     },
-    thumbnail: {
-      height: 168,
-      borderRadius: t.radii.sheet,
-      backgroundColor: t.colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden',
-      gap: t.spacing.md,
-      paddingHorizontal: t.spacing.lg,
-    },
-    thumbnailPhoto: {
-      height: undefined,
-      width: '100%',
-      // PDF photos are shot on white; match it so `contain` letterboxing is invisible.
-      backgroundColor: t.colors.photoBackground,
-      paddingHorizontal: 0,
-    },
-    photo: {
-      width: '100%',
-      height: '100%',
-    },
-    cues: {
-      gap: 2,
-      marginTop: -t.spacing.sm,
-      paddingHorizontal: t.spacing.xxs,
-    },
-    thumbnailCues: {
-      alignSelf: 'stretch',
-      gap: 2,
-    },
     thumbnailCue: {
       ...t.typography.subheadline,
       color: t.colors.labelSecondary,
     },
+    guideRow: {
+      flexDirection: 'row',
+      gap: t.spacing.md,
+      alignItems: 'stretch',
+    },
+    illustration: {
+      width: 128,
+      alignSelf: 'flex-start',
+    },
+    guideText: {
+      flex: 1,
+      minWidth: 0,
+      justifyContent: 'space-between',
+      gap: t.spacing.xs,
+      paddingVertical: t.spacing.xxs,
+    },
     playBadge: {
-      position: 'absolute',
-      top: t.spacing.md,
-      right: t.spacing.md,
       flexDirection: 'row',
       alignItems: 'center',
+      alignSelf: 'flex-start',
       gap: 6,
-      paddingHorizontal: 10,
       minHeight: 32,
+      paddingHorizontal: 10,
       borderRadius: t.radii.pill,
-      backgroundColor: t.colors.background,
+      backgroundColor: t.colors.linkMuted,
     },
     playText: {
       fontSize: 13,

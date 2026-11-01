@@ -6,13 +6,12 @@ import { STRETCH_POSTERS, stretchPosterAspect } from '@/assets/exercises';
 
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT } from '@/constants/theme';
-import { getExercise } from '@/data/exercisesData';
 import { STRETCH_ROUTINES, WARMUP_STAGES } from '@/data/warmupData';
 import { hapticSelection, hapticWarning } from '@/lib/feedback';
 import { getPreviousPerformance, isCountedSet, roundTo } from '@/lib/workoutMath';
 import { useLocale, useT } from '@/i18n';
 import { formatRestTime } from '@/store/useRestTimerCountdown';
-import { useWorkoutStore } from '@/store/useWorkoutStore';
+import { useExercise, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { StretchMove, StretchRoutine, WarmupStage } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
 
@@ -97,7 +96,7 @@ function WarmupStages({
   const styles = useStyles();
   const theme = useTheme();
   const [showPreWorkout, setShowPreWorkout] = useState(false);
-  const firstExercise = day?.firstExerciseId ? getExercise(day.firstExerciseId) : undefined;
+  const firstExercise = useExercise(day?.firstExerciseId);
   const acclimationKg = useAcclimationWeight(day?.firstExerciseId);
 
   return (

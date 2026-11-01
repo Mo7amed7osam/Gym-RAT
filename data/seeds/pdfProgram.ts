@@ -1,5 +1,5 @@
 import type { ExercisePrescription, Plan, PlanDay, RepRange, RestPeriod } from '@/types/workout';
-import type { ExerciseId } from '../exercisesData';
+import type { BuiltinExerciseId } from '../exercisesData';
 
 /**
  * "Push - Pull - Leg / Upper - Lower Ver 5.0", extracted from the owner's
@@ -26,7 +26,7 @@ function reps(min: number, max: number = min): RepRange {
   return { min, max };
 }
 
-function rx(exerciseId: ExerciseId, sets: number, repRange: RepRange, rest: RestPeriod): ExercisePrescription {
+function rx(exerciseId: BuiltinExerciseId, sets: number, repRange: RepRange, rest: RestPeriod): ExercisePrescription {
   return { exerciseId, sets, reps: repRange, rest };
 }
 

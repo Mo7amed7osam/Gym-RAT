@@ -1,0 +1,745 @@
+{
+  "generatedBy": "import-repdb.mjs",
+  "generatedAt": "2026-11-01T19:58:17.424Z",
+  "source": {
+    "repository": "https://github.com/RepDB/exercise-dataset",
+    "commit": "66c4298af8d99b9dc397dad6699e508fb871d249",
+    "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+    "attribution": "Exercise data by RepDB (repdb.co)",
+    "tier": "free (flat style, 512x512 WebP start/peak stills); no premium-samples, no animations"
+  },
+  "entries": {
+    "barbell_skull_crusher": {
+      "kind": "none",
+      "source": null,
+      "nearest": "skull-crusher",
+      "reason": "program uses an EZ bar; RepDB artwork shows a straight bar"
+    },
+    "close_grip_ez_bar_curl": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "close-grip-ez-bar-curl",
+      "sourceName": "Close-Grip EZ-Bar Curl",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "close_grip_ez_bar_curl-start.webp",
+          "sha256": "f2cf3a67fb67f22eae73955d08b49d369f18da3804cc34687637468a6230fb93",
+          "width": 512,
+          "height": 512,
+          "bytes": 15698
+        },
+        "end": {
+          "file": "close_grip_ez_bar_curl-end.webp",
+          "sha256": "174f1b11c1a762203ebfc73b13dbca15426f00a25239fadd4de557b3062aa948",
+          "width": 512,
+          "height": 512,
+          "bytes": 15334
+        }
+      }
+    },
+    "dumbbell_bent_over_row": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "single-arm-db-row",
+      "sourceName": "Single-Arm Dumbbell Row",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "dumbbell_bent_over_row-start.webp",
+          "sha256": "e0d787511325cb1e77d14bad496620f8f2bb8a21a9811aa19139b26080cf4434",
+          "width": 512,
+          "height": 512,
+          "bytes": 16796
+        },
+        "end": {
+          "file": "dumbbell_bent_over_row-end.webp",
+          "sha256": "2b02e7108c14fe6b77f298d6bff65fdb905db9bc377cd18488550b0fccf954b0",
+          "width": 512,
+          "height": 512,
+          "bytes": 17034
+        }
+      }
+    },
+    "dumbbell_deadlift": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "dumbbell-deadlift",
+      "sourceName": "Dumbbell Deadlift",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "dumbbell_deadlift-start.webp",
+          "sha256": "f5bd2c49d481338341c3e42839b87d506fbd59734bfc0af2f682aa758b800479",
+          "width": 512,
+          "height": 512,
+          "bytes": 16098
+        },
+        "end": {
+          "file": "dumbbell_deadlift-end.webp",
+          "sha256": "7549f54ec8e82c11b95d18eb937b7e5eb6d34b7875d3e739d7b8146ed6c6342b",
+          "width": 512,
+          "height": 512,
+          "bytes": 13498
+        }
+      }
+    },
+    "dumbbell_front_raise": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "dumbbell-front-raise",
+      "sourceName": "Dumbbell Front Raise",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "dumbbell_front_raise-start.webp",
+          "sha256": "bc0ada2f3dde4b113c0e2eab3382120bccf97971cd8db5df808b328abc038b8c",
+          "width": 512,
+          "height": 512,
+          "bytes": 9734
+        },
+        "end": {
+          "file": "dumbbell_front_raise-end.webp",
+          "sha256": "4d70c650923be420a3d2ea896d850c5e9215732a4223e2c7670b21532f7f6775",
+          "width": 512,
+          "height": 512,
+          "bytes": 9406
+        }
+      }
+    },
+    "dumbbell_hammer_curl": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "hammer-curl",
+      "sourceName": "Dumbbell Hammer Curl",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "dumbbell_hammer_curl-start.webp",
+          "sha256": "15f3b7da1ecd7f01d7db5878914a969d49c720dc0450f327d849d4c3dae15596",
+          "width": 512,
+          "height": 512,
+          "bytes": 14092
+        },
+        "end": {
+          "file": "dumbbell_hammer_curl-end.webp",
+          "sha256": "90a5a56b4801abb2fe31b420e0131499fe8688123db5a2c4b01a0741d0a522e4",
+          "width": 512,
+          "height": 512,
+          "bytes": 15046
+        }
+      }
+    },
+    "dumbbell_kickback": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "tricep-kickback",
+      "sourceName": "Dumbbell Tricep Kickback",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "dumbbell_kickback-start.webp",
+          "sha256": "088e179809edb35af5c09927708a9c25d95a5b75d0adf8fd19c59774e9e83caf",
+          "width": 512,
+          "height": 512,
+          "bytes": 15458
+        },
+        "end": {
+          "file": "dumbbell_kickback-end.webp",
+          "sha256": "7808e75802fdc4196aace9956a1ee7733422e5d9c2e9dfe826c02b0ed1f4715d",
+          "width": 512,
+          "height": 512,
+          "bytes": 14194
+        }
+      }
+    },
+    "dumbbell_lateral_raise": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "lateral-raise",
+      "sourceName": "Dumbbell Lateral Raise",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "dumbbell_lateral_raise-start.webp",
+          "sha256": "6993bfa0e16b060901792e7500b9e5481f15e93a24c3f7fc7c733316de6b6e2e",
+          "width": 512,
+          "height": 512,
+          "bytes": 13098
+        },
+        "end": {
+          "file": "dumbbell_lateral_raise-end.webp",
+          "sha256": "65f3e3180a2ff014664e485266032beb75d336af89998ee526941008bb58306b",
+          "width": 512,
+          "height": 512,
+          "bytes": 14494
+        }
+      }
+    },
+    "dumbbell_lunge": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "db-lunge",
+      "sourceName": "Dumbbell Lunge",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "dumbbell_lunge-start.webp",
+          "sha256": "9aaa3e3983e2f8d733cf1a7509247ec3d55296e527bfc804b1b30a7140d82e84",
+          "width": 512,
+          "height": 512,
+          "bytes": 13304
+        },
+        "end": {
+          "file": "dumbbell_lunge-end.webp",
+          "sha256": "4cbc3dcac4878d0761a46d4839f8118b6e7e9933d4a1e45403e0e8c57a763613",
+          "width": 512,
+          "height": 512,
+          "bytes": 15678
+        }
+      }
+    },
+    "dumbbell_skull_crusher": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "db-skull-crusher",
+      "sourceName": "Dumbbell Skull Crusher",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "dumbbell_skull_crusher-start.webp",
+          "sha256": "cf0a894ca9fc6dc8d7d35cfd0e7e85a07a4dc2493e7a957a6daaa9b5bbbb3f98",
+          "width": 512,
+          "height": 512,
+          "bytes": 13554
+        },
+        "end": {
+          "file": "dumbbell_skull_crusher-end.webp",
+          "sha256": "788832229f97ae02121ebe93702fabe42c9c993a810ac9e0044318857d3fda85",
+          "width": 512,
+          "height": 512,
+          "bytes": 14470
+        }
+      }
+    },
+    "dumbbell_wrist_curl": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "dumbbell-wrist-curl",
+      "sourceName": "Dumbbell Wrist Curl",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "dumbbell_wrist_curl-start.webp",
+          "sha256": "2d9490f1135d2ad5b91b203c2ad37251db85f737fc147745bed7c75c286579a4",
+          "width": 512,
+          "height": 512,
+          "bytes": 16870
+        },
+        "end": {
+          "file": "dumbbell_wrist_curl-end.webp",
+          "sha256": "9101baa14643890e808a0bc8a749c3f4a3a163091f2b4d53d0b4799966ee3a6d",
+          "width": 512,
+          "height": 512,
+          "bytes": 17498
+        }
+      }
+    },
+    "flat_barbell_bench_press": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "bench-press",
+      "sourceName": "Barbell Bench Press",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "flat_barbell_bench_press-start.webp",
+          "sha256": "a14c6cf3187236330740d9a6ad3bc2cc5170d447f1ca657ad6ac5545d3cb1571",
+          "width": 512,
+          "height": 512,
+          "bytes": 21554
+        },
+        "end": {
+          "file": "flat_barbell_bench_press-end.webp",
+          "sha256": "8d1a88d3e497c87ee3d27840fa496c3e7a19a4f64c52521673073a5f99b8b77f",
+          "width": 512,
+          "height": 512,
+          "bytes": 23314
+        }
+      }
+    },
+    "flat_dumbbell_bench_press": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "db-bench-press",
+      "sourceName": "Dumbbell Bench Press",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "flat_dumbbell_bench_press-start.webp",
+          "sha256": "9cc699a60007158c7540cf6b24727be4c5abcaae8a47edfa4808025f7b6eacb0",
+          "width": 512,
+          "height": 512,
+          "bytes": 12970
+        },
+        "end": {
+          "file": "flat_dumbbell_bench_press-end.webp",
+          "sha256": "78b09b52d0232235dd317e4362a3743c06a057c74c555aa9e331c9292a05c62e",
+          "width": 512,
+          "height": 512,
+          "bytes": 14772
+        }
+      }
+    },
+    "forearm_barbell_curl": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "reverse-curl",
+      "sourceName": "Reverse Curl",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "forearm_barbell_curl-start.webp",
+          "sha256": "087a27a91b2d73926da301470c54b15737a57a86fadde3bbe6326448e2709c71",
+          "width": 512,
+          "height": 512,
+          "bytes": 14460
+        },
+        "end": {
+          "file": "forearm_barbell_curl-end.webp",
+          "sha256": "b0062454f36b8efe64c7ad3c4d6fa760a34854e550745642821b9a7f280843e4",
+          "width": 512,
+          "height": 512,
+          "bytes": 14348
+        }
+      }
+    },
+    "hack_squat": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "hack-squat",
+      "sourceName": "Hack Squat",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "hack_squat-start.webp",
+          "sha256": "12360ec24033c8ddf030a3ec4a0e72cbe010d82bc5cdb78f273d6ea5efc6454d",
+          "width": 512,
+          "height": 512,
+          "bytes": 30778
+        },
+        "end": {
+          "file": "hack_squat-end.webp",
+          "sha256": "a85941141d05801a725483af06244106ef97a5c6cfe412e82ef272e9eebff79f",
+          "width": 512,
+          "height": 512,
+          "bytes": 27266
+        }
+      }
+    },
+    "hammer_strength_incline_press": {
+      "kind": "none",
+      "source": null,
+      "nearest": "chest-press-machine",
+      "reason": "incline plate-loaded machine; RepDB only has a flat chest press machine"
+    },
+    "hammer_strength_lat_pulldown": {
+      "kind": "none",
+      "source": null,
+      "nearest": "lat-pulldown",
+      "reason": "plate-loaded Hammer Strength machine, RepDB only has the cable pulldown"
+    },
+    "high_low_cable_fly": {
+      "kind": "none",
+      "source": null,
+      "nearest": "cable-fly",
+      "reason": "RepDB artwork shows a mid-height fly; the program prescribes high-to-low handles"
+    },
+    "hip_thrust": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "hip-thrust",
+      "sourceName": "Barbell Hip Thrust",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "hip_thrust-start.webp",
+          "sha256": "9ebed9ca43e730f993889992401250113c8522f6f962b96ecbc35605875d3185",
+          "width": 512,
+          "height": 512,
+          "bytes": 16702
+        },
+        "end": {
+          "file": "hip_thrust-end.webp",
+          "sha256": "6794aee8a00e985068dedfa37bffee1c4f0a9f6d56867a27a1c948c072207a12",
+          "width": 512,
+          "height": 512,
+          "bytes": 18314
+        }
+      }
+    },
+    "incline_dumbbell_bench_press": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "incline-db-press",
+      "sourceName": "Incline Dumbbell Press",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "incline_dumbbell_bench_press-start.webp",
+          "sha256": "6d0b56825dc11ab72a74ff8313438f8e05556bc0c6b8d6d1b6da98425e585292",
+          "width": 512,
+          "height": 512,
+          "bytes": 18332
+        },
+        "end": {
+          "file": "incline_dumbbell_bench_press-end.webp",
+          "sha256": "a991276652817062d451334f42ddf30efe3bca81d181abf9056287058492283b",
+          "width": 512,
+          "height": 512,
+          "bytes": 17546
+        }
+      }
+    },
+    "leaning_lateral_raise": {
+      "kind": "none",
+      "source": null,
+      "nearest": "lateral-raise",
+      "reason": "leaning single-arm variant not in RepDB"
+    },
+    "leg_extension": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "leg-extension",
+      "sourceName": "Leg Extension",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "leg_extension-start.webp",
+          "sha256": "97c34b7bbd7c3278bff9b8fb5e80263f5e9254e567f8068833d611d67318b030",
+          "width": 512,
+          "height": 512,
+          "bytes": 17456
+        },
+        "end": {
+          "file": "leg_extension-end.webp",
+          "sha256": "04f79670ee65dd0e3ae710221942c2f3e1b27b696516ce87c8936c32539d4acc",
+          "width": 512,
+          "height": 512,
+          "bytes": 19168
+        }
+      }
+    },
+    "leg_press": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "leg-press",
+      "sourceName": "Leg Press",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "leg_press-start.webp",
+          "sha256": "68c7769b023cab2ffd3d5fd1877fc7d2b1d102f9a1b0412ae67f9cf412f38dd2",
+          "width": 512,
+          "height": 512,
+          "bytes": 32620
+        },
+        "end": {
+          "file": "leg_press-end.webp",
+          "sha256": "2115ffe5c1363ad8de2b4410ef20ce43aa4b4959dcd2fb77de1579772c9c49ae",
+          "width": 512,
+          "height": 512,
+          "bytes": 38040
+        }
+      }
+    },
+    "leg_press_calf_raise": {
+      "kind": "none",
+      "source": null,
+      "nearest": "machine-calf-raise",
+      "reason": "calf raise on the leg press sled not in RepDB"
+    },
+    "lying_leg_curl": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "leg-curl",
+      "sourceName": "Lying Leg Curl",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "lying_leg_curl-start.webp",
+          "sha256": "9eed895562e2a3d7ade074fc59c3b56a07230a3a97ed5a3d35a0fa5eb6ed5e1f",
+          "width": 512,
+          "height": 512,
+          "bytes": 20646
+        },
+        "end": {
+          "file": "lying_leg_curl-end.webp",
+          "sha256": "e1f4229433709ce48f3c317693a23d6a8e2525497328cad3b8235f3aad9b4911",
+          "width": 512,
+          "height": 512,
+          "bytes": 21096
+        }
+      }
+    },
+    "lying_leg_raise": {
+      "kind": "none",
+      "source": null,
+      "nearest": "lying-leg-raise",
+      "reason": "RepDB artwork is floor-based; the program uses a flat bench"
+    },
+    "overhead_cable_curl": {
+      "kind": "none",
+      "source": null,
+      "nearest": "cable-curl",
+      "reason": "one-arm overhead (high pulley) curl not in RepDB"
+    },
+    "overhead_dumbbell_press": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "dumbbell-shoulder-press",
+      "sourceName": "Dumbbell Shoulder Press",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "overhead_dumbbell_press-start.webp",
+          "sha256": "296d2bd82e662d31cf9d87d00be61a5e6707f47216e9a514f59765c61ef9db2d",
+          "width": 512,
+          "height": 512,
+          "bytes": 12610
+        },
+        "end": {
+          "file": "overhead_dumbbell_press-end.webp",
+          "sha256": "f3586a0a3c0cb9137e15959e125e870399a57727cbf531981c8b1cf6a92b6cfb",
+          "width": 512,
+          "height": 512,
+          "bytes": 12322
+        }
+      }
+    },
+    "pec_deck_fly": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "pec-deck",
+      "sourceName": "Pec Deck",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "pec_deck_fly-start.webp",
+          "sha256": "5adb46a3da32d2d81ab7483ac1fe10b199cf286640775bbf3211f0bbea69d26e",
+          "width": 512,
+          "height": 512,
+          "bytes": 26894
+        },
+        "end": {
+          "file": "pec_deck_fly-end.webp",
+          "sha256": "0772af5fc31fe372e1f42124dbc8bf9ada24d32e372d007fe1b636328974c8be",
+          "width": 512,
+          "height": 512,
+          "bytes": 25260
+        }
+      }
+    },
+    "reverse_pec_deck": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "machine-reverse-fly",
+      "sourceName": "Machine Reverse Fly",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "reverse_pec_deck-start.webp",
+          "sha256": "f8e602c61cd62e904b992e22a53522dad5e0d30b2f52c320fed960a5de7cf93b",
+          "width": 512,
+          "height": 512,
+          "bytes": 28066
+        },
+        "end": {
+          "file": "reverse_pec_deck-end.webp",
+          "sha256": "7573aed858e9321978810705a805eb2b53470b00b82c9e9ca79ba973c1a6bfee",
+          "width": 512,
+          "height": 512,
+          "bytes": 30618
+        }
+      }
+    },
+    "seated_calf_raise": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "seated-calf-raise",
+      "sourceName": "Seated Calf Raise",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "seated_calf_raise-start.webp",
+          "sha256": "b885cb14ff2f2bd7dd54b219427ca0504150cbe8c5afc15b2aa78a90d8f4fb54",
+          "width": 512,
+          "height": 512,
+          "bytes": 18080
+        },
+        "end": {
+          "file": "seated_calf_raise-end.webp",
+          "sha256": "13920bf2d5d7526241a40b1b9a73428850927250eba8379885a55a0205c3e602",
+          "width": 512,
+          "height": 512,
+          "bytes": 20322
+        }
+      }
+    },
+    "seated_close_grip_row": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "seated-cable-row",
+      "sourceName": "Seated Cable Row",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "seated_close_grip_row-start.webp",
+          "sha256": "6da660d7da5d9cf216fe062d02c53a8b0331f3be0ea39176381653cd5eac2d0f",
+          "width": 512,
+          "height": 512,
+          "bytes": 22740
+        },
+        "end": {
+          "file": "seated_close_grip_row-end.webp",
+          "sha256": "b6c89248754775244d474ca1c0920635048295e62943110673a283aa8f9408ea",
+          "width": 512,
+          "height": 512,
+          "bytes": 23750
+        }
+      }
+    },
+    "seated_dumbbell_press": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "seated-db-press",
+      "sourceName": "Seated Dumbbell Shoulder Press",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "seated_dumbbell_press-start.webp",
+          "sha256": "5e946e697771645023bc24ad9483a99f7d1673e792c3c436a276dc60c44442f4",
+          "width": 512,
+          "height": 512,
+          "bytes": 17404
+        },
+        "end": {
+          "file": "seated_dumbbell_press-end.webp",
+          "sha256": "7edc80e11acf42ed286bf7d62708ea105b2aea6b3abf90a5eb3ce6551b39b43b",
+          "width": 512,
+          "height": 512,
+          "bytes": 14032
+        }
+      }
+    },
+    "standing_calf_raise": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "standing-calf-raise",
+      "sourceName": "Standing Calf Raise",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "standing_calf_raise-start.webp",
+          "sha256": "811bd64a2b26039e5929ad7369af3de4874845238b960aeb251be56d5207a551",
+          "width": 512,
+          "height": 512,
+          "bytes": 23640
+        },
+        "end": {
+          "file": "standing_calf_raise-end.webp",
+          "sha256": "10b1c0808a7cf81a9f054b38fba90c39a61ecaff6a54cbad38b53551fb13292d",
+          "width": 512,
+          "height": 512,
+          "bytes": 23394
+        }
+      }
+    },
+    "standing_lat_pushdown": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "straight-arm-pulldown",
+      "sourceName": "Straight-Arm Pulldown",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "standing_lat_pushdown-start.webp",
+          "sha256": "505884f24d576c7f0225c2499b77f75fd49c17fba84ac266e1f20d917aca159f",
+          "width": 512,
+          "height": 512,
+          "bytes": 11568
+        },
+        "end": {
+          "file": "standing_lat_pushdown-end.webp",
+          "sha256": "feb2a6d795b92d3efe61c3cabf9d194cb74fa45eb80ee38f4ca192ad26376515",
+          "width": 512,
+          "height": 512,
+          "bytes": 11766
+        }
+      }
+    },
+    "straight_barbell_curl": {
+      "kind": "none",
+      "source": null,
+      "nearest": "barbell-curl",
+      "reason": "program prescribes a wide grip; RepDB artwork is shoulder-width"
+    },
+    "triceps_rope_pushdown": {
+      "kind": "none",
+      "source": null,
+      "nearest": "tricep-pushdown",
+      "reason": "RepDB artwork uses a bar attachment, not a rope"
+    },
+    "wide_grip_lat_pulldown": {
+      "kind": "still_pair",
+      "source": "repdb",
+      "sourceId": "lat-pulldown",
+      "sourceName": "Lat Pulldown",
+      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
+      "attribution": "Exercise data by RepDB (repdb.co)",
+      "files": {
+        "start": {
+          "file": "wide_grip_lat_pulldown-start.webp",
+          "sha256": "4cb61a49bfacf947b81d86c8f6c51735bcf5e7c073297a3cb67e9a71d59292a6",
+          "width": 512,
+          "height": 512,
+          "bytes": 16552
+        },
+        "end": {
+          "file": "wide_grip_lat_pulldown-end.webp",
+          "sha256": "5045afd713161db9944719f7168c492ca7d9a822bc54c9cd23b085b3c904810c",
+          "width": 512,
+          "height": 512,
+          "bytes": 16258
+        }
+      }
+    }
+  }
+}

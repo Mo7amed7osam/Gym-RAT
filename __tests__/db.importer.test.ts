@@ -78,7 +78,7 @@ describe('importFromAsyncStorage', () => {
 
     const result = await importFromAsyncStorage(repo, storage, defaults, now);
     expect(result).toEqual({ status: 'imported', sessions: 2, renamedTo: `${LEGACY_STORAGE_KEY}.imported-2026-10-31` });
-    expect(repo.counts()).toEqual({ sessions: 2, exercises: 2, sets: 4, plans: 0 });
+    expect(repo.counts()).toEqual({ sessions: 2, exercises: 2, sets: 4, plans: 0, library: 0 });
 
     const loaded = repo.loadAll(defaults);
     expect(loaded.activeSession?.id).toBe('active');
