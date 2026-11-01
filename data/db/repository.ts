@@ -125,6 +125,8 @@ interface ExerciseRow {
   prescription_json: string;
   skipped: number;
   notes: string;
+  group_id: string | null;
+  group_kind: string | null;
 }
 
 interface SetRow {
@@ -138,6 +140,9 @@ interface SetRow {
   reps: number | null;
   completed: number;
   completed_at: string | null;
+  set_kind: string;
+  rpe: number | null;
+  rir: number | null;
 }
 
 /**
@@ -418,13 +423,13 @@ export class WorkoutRepository {
     d.run('DELETE FROM session_exercises WHERE session_id = ?', [session.id]);
     session.exercises.forEach((exercise, position) => {
       d.run(
-        'INSERT INTO session_exercises (id, session_id, position, exercise_id, prescription_json, skipped, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [exercise.id, session.id, position, exercise.exerciseId, JSON.stringify(exercise.prescription), exercise.skipped, exercise.notes],
+        'INSERT INTO session_exercises (id, session_id, position, exercise_id, prescription_json, skipped, notes, group_id, group_kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [exercise.id, session.id, position, exercise.exerciseId, JSON.stringify(exercise.prescription), exercise.skipped, exercise.notes, exercise.groupId, exercise.groupKind],
       );
       for (const set of exercise.sets) {
         d.run(
-          'INSERT INTO sets (id, session_exercise_id, set_number, type, target_min, target_max, weight_kg, reps, completed, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [set.id, exercise.id, set.setNumber, set.type, set.targetReps.min, set.targetReps.max, set.weightKg, set.reps, set.completed, set.completedAt],
+          'INSERT INTO sets (id, session_exercise_id, set_number, type, target_min, target_max, weight_kg, reps, completed, completed_at, set_kind, rpe, rir) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [set.id, exercise.id, set.setNumber, set.type, set.targetReps.min, set.targetReps.max, set.weightKg, set.reps, set.completed, set.completedAt, set.kind, set.rpe, set.rir],
         );
       }
     });
@@ -526,9 +531,12 @@ export class WorkoutRepository {
         id: row.id,
         setNumber: row.set_number,
         type: row.type as ExerciseSet['type'],
+        kind: (row.set_kind ?? 'normal') as ExerciseSet['kind'],
         targetReps: { min: row.target_min, max: row.target_max },
         weightKg: row.weight_kg,
         reps: row.reps,
+        rpe: row.rpe ?? null,
+        rir: row.rir ?? null,
         completed: row.completed === 1,
         completedAt: row.completed_at,
       });
@@ -545,6 +553,8 @@ export class WorkoutRepository {
         sets: setsByExercise.get(row.id) ?? [],
         skipped: row.skipped === 1,
         notes: row.notes,
+        groupId: row.group_id ?? null,
+        groupKind: (row.group_kind ?? null) as SessionExercise['groupKind'],
       });
       exercisesBySession.set(row.session_id, list);
     }

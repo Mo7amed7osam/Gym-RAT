@@ -25,6 +25,8 @@ const TOGGLES: { key: ToggleKey; title: string; detail: string }[] = [
 ];
 
 const WARNING_OPTIONS = [5, 10, 15, 30] as const;
+const WARMUP_REST_OPTIONS = [30, 45, 60, 90] as const;
+const INACTIVITY_OPTIONS = [0, 10, 20, 30] as const;
 const MODES: { value: ThemeMode; label: string }[] = [
   { value: 'system', label: 'settings.modeSystem' },
   { value: 'light', label: 'settings.modeLight' },
@@ -221,6 +223,50 @@ export default function SettingsScreen() {
               })}
             </View>
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader title={t('settings.warmupRest')} />
+          <View style={[styles.group, styles.groupPadded]}><View style={styles.segmented} accessibilityRole="radiogroup">
+            {WARMUP_REST_OPTIONS.map((seconds) => {
+              const selected = settings.warmupRestSeconds === seconds;
+              return (
+                <Pressable
+                  key={seconds}
+                  onPress={() => set({ warmupRestSeconds: seconds })}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={t('settings.seconds', { n: seconds })}
+                  style={[styles.segment, selected && styles.segmentSelected]}
+                >
+                  <Text style={[styles.segmentValue, selected && styles.segmentValueSelected]}>{seconds}</Text>
+                  <Text style={[styles.segmentUnit, selected && styles.segmentValueSelected]}>{t('settings.sec')}</Text>
+                </Pressable>
+              );
+            })}
+          </View></View>
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader title={t('settings.inactivityPrompt')} />
+          <View style={[styles.group, styles.groupPadded]}><View style={styles.segmented} accessibilityRole="radiogroup">
+            {INACTIVITY_OPTIONS.map((minutes) => {
+              const selected = settings.inactivityPromptMinutes === minutes;
+              return (
+                <Pressable
+                  key={minutes}
+                  onPress={() => set({ inactivityPromptMinutes: minutes })}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={minutes === 0 ? t('settings.inactivityOff') : t('settings.minutes', { n: minutes })}
+                  style={[styles.segment, selected && styles.segmentSelected]}
+                >
+                  <Text style={[styles.segmentValue, selected && styles.segmentValueSelected]}>{minutes === 0 ? t('settings.inactivityOff') : minutes}</Text>
+                  {minutes > 0 ? <Text style={[styles.segmentUnit, selected && styles.segmentValueSelected]}>{t('settings.minutes', { n: '' }).trim()}</Text> : null}
+                </Pressable>
+              );
+            })}
+          </View></View>
         </View>
 
         <View style={styles.section}>

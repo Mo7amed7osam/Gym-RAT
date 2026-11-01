@@ -27,3 +27,4 @@ Schema v1 as planned (`data/db/schema.ts`). `title_json`, `prescription_json`, `
 ## 2026-11-01 — Schema v4 (`exercises`)
 - One table for built-in and custom rows; JSON columns for bilingual text and lists; user columns (`user_notes`, `user_rest_seconds`, `image_uri`, `archived`) separated from authored columns so the boot seed can refresh content. No foreign key from `session_exercises.exercise_id` by design (history survives archiving). Index on `(origin, archived)`. Test: `__tests__/exercises.library.test.ts` migrates v3 → v4 with real rows.
 - Schema v5 (2026-11-01): `ALTER TABLE plans ADD COLUMN archived INTEGER NOT NULL DEFAULT 0`. Test in `__tests__/plan.editor.test.ts`.
+- Schema v6 (2026-11-01): `sets.set_kind TEXT NOT NULL DEFAULT 'normal'`, `sets.rpe REAL`, `sets.rir INTEGER`, `session_exercises.group_id TEXT`, `session_exercises.group_kind TEXT`. Test in `__tests__/session.engine.test.ts`.

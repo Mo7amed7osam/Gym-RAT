@@ -204,17 +204,32 @@ export interface WarmupStage {
 
 export type SetType = 'warmup' | 'working';
 
+/**
+ * Advanced set variants (spec §8). `type` stays warm-up/working for analytics;
+ * `kind` only changes rest behaviour and the badge in the grid.
+ * `drop`: no rest, strip weight and go again. `rest_pause`: 15 s mini-rest.
+ * `amrap`: as many reps as possible, normal rest.
+ */
+export type SetKind = 'normal' | 'drop' | 'rest_pause' | 'amrap';
+
 export interface ExerciseSet {
   id: string;
   /** 1-based position within the exercise. */
   setNumber: number;
   type: SetType;
+  kind: SetKind;
   targetReps: RepRange;
   weightKg: number | null;
   reps: number | null;
+  /** Optional rate of perceived exertion (6–10) and reps in reserve. */
+  rpe: number | null;
+  rir: number | null;
   completed: boolean;
   completedAt: ISODateString | null;
 }
+
+/** Exercises sharing a `groupId` are performed back to back (superset = 2, giant set = 3+). */
+export type ExerciseGroupKind = 'superset' | 'giant';
 
 export interface SessionExercise {
   id: string;
@@ -224,6 +239,8 @@ export interface SessionExercise {
   sets: ExerciseSet[];
   skipped: boolean;
   notes: string;
+  groupId: string | null;
+  groupKind: ExerciseGroupKind | null;
 }
 
 export type SessionStatus = 'in_progress' | 'completed' | 'cancelled';
@@ -354,4 +371,8 @@ export interface WorkoutSettings {
   restWarningSeconds: number;
   hapticsEnabled: boolean;
   restSoundEnabled: boolean;
+  /** Rest after a warm-up set (working sets use the prescription or the exercise override). */
+  warmupRestSeconds: number;
+  /** Minutes without a logged set before the workout screen offers Resume / Finish / Keep open. */
+  inactivityPromptMinutes: number;
 }

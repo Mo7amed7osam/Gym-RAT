@@ -95,7 +95,7 @@ describe('schema v4 + repository', () => {
       MIGRATIONS[2].up(driver);
       driver.exec('PRAGMA user_version = 3');
     });
-    expect(migrate(driver)).toEqual({ from: 3, to: SCHEMA_VERSION, applied: [4, 5] });
+    expect(migrate(driver)).toEqual({ from: 3, to: SCHEMA_VERSION, applied: MIGRATIONS.filter((m) => m.version > 3).map((m) => m.version) });
     const repo = new WorkoutRepository(driver);
     expect(repo.loadAll(defaults).exercises).toEqual([]);
 
@@ -183,9 +183,9 @@ describe('store: custom exercises', () => {
             id: 'se-custom',
             exerciseId: created.id,
             prescription: { exerciseId: created.id, sets: 1, reps: { min: 10, max: 12 }, rest: { defaultSeconds: 60, minSeconds: 60, maxSeconds: 60 } },
-            sets: [{ id: 'set-custom', setNumber: 1, type: 'working', targetReps: { min: 10, max: 12 }, weightKg: 10, reps: 12, completed: true, completedAt: '2026-11-01T18:00:00.000Z' }],
+            sets: [{ id: 'set-custom', setNumber: 1, type: 'working', kind: 'normal', rpe: null, rir: null, targetReps: { min: 10, max: 12 }, weightKg: 10, reps: 12, completed: true, completedAt: '2026-11-01T18:00:00.000Z' }],
             skipped: false,
-            notes: '',
+            notes: '', groupId: null, groupKind: null,
           },
         ],
       },

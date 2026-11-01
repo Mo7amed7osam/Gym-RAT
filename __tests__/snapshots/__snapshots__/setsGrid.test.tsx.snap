@@ -15,18 +15,34 @@ exports[`ExerciseCard renders header, stat tiles, sets grid and footer for the f
       }
     }
   >
-    <Text
+    <View
       style={
         {
-          "color": "#FF9F0A",
-          "fontSize": 13,
-          "fontWeight": "600",
-          "lineHeight": 18,
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 8,
         }
       }
     >
-      Exercise 1 of 9
-    </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#FF9F0A",
+              "fontSize": 13,
+              "fontWeight": "600",
+              "lineHeight": 18,
+            },
+            {
+              "flex": 1,
+              "minWidth": 0,
+            },
+          ]
+        }
+      >
+        Exercise 1 of 9
+      </Text>
+    </View>
     <Text
       accessibilityRole="header"
       style={

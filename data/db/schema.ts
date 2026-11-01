@@ -178,3 +178,12 @@ CREATE INDEX IF NOT EXISTS idx_exercises_origin ON exercises (origin, archived);
 export const SCHEMA_V5 = `
 ALTER TABLE plans ADD COLUMN archived INTEGER NOT NULL DEFAULT 0;
 `;
+
+/** v6: advanced set metadata and exercise grouping (P2.5). `sets.type` and its CHECK are untouched. */
+export const SCHEMA_V6 = `
+ALTER TABLE sets ADD COLUMN set_kind TEXT NOT NULL DEFAULT 'normal';
+ALTER TABLE sets ADD COLUMN rpe REAL;
+ALTER TABLE sets ADD COLUMN rir INTEGER;
+ALTER TABLE session_exercises ADD COLUMN group_id TEXT;
+ALTER TABLE session_exercises ADD COLUMN group_kind TEXT;
+`;

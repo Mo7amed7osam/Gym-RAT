@@ -24,6 +24,7 @@ import type {
   RestTimerState,
   SessionExercise,
   SessionKind,
+  SetKind,
   WorkoutSession,
   WorkoutSettings,
 } from '@/types/workout';
@@ -114,6 +115,23 @@ interface WorkoutActions {
   setExerciseSkipped: (sessionExerciseId: string, skipped: boolean) => void;
   setExerciseNotes: (sessionExerciseId: string, notes: string) => void;
 
+  // Session engine (P2.4 / P2.5)
+  /** Adds an exercise to the running session after the current one; `kind` of the session is unchanged. */
+  addSessionExercise: (exerciseId: string) => void;
+  removeSessionExercise: (sessionExerciseId: string) => void;
+  /** This session only; the plan keeps its exercise. */
+  substituteSessionExercise: (sessionExerciseId: string, exerciseId: string) => void;
+  /** This session only: sets / reps / rest. */
+  updateSessionPrescription: (sessionExerciseId: string, patch: Partial<Pick<ExercisePrescription, 'sets' | 'reps' | 'rest'>>) => void;
+  /** Writes the session's current targets (and exercise) back into the active plan's day. Plan sessions on unlocked plans only. */
+  saveTargetsToPlan: (sessionExerciseId: string) => boolean;
+  setNextSetKind: (sessionExerciseId: string, kind: SetKind) => void;
+  setSetFeedback: (sessionExerciseId: string, setId: string, feedback: { rpe?: number | null; rir?: number | null }) => void;
+  /** Prepends ramp-up warm-up sets based on the first working weight (or last session). */
+  addWarmupSets: (sessionExerciseId: string) => number;
+  groupSessionExercises: (sessionExerciseIds: string[]) => void;
+  ungroupSessionExercise: (sessionExerciseId: string) => void;
+
   // Set logging
   updateSet: (sessionExerciseId: string, setId: string, values: SetValues) => void;
   completeSet: (sessionExerciseId: string, setId: string, values?: SetValues) => void;
@@ -168,6 +186,8 @@ export const DEFAULT_SETTINGS: WorkoutSettings = {
   restWarningSeconds: 15,
   hapticsEnabled: true,
   restSoundEnabled: true,
+  warmupRestSeconds: 45,
+  inactivityPromptMinutes: 20,
 };
 
 const MIN_REST_DURATION_MS = 5_000;
@@ -234,9 +254,12 @@ function buildSessionExercise(
       id: randomUUID(),
       setNumber: i + 1,
       type: 'working',
+      kind: 'normal',
       targetReps: prescription.reps,
       weightKg: previousSet?.weightKg ?? null,
       reps: previousSet?.reps ?? null,
+      rpe: null,
+      rir: null,
       completed: false,
       completedAt: null,
     };
@@ -249,6 +272,8 @@ function buildSessionExercise(
     sets,
     skipped: false,
     notes: '',
+    groupId: null,
+    groupKind: null,
   };
 }
 
@@ -601,11 +626,118 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
         return;
       }
 
-      get().startRestTimer(exercise.prescription.rest.defaultSeconds, {
+      const userRestSeconds = get().exercises.find((item) => item.id === exercise.exerciseId)?.userRestSeconds ?? null;
+      const seconds = reducer.restSecondsAfter(get().activeSession ?? session, exercise, completedSet, {
+        warmupRestSeconds: get().settings.warmupRestSeconds,
+        userRestSeconds,
+      });
+      if (seconds <= 0) {
+        set({ restTimer: IDLE_REST_TIMER });
+        return;
+      }
+      get().startRestTimer(seconds, {
         sessionExerciseId,
         completedSetId: setId,
         nextSetId: nextSet?.id ?? null,
       });
+    },
+
+    // ── Session engine (P2.4 / P2.5) ─────────────────────────────────────
+
+    addSessionExercise: (exerciseId) => {
+      const state = get();
+      if (!state.activeSession) return;
+      const rest = state.exercises.find((item) => item.id === exerciseId)?.userRestSeconds ?? null;
+      const prescription = planEditor.defaultPrescription(exerciseId, rest);
+      const day: PlanDay = { id: 'adhoc', position: 0, code: '', title: { en: '', ar: '' }, muscleSummary: { en: '', ar: '' }, focus: null, exercises: [prescription] };
+      const exercise = buildSessionExercise(day, 0, state.history, state.settings.prefillFromHistory);
+      updateSession((session) => reducer.addExercise(session, exercise));
+    },
+
+    removeSessionExercise: (sessionExerciseId) => {
+      updateSession((session) => reducer.removeExercise(session, sessionExerciseId));
+      if (get().restTimer.context?.sessionExerciseId === sessionExerciseId) set({ restTimer: IDLE_REST_TIMER });
+    },
+
+    substituteSessionExercise: (sessionExerciseId, exerciseId) =>
+      updateSession((session) => reducer.substituteExercise(session, sessionExerciseId, exerciseId)),
+
+    updateSessionPrescription: (sessionExerciseId, patch) =>
+      updateSession((session) =>
+        reducer.patchPrescription(session, sessionExerciseId, patch, (setNumber, template) => ({
+          id: randomUUID(),
+          setNumber,
+          type: 'working',
+          kind: 'normal',
+          targetReps: patch.reps ?? template?.targetReps ?? { min: 8, max: 12 },
+          weightKg: template?.weightKg ?? null,
+          reps: template?.reps ?? null,
+          rpe: null,
+          rir: null,
+          completed: false,
+          completedAt: null,
+        })),
+      ),
+
+    saveTargetsToPlan: (sessionExerciseId) => {
+      const state = get();
+      const session = state.activeSession;
+      const exercise = session?.exercises.find((item) => item.id === sessionExerciseId);
+      if (!session || !exercise || session.kind !== 'plan' || !session.planDayId) return false;
+      const plan = state.plans.find((item) => item.id === session.planId);
+      if (!plan || plan.locked) return false;
+      const day = plan.days.find((item) => item.id === session.planDayId);
+      if (!day) return false;
+      const index = day.exercises.findIndex((item) => item.exerciseId === exercise.prescription.exerciseId || item.exerciseId === exercise.exerciseId);
+      const now = nowIso();
+      const { sets, reps, rest } = exercise.prescription;
+      editPlan(plan.id, (current) => {
+        if (index === -1) return planEditor.addExercise(current, day.id, { exerciseId: exercise.exerciseId, sets, reps, rest }, now);
+        const substituted = planEditor.substituteExercise(current, day.id, index, exercise.exerciseId, now);
+        return planEditor.updatePrescription(substituted, day.id, index, { sets, reps, rest }, now);
+      });
+      return true;
+    },
+
+    setNextSetKind: (sessionExerciseId, kind) => updateSession((session) => reducer.setNextSetKind(session, sessionExerciseId, kind)),
+
+    setSetFeedback: (sessionExerciseId, setId, feedback) =>
+      updateSession((session) =>
+        reducer.patchSet(session, sessionExerciseId, setId, (current) => ({
+          ...current,
+          rpe: feedback.rpe === undefined ? current.rpe : feedback.rpe,
+          rir: feedback.rir === undefined ? current.rir : feedback.rir,
+        })),
+      ),
+
+    addWarmupSets: (sessionExerciseId) => {
+      const session = get().activeSession;
+      const exercise = session?.exercises.find((item) => item.id === sessionExerciseId);
+      if (!session || !exercise) return 0;
+      const firstWorking = exercise.sets.find((set) => set.type === 'working');
+      const workingKg = firstWorking?.weightKg ?? getPreviousSetAt(getPreviousPerformance(get().history, exercise.exerciseId)?.exercise ?? null, 1)?.weightKg ?? null;
+      if (!workingKg || workingKg < 20) return 0;
+      const round = (kg: number) => Math.max(0, Math.round(kg / 2.5) * 2.5);
+      const warmups = [
+        { weightKg: round(workingKg * 0.5), reps: 10 },
+        { weightKg: round(workingKg * 0.75), reps: 5 },
+      ].filter((item, i, all) => item.weightKg > 0 && (i === 0 || item.weightKg !== all[i - 1].weightKg));
+      updateSession((current) => reducer.addWarmupSets(current, sessionExerciseId, warmups, randomUUID));
+      return warmups.length;
+    },
+
+    groupSessionExercises: (sessionExerciseIds) => {
+      if (sessionExerciseIds.length < 2) return;
+      updateSession((session) => reducer.setGroup(session, sessionExerciseIds, randomUUID()));
+    },
+
+    ungroupSessionExercise: (sessionExerciseId) => {
+      const session = get().activeSession;
+      const exercise = session?.exercises.find((item) => item.id === sessionExerciseId);
+      if (!session || !exercise?.groupId) return;
+      const members = session.exercises.filter((item) => item.groupId === exercise.groupId).map((item) => item.id);
+      // Removing one member from a pair dissolves the group; from a giant set it just leaves.
+      updateSession((current) => (members.length <= 2 ? reducer.setGroup(current, members, null) : reducer.setGroup(current, [sessionExerciseId], null)));
     },
 
     uncompleteSet: (sessionExerciseId, setId) => {
@@ -623,9 +755,12 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
             id: randomUUID(),
             setNumber: exercise.sets.length + 1,
             type: 'working',
+            kind: 'normal',
             targetReps: last?.targetReps ?? exercise.prescription.reps,
             weightKg: last?.weightKg ?? null,
             reps: last?.reps ?? null,
+            rpe: null,
+            rir: null,
             completed: false,
             completedAt: null,
           };

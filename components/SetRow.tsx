@@ -61,7 +61,9 @@ export function SetRow({
   const placeholderWeight = previous?.weightKg ?? null;
   const placeholderReps = previous?.reps ?? set.targetReps.max;
   const isWarmup = set.type === 'warmup';
-  const setLabel = isWarmup ? 'W' : String(set.setNumber);
+  const kindSuffix = set.kind === 'drop' ? '↓' : set.kind === 'rest_pause' ? '·' : set.kind === 'amrap' ? '+' : '';
+  const setLabel = `${isWarmup ? 'W' : String(set.setNumber)}${kindSuffix}`;
+  const kindLabel = set.kind === 'drop' ? t('setRow.kindDrop') : set.kind === 'rest_pause' ? t('setRow.kindRestPause') : set.kind === 'amrap' ? t('setRow.kindAmrap') : null;
 
   const handleComplete = () => {
     if (set.completed) {
@@ -86,7 +88,7 @@ export function SetRow({
         onPress={onToggleType}
         onLongPress={onRemove}
         accessibilityRole="button"
-        accessibilityLabel={t('setRow.a11y', { n: set.setNumber, type: isWarmup ? t('setRow.warmup') : t('setRow.working') })}
+        accessibilityLabel={t('setRow.a11y', { n: set.setNumber, type: kindLabel ?? (isWarmup ? t('setRow.warmup') : t('setRow.working')) })}
         accessibilityHint={t('setRow.hint')}
         accessibilityActions={[{ name: 'activate' }, { name: 'longpress', label: t('setRow.remove') }]}
         onAccessibilityAction={(event) => (event.nativeEvent.actionName === 'longpress' ? onRemove() : onToggleType())}

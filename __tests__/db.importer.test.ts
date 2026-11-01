@@ -27,7 +27,7 @@ function fresh() {
 const set = (n: number, owner = 'x') => ({
   id: `${owner}-set-${n}`,
   setNumber: n,
-  type: 'working',
+  type: 'working', kind: 'normal', rpe: null, rir: null,
   targetReps: { min: 10, max: 12 },
   weightKg: 60,
   reps: 12,
@@ -52,7 +52,7 @@ const session = (id: string, status: string, extra: Record<string, unknown> = {}
       prescription: { exerciseId: 'flat_barbell_bench_press', sets: 2, reps: { min: 10, max: 12 }, rest: { defaultSeconds: 120, minSeconds: 120, maxSeconds: 120 } },
       sets: [set(1, id), set(2, id)],
       skipped: false,
-      notes: '',
+      notes: '', groupId: null, groupKind: null,
     },
   ],
   currentExerciseIndex: 0,

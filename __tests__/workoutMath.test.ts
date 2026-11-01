@@ -21,7 +21,7 @@ function set(partial: Partial<ExerciseSet>): ExerciseSet {
   return {
     id: id(),
     setNumber: 1,
-    type: 'working',
+    type: 'working', kind: 'normal', rpe: null, rir: null,
     targetReps: { min: 10, max: 12 },
     weightKg: null,
     reps: null,
@@ -47,7 +47,7 @@ function exercise(exerciseId: string, sets: ExerciseSet[]): SessionExercise {
     },
     sets: sets.map((item, i) => ({ ...item, setNumber: i + 1 })),
     skipped: false,
-    notes: '',
+    notes: '', groupId: null, groupKind: null,
   };
 }
 

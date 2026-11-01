@@ -9,10 +9,11 @@ import type { WorkoutSession, WorkoutSettings } from '@/types/workout';
  * v2 → v3: server sync removed → drop `syncQueue`
  * v3 → v4: cool-down and fixed weight increment removed
  * v4 → v5: weekday schedule → plan rotation (sessions reference PDF plan day ids)
+ * v5 → v6: advanced set metadata (`kind`, `rpe`, `rir`) and exercise grouping defaults
  */
 import { PDF_PROGRAM_ID, pdfDayId } from '@/data/seeds/pdfProgram';
 
-export const PERSISTED_STATE_VERSION = 5;
+export const PERSISTED_STATE_VERSION = 6;
 
 export function migratePersistedState(persisted: Record<string, unknown>, version: number): Record<string, unknown> {
   let state = { ...persisted };
@@ -65,6 +66,25 @@ export function migratePersistedState(persisted: Record<string, unknown>, versio
       activeSession: activeSession ? upgrade(activeSession) : (activeSession ?? null),
       history: history.map(upgrade),
       settings,
+    };
+  }
+
+  if (version < 6) {
+    const upgradeSession = (session: WorkoutSession): WorkoutSession => ({
+      ...session,
+      exercises: (session.exercises ?? []).map((exercise) => ({
+        ...exercise,
+        groupId: exercise.groupId ?? null,
+        groupKind: exercise.groupKind ?? null,
+        sets: (exercise.sets ?? []).map((set) => ({ ...set, kind: set.kind ?? 'normal', rpe: set.rpe ?? null, rir: set.rir ?? null })),
+      })),
+    });
+    const activeSession = state.activeSession as WorkoutSession | null | undefined;
+    const history = (state.history ?? []) as WorkoutSession[];
+    state = {
+      ...state,
+      ...('activeSession' in state ? { activeSession: activeSession ? upgradeSession(activeSession) : null } : {}),
+      history: history.map(upgradeSession),
     };
   }
 

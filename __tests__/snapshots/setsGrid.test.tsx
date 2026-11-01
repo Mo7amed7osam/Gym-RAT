@@ -17,7 +17,7 @@ const noop = () => {};
 const baseSet = (overrides: Partial<ExerciseSet> = {}): ExerciseSet => ({
   id: 'set-1',
   setNumber: 1,
-  type: 'working',
+  type: 'working', kind: 'normal', rpe: null, rir: null,
   targetReps: { min: 10, max: 12 },
   weightKg: null,
   reps: null,

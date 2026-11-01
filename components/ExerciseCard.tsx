@@ -1,4 +1,4 @@
-import { BookOpen, Plus } from 'lucide-react-native';
+import { BookOpen, Ellipsis, Plus } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -27,9 +27,11 @@ interface ExerciseCardProps {
   position: number;
   total: number;
   onOpenGuide: (exerciseId: string) => void;
+  /** Opens the exercise options sheet (reorder, substitute, targets, set kinds…). Absent in previews. */
+  onOpenOptions?: () => void;
 }
 
-export function ExerciseCard({ sessionExercise, position, total, onOpenGuide }: ExerciseCardProps) {
+export function ExerciseCard({ sessionExercise, position, total, onOpenGuide, onOpenOptions }: ExerciseCardProps) {
   const t = useT();
   const locale = useLocale();
   const styles = useStyles();
@@ -68,7 +70,15 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenGuide }: 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>{t('exercise.position', { n: position, total })}</Text>
+        <View style={styles.eyebrowRow}>
+          <Text style={[styles.eyebrow, styles.flex]}>{t('exercise.position', { n: position, total })}</Text>
+          {sessionExercise.groupKind ? <Chip label={t(sessionExercise.groupKind === 'giant' ? 'workout.giantBadge' : 'workout.groupBadge')} tone="tint" /> : null}
+          {onOpenOptions ? (
+            <Pressable onPress={onOpenOptions} accessibilityRole="button" accessibilityLabel={t('workout.optionsA11y', { name })} hitSlop={8} style={styles.optionsButton}>
+              <Ellipsis size={20} color={theme.colors.labelSecondary} />
+            </Pressable>
+          ) : null}
+        </View>
         <Text style={styles.title} accessibilityRole="header">
           {name}
         </Text>
@@ -215,6 +225,9 @@ const useStyles = createStyles((t) =>
       ...t.typography.subheadline,
       color: t.colors.labelSecondary,
     },
+    eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm },
+    flex: { flex: 1, minWidth: 0 },
+    optionsButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: t.radii.pill, backgroundColor: t.colors.surfaceRaised },
     guideRow: {
       flexDirection: 'row',
       gap: t.spacing.md,

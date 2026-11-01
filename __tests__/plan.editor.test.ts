@@ -112,7 +112,7 @@ describe('schema v5', () => {
       `INSERT INTO plans (id, kind, name_json, locked, next_day_index, created_at, updated_at) VALUES ('t', 'template', '{"en":"T","ar":"T"}', 0, 0, ?, ?)`,
       [NOW, NOW],
     );
-    expect(migrate(driver)).toEqual({ from: 4, to: SCHEMA_VERSION, applied: [5] });
+    expect(migrate(driver)).toEqual({ from: 4, to: SCHEMA_VERSION, applied: MIGRATIONS.filter((m) => m.version > 4).map((m) => m.version) });
     const repo = new WorkoutRepository(driver);
     const loaded = repo.loadAll({ restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
     expect(loaded.plans[0].archived).toBe(false);

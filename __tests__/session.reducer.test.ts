@@ -13,7 +13,7 @@ function session(partial: Partial<WorkoutSession> = {}): WorkoutSession {
     prescription: { exerciseId: id, sets: 1, reps: { min: 10, max: 12 }, rest: { defaultSeconds: 90, minSeconds: 60, maxSeconds: 120 } },
     sets: [],
     skipped: false,
-    notes: '',
+    notes: '', groupId: null, groupKind: null,
   });
   return {
     id: 's',
@@ -105,7 +105,7 @@ describe('exercise order', () => {
 
   it('classifies exercise outcomes', () => {
     const s = session();
-    s.exercises[0].sets = [{ id: 'x', setNumber: 1, type: 'working', targetReps: { min: 1, max: 1 }, weightKg: 1, reps: 1, completed: true, completedAt: iso(1) }];
+    s.exercises[0].sets = [{ id: 'x', setNumber: 1, type: 'working', kind: 'normal', rpe: null, rir: null, targetReps: { min: 1, max: 1 }, weightKg: 1, reps: 1, completed: true, completedAt: iso(1) }];
     s.exercises[1].skipped = true;
     expect(r.exerciseOutcome(s)).toEqual({ completed: ['a'], skipped: ['b'], untouched: ['c'] });
   });

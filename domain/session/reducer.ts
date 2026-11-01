@@ -1,4 +1,4 @@
-import type { ExerciseSet, PausedInterval, SessionExercise, WorkoutSession } from '@/types/workout';
+import type { ExercisePrescription, ExerciseSet, PausedInterval, SessionExercise, WorkoutSession } from '@/types/workout';
 
 /**
  * Pure session transitions. No I/O, no ids generated here (callers pass ids),
@@ -148,4 +148,167 @@ export function exerciseOutcome(session: WorkoutSession): { completed: string[];
     else untouched.push(exercise.id);
   }
   return { completed, skipped, untouched };
+}
+
+// ─── Phase 2 engine additions (P2.4 / P2.5) ──────────────────────────────────
+
+/** Inserts an exercise after `afterIndex` (default: after the current one). */
+export function addExercise(session: WorkoutSession, exercise: SessionExercise, afterIndex: number = session.currentExerciseIndex): WorkoutSession {
+  const at = Math.min(Math.max(afterIndex + 1, 0), session.exercises.length);
+  const exercises = [...session.exercises.slice(0, at), exercise, ...session.exercises.slice(at)];
+  return { ...session, exercises };
+}
+
+/** Removes an exercise from the session (its logged sets go with it; callers confirm first). */
+export function removeExercise(session: WorkoutSession, sessionExerciseId: string): WorkoutSession {
+  const index = session.exercises.findIndex((exercise) => exercise.id === sessionExerciseId);
+  if (index === -1) return session;
+  const exercises = session.exercises.filter((exercise) => exercise.id !== sessionExerciseId);
+  const next = { ...session, exercises, deferredIds: session.deferredIds.filter((id) => id !== sessionExerciseId) };
+  const currentExerciseIndex = index < session.currentExerciseIndex ? session.currentExerciseIndex - 1 : session.currentExerciseIndex;
+  return { ...next, currentExerciseIndex: clampIndex(next, currentExerciseIndex) };
+}
+
+/**
+ * Swaps the movement for this session only. Completed sets stay as logged
+ * (they were done on the old exercise), incomplete sets lose their prefill.
+ */
+export function substituteExercise(session: WorkoutSession, sessionExerciseId: string, exerciseId: string): WorkoutSession {
+  return patchExercise(session, sessionExerciseId, (exercise) => {
+    if (exercise.exerciseId === exerciseId) return exercise;
+    return {
+      ...exercise,
+      exerciseId,
+      prescription: { ...exercise.prescription, exerciseId },
+      sets: exercise.sets.map((set) => (set.completed ? set : { ...set, weightKg: null, reps: null })),
+    };
+  });
+}
+
+/**
+ * Session-only target edit: number of sets (trailing incomplete sets are
+ * added or dropped), rep range on incomplete sets, rest. The plan is untouched.
+ */
+export function patchPrescription(
+  session: WorkoutSession,
+  sessionExerciseId: string,
+  patch: Partial<Pick<ExercisePrescription, 'sets' | 'reps' | 'rest'>>,
+  makeSet: (setNumber: number, template: ExerciseSet | undefined) => ExerciseSet,
+): WorkoutSession {
+  return patchExercise(session, sessionExerciseId, (exercise) => {
+    const prescription = { ...exercise.prescription, ...patch };
+    let sets = exercise.sets;
+    if (patch.reps) sets = sets.map((set) => (set.completed ? set : { ...set, targetReps: patch.reps! }));
+    if (patch.sets !== undefined) {
+      const working = sets.filter((set) => set.type === 'working').length;
+      if (patch.sets > working) {
+        const extra = Array.from({ length: patch.sets - working }, (_, i) => makeSet(sets.length + i + 1, sets[sets.length - 1]));
+        sets = [...sets, ...extra];
+      } else if (patch.sets < working) {
+        let toDrop = working - patch.sets;
+        const kept: ExerciseSet[] = [];
+        for (let i = sets.length - 1; i >= 0; i -= 1) {
+          const set = sets[i];
+          if (toDrop > 0 && set.type === 'working' && !set.completed) {
+            toDrop -= 1;
+            continue;
+          }
+          kept.unshift(set);
+        }
+        sets = renumber(kept);
+      }
+    }
+    return { ...exercise, prescription, sets };
+  });
+}
+
+/** Marks the next incomplete set of an exercise with an advanced kind (or back to normal). */
+export function setNextSetKind(session: WorkoutSession, sessionExerciseId: string, kind: ExerciseSet['kind']): WorkoutSession {
+  return patchExercise(session, sessionExerciseId, (exercise) => {
+    const target = exercise.sets.find((set) => !set.completed);
+    if (!target || target.kind === kind) return exercise;
+    return { ...exercise, sets: exercise.sets.map((set) => (set.id === target.id ? { ...set, kind } : set)) };
+  });
+}
+
+/** Prepends warm-up sets (ramping percentages of `workingKg`) before the first working set. */
+export function addWarmupSets(
+  session: WorkoutSession,
+  sessionExerciseId: string,
+  warmups: { weightKg: number; reps: number }[],
+  makeId: () => string,
+): WorkoutSession {
+  return patchExercise(session, sessionExerciseId, (exercise) => {
+    if (warmups.length === 0 || exercise.sets.some((set) => set.completed)) return exercise;
+    const firstWorking = exercise.sets.findIndex((set) => set.type === 'working');
+    const at = firstWorking === -1 ? exercise.sets.length : firstWorking;
+    const template = exercise.sets[at] ?? exercise.sets[0];
+    const added: ExerciseSet[] = warmups.map((item) => ({
+      id: makeId(),
+      setNumber: 0,
+      type: 'warmup',
+      kind: 'normal',
+      targetReps: { min: item.reps, max: item.reps },
+      weightKg: item.weightKg,
+      reps: item.reps,
+      rpe: null,
+      rir: null,
+      completed: false,
+      completedAt: null,
+    }));
+    const sets = renumber([...exercise.sets.slice(0, at), ...added, ...exercise.sets.slice(at)]);
+    return { ...exercise, sets };
+  });
+}
+
+/** Groups two or more exercises (by session-exercise id) into a superset / giant set, or ungroups them. */
+export function setGroup(session: WorkoutSession, sessionExerciseIds: string[], groupId: string | null): WorkoutSession {
+  const ids = new Set(sessionExerciseIds);
+  const groupKind: SessionExercise['groupKind'] = groupId === null ? null : ids.size >= 3 ? 'giant' : 'superset';
+  let changed = false;
+  const exercises = session.exercises.map((exercise) => {
+    if (!ids.has(exercise.id)) return exercise;
+    if (exercise.groupId === groupId && exercise.groupKind === groupKind) return exercise;
+    changed = true;
+    return { ...exercise, groupId, groupKind };
+  });
+  return changed ? { ...session, exercises } : session;
+}
+
+/** Timestamp of the most recent user activity in the session (set logged, start, or resume). */
+export function lastActivityMs(session: WorkoutSession): number {
+  let latest = Date.parse(session.startedAt);
+  for (const exercise of session.exercises) {
+    for (const set of exercise.sets) {
+      if (set.completedAt) latest = Math.max(latest, Date.parse(set.completedAt));
+    }
+  }
+  for (const interval of session.pausedIntervals) {
+    if (interval.to) latest = Math.max(latest, Date.parse(interval.to));
+  }
+  return latest;
+}
+
+/**
+ * Rest after `completedSet` on `exercise` (spec §10): warm-up sets rest
+ * briefly, drop sets not at all, rest-pause sets 15 s, grouped exercises
+ * only rest after the last member of the group; otherwise the user's
+ * per-exercise override, then the prescription.
+ */
+export function restSecondsAfter(
+  session: WorkoutSession,
+  exercise: SessionExercise,
+  completedSet: ExerciseSet,
+  options: { warmupRestSeconds: number; userRestSeconds: number | null },
+): number {
+  if (completedSet.kind === 'drop') return 0;
+  if (completedSet.kind === 'rest_pause') return 15;
+  if (completedSet.type === 'warmup') return options.warmupRestSeconds;
+  if (exercise.groupId) {
+    const members = session.exercises.filter((item) => item.groupId === exercise.groupId && !item.skipped);
+    const position = members.findIndex((item) => item.id === exercise.id);
+    const later = members.slice(position + 1);
+    if (later.some((item) => item.sets.some((set) => !set.completed))) return 0;
+  }
+  return options.userRestSeconds ?? exercise.prescription.rest.defaultSeconds;
 }

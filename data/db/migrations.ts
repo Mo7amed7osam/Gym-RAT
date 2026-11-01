@@ -1,5 +1,5 @@
 import type { Driver } from './driver';
-import { REQUIRED_TABLES, SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5 } from './schema';
+import { REQUIRED_TABLES, SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6 } from './schema';
 
 interface MigrationStep {
   version: number;
@@ -13,6 +13,7 @@ export const MIGRATIONS: readonly MigrationStep[] = [
   { version: 3, up: (driver) => driver.exec(SCHEMA_V3) },
   { version: 4, up: (driver) => driver.exec(SCHEMA_V4) },
   { version: 5, up: (driver) => driver.exec(SCHEMA_V5) },
+  { version: 6, up: (driver) => driver.exec(SCHEMA_V6) },
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

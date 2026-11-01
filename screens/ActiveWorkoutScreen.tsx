@@ -16,6 +16,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExerciseCard } from '@/components/ExerciseCard';
 import { RestTimerModal, RestTimerPill } from '@/components/RestTimerModal';
 import { ExerciseGuideModal } from '@/components/ExerciseGuideModal';
+import { ExerciseOptionsSheet, type SheetAction } from '@/components/ExerciseOptionsSheet';
+import { ExercisePickerModal } from '@/components/ExercisePickerModal';
+import { SessionTargetsSheet } from '@/components/SessionTargetsSheet';
+import { WorkoutReviewModal } from '@/components/WorkoutReviewModal';
+import { lastActivityMs } from '@/domain/session/reducer';
 import { WarmupRoutine, getRoutineProgress } from '@/components/WarmupRoutine';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -91,7 +96,14 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
     session.exercises.some((exercise) => exercise.sets.some((set) => set.completed)) ? 'exercises' : 'warmup',
   );
   const [videoExerciseId, setVideoExerciseId] = useState<string | null>(null);
-  const [confirm, setConfirm] = useState<'finish' | 'discard' | null>(null);
+  const [confirm, setConfirm] = useState<'discard' | 'remove' | null>(null);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [targetsFor, setTargetsFor] = useState<string | null>(null);
+  const [picker, setPicker] = useState<'substitute' | 'add' | null>(null);
+  const [reviewing, setReviewing] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [inactivitySnoozedUntil, setInactivitySnoozedUntil] = useState(0);
+  const [undoDismissedKey, setUndoDismissedKey] = useState<string | null>(null);
   const [dismissedRestKey, setDismissedRestKey] = useState<string | null>(null);
 
   const restKey = useWorkoutStore((state) => state.restTimer.context?.completedSetId ?? null);
@@ -105,6 +117,21 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
   const resumeWorkout = useWorkoutStore((state) => state.resumeWorkout);
   const paused = useWorkoutStore(selectIsWorkoutPaused);
   const exerciseMap = useExerciseMap();
+  const persistenceError = useWorkoutStore((state) => state.persistenceError);
+  const reportPersistenceError = useWorkoutStore((state) => state.reportPersistenceError);
+  const inactivityMinutes = useWorkoutStore((state) => state.settings.inactivityPromptMinutes);
+  const restContext = useWorkoutStore((state) => state.restTimer.context);
+  const reorderExercise = useWorkoutStore((state) => state.reorderExercise);
+  const uncompleteSet = useWorkoutStore((state) => state.uncompleteSet);
+  const substituteSessionExercise = useWorkoutStore((state) => state.substituteSessionExercise);
+  const addSessionExercise = useWorkoutStore((state) => state.addSessionExercise);
+  const removeSessionExercise = useWorkoutStore((state) => state.removeSessionExercise);
+  const setNextSetKind = useWorkoutStore((state) => state.setNextSetKind);
+  const addWarmupSets = useWorkoutStore((state) => state.addWarmupSets);
+  const groupSessionExercises = useWorkoutStore((state) => state.groupSessionExercises);
+  const ungroupSessionExercise = useWorkoutStore((state) => state.ungroupSessionExercise);
+  const activePlanForSession = useWorkoutStore((state) => state.plans.find((plan) => plan.id === session.planId) ?? null);
+  const now = useNow(30_000);
 
   const day = { code: session.code, firstExerciseId: session.exercises[0]?.exerciseId };
   const index = session.currentExerciseIndex;
@@ -116,13 +143,61 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
   // The rest sheet opens for every newly logged set until the user minimises it.
   const restSheetVisible = restKey !== null && restKey !== dismissedRestKey;
 
-  const finish = () => {
-    setConfirm(null);
-    const result = finishWorkout();
+  const finish = (mode: 'advance' | 'repeat') => {
+    setReviewing(false);
+    const result = finishWorkout(mode);
     if (result) onFinished(result);
   };
 
-  const requestFinish = () => (completed < total ? setConfirm('finish') : finish());
+  // Every finish goes through the review step (outcomes, notes, end time).
+  const requestFinish = () => setReviewing(true);
+
+  // Quick undo for the set that was just logged (the rest-timer context tracks it).
+  const undoKey = restContext?.completedSetId ?? null;
+  const undoVisible = undoKey !== null && undoKey !== undoDismissedKey;
+  const undoSetNumber = undoKey
+    ? (session.exercises.find((item) => item.id === restContext?.sessionExerciseId)?.sets.find((set) => set.id === undoKey)?.setNumber ?? null)
+    : null;
+
+  // Inactivity: no set logged, no resume, for N minutes while the app is open and not paused.
+  const inactiveMs = now - lastActivityMs(session);
+  const inactivityDue = inactivityMinutes > 0 && !paused && inactiveMs > inactivityMinutes * 60_000 && now > inactivitySnoozedUntil && !reviewing;
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast((current) => (current === message ? null : current)), 2500);
+  };
+
+  const canSaveToPlan = session.kind === 'plan' && activePlanForSession !== null && !activePlanForSession.locked;
+  const nextExerciseInSession = session.exercises[index + 1] ?? null;
+  const optionActions: SheetAction[] = current
+    ? [
+        { key: 'guide', label: t('exercise.guide'), onPress: () => { setOptionsOpen(false); setVideoExerciseId(current.exerciseId); } },
+        { key: 'targets', label: t('workout.editTargets'), detail: t('workout.sessionOnly'), onPress: () => { setOptionsOpen(false); setTargetsFor(current.id); } },
+        { key: 'substitute', label: t('workout.substitute'), disabled: current.sets.some((set) => set.completed), onPress: () => { setOptionsOpen(false); setPicker('substitute'); } },
+        { key: 'earlier', label: t('workout.moveEarlier'), disabled: index === 0, onPress: () => { setOptionsOpen(false); reorderExercise(current.id, index - 1); } },
+        { key: 'later', label: t('workout.moveLater'), disabled: isLastExercise, onPress: () => { setOptionsOpen(false); reorderExercise(current.id, index + 1); } },
+        { key: 'kind-normal', label: `${t('workout.nextSetKind')}: ${t('workout.kindNormal')}`, onPress: () => { setOptionsOpen(false); setNextSetKind(current.id, 'normal'); } },
+        { key: 'kind-drop', label: `${t('workout.nextSetKind')}: ${t('workout.kindDrop')}`, onPress: () => { setOptionsOpen(false); setNextSetKind(current.id, 'drop'); } },
+        { key: 'kind-rp', label: `${t('workout.nextSetKind')}: ${t('workout.kindRestPause')}`, onPress: () => { setOptionsOpen(false); setNextSetKind(current.id, 'rest_pause'); } },
+        { key: 'kind-amrap', label: `${t('workout.nextSetKind')}: ${t('workout.kindAmrap')}`, onPress: () => { setOptionsOpen(false); setNextSetKind(current.id, 'amrap'); } },
+        {
+          key: 'warmups',
+          label: t('workout.addWarmups'),
+          disabled: current.sets.some((set) => set.completed),
+          onPress: () => {
+            setOptionsOpen(false);
+            const count = addWarmupSets(current.id);
+            showToast(count > 0 ? t('workout.warmupsAdded', { count }) : t('workout.warmupsUnavailable'));
+          },
+        },
+        current.groupId
+          ? { key: 'ungroup', label: t('workout.ungroup'), onPress: () => { setOptionsOpen(false); ungroupSessionExercise(current.id); } }
+          : { key: 'superset', label: t('workout.supersetWithNext'), disabled: !nextExerciseInSession, onPress: () => { setOptionsOpen(false); if (nextExerciseInSession) groupSessionExercises([current.id, nextExerciseInSession.id]); } },
+        { key: 'add', label: t('workout.addExerciseAfter'), onPress: () => { setOptionsOpen(false); setPicker('add'); } },
+        { key: 'remove', label: t('workout.removeExercise'), destructive: true, onPress: () => { setOptionsOpen(false); setConfirm('remove'); } },
+      ]
+    : [];
 
   // After the last exercise the workout goes straight to the summary (no cool-down stage).
   const advance = () => {
@@ -157,6 +232,15 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
           <Text style={styles.finishText}>{t('common.finish')}</Text>
         </Pressable>
       </View>
+
+      {persistenceError ? (
+        <View style={styles.banner} accessibilityLiveRegion="assertive">
+          <Text style={[styles.bannerText, styles.flex]}>{t('workout.saveFailed')}</Text>
+          <Pressable onPress={() => reportPersistenceError(null)} accessibilityRole="button" hitSlop={8}>
+            <Text style={styles.bannerAction}>{t('workout.saveFailedDismiss')}</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       <View style={styles.progressTrack} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <View style={[styles.progressFill, { width: `${total > 0 ? (completed / total) * 100 : 0}%` }]} />
@@ -231,6 +315,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                 position={index + 1}
                 total={session.exercises.length}
                 onOpenGuide={setVideoExerciseId}
+                onOpenOptions={() => setOptionsOpen(true)}
               />
 
               {next ? (
@@ -277,6 +362,29 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
       </KeyboardAvoidingView>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + theme.spacing.sm }]}>
+        {toast ? (
+          <View style={styles.toast} accessibilityLiveRegion="polite">
+            <Text style={styles.toastText}>{toast}</Text>
+          </View>
+        ) : null}
+        {undoVisible && undoSetNumber !== null && restContext ? (
+          <View style={styles.toast} accessibilityLiveRegion="polite">
+            <Text style={[styles.toastText, styles.flex]}>{t('workout.setLoggedToast', { n: undoSetNumber })}</Text>
+            <Pressable
+              onPress={() => {
+                uncompleteSet(restContext.sessionExerciseId, restContext.completedSetId);
+                setUndoDismissedKey(undoKey);
+              }}
+              accessibilityRole="button"
+              hitSlop={8}
+            >
+              <Text style={styles.toastAction}>{t('workout.undo')}</Text>
+            </Pressable>
+            <Pressable onPress={() => setUndoDismissedKey(undoKey)} accessibilityRole="button" accessibilityLabel={t('library.detail.close')} hitSlop={8}>
+              <Text style={styles.toastDismiss}>✕</Text>
+            </Pressable>
+          </View>
+        ) : null}
         <RestTimerPill onExpand={() => setDismissedRestKey(null)} />
         {stage === 'warmup' ? (
           <Button
@@ -308,13 +416,51 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
 
       <RestTimerModal visible={restSheetVisible} onMinimize={() => setDismissedRestKey(restKey)} />
       <ExerciseGuideModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
+      <WorkoutReviewModal session={reviewing ? session : null} onCancel={() => setReviewing(false)} onFinish={finish} />
+      <ExerciseOptionsSheet visible={optionsOpen} title={current ? (exerciseMap.get(current.exerciseId)?.name.en ?? '') : ''} actions={optionActions} onClose={() => setOptionsOpen(false)} />
+      <SessionTargetsSheet
+        exercise={session.exercises.find((item) => item.id === targetsFor) ?? null}
+        canSaveToPlan={canSaveToPlan}
+        onClose={() => setTargetsFor(null)}
+        onSavedToPlan={() => {
+          setTargetsFor(null);
+          showToast(t('workout.savedToPlan', { code: session.code }));
+        }}
+      />
+      <ExercisePickerModal
+        visible={picker !== null}
+        title={picker === 'add' ? t('workout.addExerciseAfter') : t('workout.substitute')}
+        excludeIds={picker === 'add' ? session.exercises.map((item) => item.exerciseId) : current ? [current.exerciseId] : []}
+        onClose={() => setPicker(null)}
+        onPick={(exerciseId) => {
+          if (picker === 'add') addSessionExercise(exerciseId);
+          else if (picker === 'substitute' && current) substituteSessionExercise(current.id, exerciseId);
+          setPicker(null);
+        }}
+      />
       <ConfirmDialog
-        visible={confirm === 'finish'}
-        title={t('workout.finishTitle')}
-        message={t('workout.finishMessage', { missing: total - completed, total })}
-        confirmLabel={t('common.finish')}
+        visible={confirm === 'remove'}
+        title={t('workout.removeExerciseTitle', { name: current ? (exerciseMap.get(current.exerciseId)?.name.en ?? '') : '' })}
+        message={t('workout.removeExerciseMessage')}
+        confirmLabel={t('plan.editor.remove')}
+        destructive
         onCancel={() => setConfirm(null)}
-        onConfirm={finish}
+        onConfirm={() => {
+          setConfirm(null);
+          if (current) removeSessionExercise(current.id);
+        }}
+      />
+      <ConfirmDialog
+        visible={inactivityDue}
+        title={t('workout.inactivityTitle')}
+        message={t('workout.inactivityMessage', { minutes: Math.round(inactiveMs / 60_000) })}
+        confirmLabel={t('workout.inactivityFinish')}
+        cancelLabel={t('workout.inactivityKeep')}
+        onCancel={() => setInactivitySnoozedUntil(Date.now() + inactivityMinutes * 60_000)}
+        onConfirm={() => {
+          setInactivitySnoozedUntil(Date.now() + inactivityMinutes * 60_000);
+          setReviewing(true);
+        }}
       />
       <ConfirmDialog
         visible={confirm === 'discard'}
@@ -623,6 +769,13 @@ const useStyles = createStyles((t) =>
       fontWeight: '500',
       color: t.colors.link,
     },
+    banner: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.md, marginHorizontal: t.spacing.screen, marginBottom: t.spacing.sm, padding: t.spacing.md, borderRadius: t.radii.tile, backgroundColor: t.colors.destructiveMuted },
+    bannerText: { ...t.typography.footnote, color: t.colors.destructive },
+    bannerAction: { ...t.typography.footnote, color: t.colors.label },
+    toast: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.md, padding: t.spacing.md, borderRadius: t.radii.tile, backgroundColor: t.colors.surfaceRaised },
+    toastText: { ...t.typography.subheadline, color: t.colors.label },
+    toastAction: { ...t.typography.subheadline, fontWeight: '700', color: t.colors.link },
+    toastDismiss: { ...t.typography.subheadline, color: t.colors.labelSecondary },
     bottomBar: {
       gap: t.spacing.sm,
       paddingHorizontal: t.spacing.screen,
