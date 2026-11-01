@@ -163,8 +163,6 @@ interface WorkoutActions {
   markRestTimerElapsed: (now?: number) => void;
 
   // History & settings
-  deleteSession: (sessionId: string) => void;
-  clearHistory: () => void;
   updateSettings: (patch: Partial<WorkoutSettings>) => void;
 
   // Persistence plumbing (called by data/db/boot.ts)
@@ -536,8 +534,7 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
 
       const finishedAt = new Date();
       const stamped = reducer.finish(activeSession, finishedAt.toISOString());
-      const weightTypeOf = (exerciseId: string) => get().exercises.find((item) => item.id === exerciseId)?.weightType ?? 'total';
-      const finished: WorkoutSession = { ...stamped, summary: buildSessionSummary(stamped, history, finishedAt, weightTypeOf) };
+      const finished: WorkoutSession = { ...stamped, summary: buildSessionSummary(stamped, history, finishedAt) };
 
       let nextPlans = plans;
       const active = selectActivePlan(get());
@@ -949,11 +946,6 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
     },
 
     // ── History & settings ───────────────────────────────────────────────
-
-    deleteSession: (sessionId) =>
-      set((state) => ({ history: state.history.filter((session) => session.id !== sessionId) })),
-
-    clearHistory: () => set({ history: [] }),
 
     updateSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
 

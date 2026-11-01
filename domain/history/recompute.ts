@@ -1,6 +1,5 @@
 import { getStrengthMetrics, type StrengthMetrics } from '@/domain/analytics/metrics';
-import { activeSeconds, totalSeconds } from '@/domain/session/reducer';
-import { countSets, sessionVolumeKg } from '@/lib/workoutMath';
+import { buildSessionSummary } from '@/lib/workoutMath';
 import type { PersonalRecord, SessionSummary, WorkoutSession } from '@/types/workout';
 
 import { validateHistorySession, type HistoryEditError } from './edit';
@@ -20,18 +19,14 @@ export function sortNewestFirst(history: readonly WorkoutSession[]): WorkoutSess
   return [...history].sort((a, b) => startMs(b) - startMs(a) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 
-/** Summary of a finished session against the completed sessions before it. */
+/**
+ * Summary of a finished session against the completed sessions before it.
+ * Same builder as the live finish (`buildSessionSummary`), so a replayed
+ * session and a freshly finished one can never disagree (ADR-012).
+ */
 export function summarize(session: WorkoutSession, prior: readonly WorkoutSession[], metrics: StrengthMetrics): SessionSummary {
   const end = Date.parse(session.finishedAt ?? session.startedAt);
-  const { completed, total } = countSets(session);
-  return {
-    totalVolumeKg: sessionVolumeKg(session),
-    completedSets: completed,
-    totalSets: total,
-    durationSeconds: totalSeconds(session, end),
-    activeSeconds: activeSeconds(session, end),
-    personalRecords: metrics.detectPersonalRecords(session, prior),
-  };
+  return buildSessionSummary(session, prior, new Date(end), metrics);
 }
 
 const sameRecord = (a: PersonalRecord, b: PersonalRecord) =>

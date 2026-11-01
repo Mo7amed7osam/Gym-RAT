@@ -1,3 +1,4 @@
+import { deleteHistorySession } from '@/store/historyActions';
 import { PERSISTED_STATE_VERSION, migratePersistedState } from '@/store/migratePersistedState';
 import { seedPlans } from '@/data/db/seed';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, getRestRemainingMs, selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
@@ -246,7 +247,7 @@ describe('history & settings', () => {
     const store = useWorkoutStore.getState();
     const result = { ok: true as const, session: start(0) };
     const finished = store.finishWorkout()!;
-    store.deleteSession(finished.id);
+    expect(deleteHistorySession(finished.id)).toBe(true); // history deletes go through the replaying action (ADR-012)
     expect(useWorkoutStore.getState().history).toHaveLength(0);
     store.updateSettings({ restWarningSeconds: 10 });
     expect(useWorkoutStore.getState().settings).toMatchObject({ ...DEFAULT_SETTINGS, restWarningSeconds: 10 });
@@ -313,17 +314,6 @@ describe('navigation, checklists, selectors, migration', () => {
     expect(selectPreviousExercise('nope')(useWorkoutStore.getState())).toBeNull();
     expect(getDayHistory(useWorkoutStore.getState(), plan.days[0].id)).toHaveLength(1);
     expect(getDayHistory(useWorkoutStore.getState(), plan.days[1].id)).toHaveLength(0);
-  });
-
-  it('clearHistory empties history', () => {
-    const store = useWorkoutStore.getState();
-    const a = { ok: true as const, session: start(0) };
-    store.finishWorkout();
-    const b = { ok: true as const, session: start(1) };
-    store.finishWorkout();
-    expect(useWorkoutStore.getState().history).toHaveLength(2);
-    store.clearHistory();
-    expect(useWorkoutStore.getState().history).toHaveLength(0);
   });
 
   it('migratePersistedState strips cool-down ids and the weight increment (v3→v4)', () => {
