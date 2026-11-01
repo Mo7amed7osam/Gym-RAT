@@ -2,7 +2,7 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
-**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. M0 complete on branch `phase1/m0-test-harness`.
+**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. M0, M1 complete (merged to main).
 
 ## Phase tracking
 
@@ -28,8 +28,8 @@
 | M | Title | Status |
 |---|---|---|
 | M0 | Git + Jest harness + baseline tests | **Done** — 41 tests, 96% stmts / 99% lines on the 4 target modules; tsc/lint clean |
-| M1 | Remove sync/server; persist v3 | Next |
-| M2 | Remove cool-down + weightIncrementKg | Not started |
+| M1 | Remove sync/server; persist v3 | **Done** |
+| M2 | Remove cool-down + weightIncrementKg | Next |
 | M3 | SQLite behind store facade + importer | Not started |
 | M4 | Plan/rotation + session reducer | Not started |
 | M5 | Theme system | Not started |

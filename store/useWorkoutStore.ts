@@ -25,20 +25,10 @@ import { createBatchedStorage } from './batchedStorage';
 
 // ─── State shape ─────────────────────────────────────────────────────────────
 
-/** A pending write to the server. One entry per session; the latest op wins. */
-export interface SyncOp {
-  kind: 'upsert' | 'delete';
-  sessionId: string;
-  /** Epoch ms; lets a flush drop only the ops it actually sent. */
-  enqueuedAt: number;
-}
-
 interface PersistedWorkoutState {
   activeSession: WorkoutSession | null;
   /** Finished sessions, newest first. */
   history: WorkoutSession[];
-  /** Offline-first outbox drained by lib/sync.ts. */
-  syncQueue: SyncOp[];
   restTimer: RestTimerState;
   settings: WorkoutSettings;
 }
@@ -97,10 +87,6 @@ interface WorkoutActions {
   deleteSession: (sessionId: string) => void;
   clearHistory: () => void;
   updateSettings: (patch: Partial<WorkoutSettings>) => void;
-
-  // Sync
-  /** Removes ops the server acknowledged, unless they were re-queued since. */
-  ackSyncOps: (ops: readonly SyncOp[]) => void;
 }
 
 export type WorkoutStore = WorkoutState & WorkoutActions;
@@ -126,16 +112,6 @@ export const DEFAULT_SETTINGS: WorkoutSettings = {
 };
 
 const MIN_REST_DURATION_MS = 5_000;
-
-/** Replaces any pending op for the same session — only the final state matters. */
-function enqueueSync(queue: readonly SyncOp[], kind: SyncOp['kind'], sessionIds: readonly string[]): SyncOp[] {
-  const ids = new Set(sessionIds);
-  const enqueuedAt = Date.now();
-  return [
-    ...queue.filter((op) => !ids.has(op.sessionId)),
-    ...sessionIds.map((sessionId) => ({ kind, sessionId, enqueuedAt })),
-  ];
-}
 
 // ─── Pure helpers ────────────────────────────────────────────────────────────
 
@@ -263,7 +239,6 @@ export const useWorkoutStore = create<WorkoutStore>()(
         selectedWeekday: null,
         activeSession: null,
         history: [],
-        syncQueue: [],
         restTimer: IDLE_REST_TIMER,
         settings: DEFAULT_SETTINGS,
 
@@ -286,7 +261,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
         },
 
         finishWorkout: () => {
-          const { activeSession, history, syncQueue } = get();
+          const { activeSession, history } = get();
           if (!activeSession) return null;
 
           const finishedAt = new Date();
@@ -299,7 +274,6 @@ export const useWorkoutStore = create<WorkoutStore>()(
           set({
             activeSession: null,
             history: [finished, ...history],
-            syncQueue: enqueueSync(syncQueue, 'upsert', [finished.id]),
             restTimer: IDLE_REST_TIMER,
           });
           return finished;
@@ -529,56 +503,42 @@ export const useWorkoutStore = create<WorkoutStore>()(
         // ── History & settings ───────────────────────────────────────────────
 
         deleteSession: (sessionId) =>
-          set((state) => ({
-            history: state.history.filter((session) => session.id !== sessionId),
-            syncQueue: enqueueSync(state.syncQueue, 'delete', [sessionId]),
-          })),
+          set((state) => ({ history: state.history.filter((session) => session.id !== sessionId) })),
 
-        clearHistory: () =>
-          set((state) => ({
-            history: [],
-            syncQueue: enqueueSync(
-              state.syncQueue,
-              'delete',
-              state.history.map((session) => session.id),
-            ),
-          })),
+        clearHistory: () => set({ history: [] }),
 
         updateSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
-
-        ackSyncOps: (ops) =>
-          set((state) => ({
-            syncQueue: state.syncQueue.filter(
-              (op) => !ops.some((acked) => acked.sessionId === op.sessionId && acked.enqueuedAt === op.enqueuedAt),
-            ),
-          })),
       };
     },
     {
       name: 'gym-rat/workout-store',
-      version: 2,
+      version: 3,
       storage: createBatchedStorage<PersistedWorkoutState>(),
       partialize: (state): PersistedWorkoutState => ({
         activeSession: state.activeSession,
         history: state.history,
-        syncQueue: state.syncQueue,
         restTimer: state.restTimer,
         settings: state.settings,
       }),
-      // Deep-merge settings so new defaults survive app updates.
+      // Deep-merge settings so new defaults survive app updates. Only known keys are
+      // taken from disk, so fields dropped by a migration (e.g. the old sync queue)
+      // can never leak back into memory.
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<PersistedWorkoutState>;
         return {
           ...current,
-          ...saved,
+          activeSession: saved.activeSession ?? current.activeSession,
+          history: saved.history ?? current.history,
+          restTimer: saved.restTimer ?? current.restTimer,
           settings: { ...current.settings, ...saved.settings },
         };
       },
       migrate: (persisted, version) => {
-        const state = persisted as PersistedWorkoutState;
-        // v1 → v2: queue everything logged before sync existed.
-        if (version < 2) {
-          return { ...state, syncQueue: enqueueSync([], 'upsert', (state.history ?? []).map((session) => session.id)) };
+        const state = persisted as PersistedWorkoutState & { syncQueue?: unknown };
+        // v3: the server sync queue was removed (the app is local-only).
+        if (version < 3) {
+          const { syncQueue: _dropped, ...rest } = state;
+          return rest;
         }
         return state;
       },

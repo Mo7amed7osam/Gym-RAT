@@ -10,7 +10,6 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { colors } from '@/constants/theme';
-import { useSyncQueue } from '@/lib/sync';
 import { useStoreHydrated } from '@/store/useStoreHydrated';
 
 export {
@@ -46,7 +45,6 @@ export default function RootLayout() {
     BarlowCondensed_800ExtraBold,
   });
   const ready = hydrated && (fontsLoaded || fontError !== null);
-  useSyncQueue();
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();

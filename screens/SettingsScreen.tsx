@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
-import { isSyncConfigured } from '@/lib/sync';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import type { WorkoutSettings } from '@/types/workout';
 
@@ -30,7 +29,6 @@ export default function SettingsScreen() {
   const settings = useWorkoutStore((state) => state.settings);
   const updateSettings = useWorkoutStore((state) => state.updateSettings);
   const sessionCount = useWorkoutStore((state) => state.history.length);
-  const pendingSync = useWorkoutStore((state) => state.syncQueue.length);
   const clearHistory = useWorkoutStore((state) => state.clearHistory);
 
   const set = (patch: Partial<WorkoutSettings>) => updateSettings(patch);
@@ -101,18 +99,6 @@ export default function SettingsScreen() {
               <Text style={[styles.rowTitle, styles.flex]}>Logged sessions</Text>
               <Text style={styles.rowValue}>{sessionCount}</Text>
             </View>
-            <View style={[styles.row, styles.divider]}>
-              <View style={styles.flex}>
-                <Text style={styles.rowTitle}>Server sync</Text>
-                <Text style={styles.rowDetail}>
-                  {!isSyncConfigured()
-                    ? 'Off. Add EXPO_PUBLIC_API_URL and EXPO_PUBLIC_API_TOKEN to .env.local to back up to your server.'
-                    : pendingSync > 0
-                      ? `${pendingSync} change${pendingSync === 1 ? '' : 's'} waiting to upload. They send when the server is reachable.`
-                      : 'Everything is backed up.'}
-                </Text>
-              </View>
-            </View>
             <Pressable
               onPress={() => setConfirmClear(true)}
               disabled={sessionCount === 0}
@@ -129,7 +115,7 @@ export default function SettingsScreen() {
       <ConfirmDialog
         visible={confirmClear}
         title="Delete all history?"
-        message={`All ${sessionCount} logged sessions, volume records and PRs will be removed from this phone${isSyncConfigured() ? ' and your server' : ''}.`}
+        message={`All ${sessionCount} logged sessions, volume records and PRs will be removed from this phone.`}
         confirmLabel="Delete all"
         destructive
         onCancel={() => setConfirmClear(false)}

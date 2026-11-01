@@ -6,7 +6,6 @@ const resetStore = () =>
     selectedWeekday: null,
     activeSession: null,
     history: [],
-    syncQueue: [],
     restTimer: IDLE_REST_TIMER,
     settings: DEFAULT_SETTINGS,
   });
@@ -247,34 +246,36 @@ describe('navigation, checklists, selectors, migration', () => {
     expect(getRoutineHistory(useWorkoutStore.getState(), 'pull_a')).toHaveLength(0);
   });
 
-  it('clearHistory empties history and queues deletes; ackSyncOps removes acknowledged ops only', () => {
+  it('clearHistory empties history', () => {
     const store = useWorkoutStore.getState();
     const a = store.startWorkout('saturday');
     if (!a.ok) throw new Error('expected session');
     store.finishWorkout();
-    expect(useWorkoutStore.getState().syncQueue).toHaveLength(1);
-    const op = useWorkoutStore.getState().syncQueue[0];
-    store.ackSyncOps([{ ...op, enqueuedAt: op.enqueuedAt + 1 }]);
-    expect(useWorkoutStore.getState().syncQueue).toHaveLength(1);
-    store.ackSyncOps([op]);
-    expect(useWorkoutStore.getState().syncQueue).toHaveLength(0);
-
     const b = store.startWorkout('sunday');
     if (!b.ok) throw new Error('expected session');
     store.finishWorkout();
+    expect(useWorkoutStore.getState().history).toHaveLength(2);
     store.clearHistory();
     expect(useWorkoutStore.getState().history).toHaveLength(0);
-    expect(useWorkoutStore.getState().syncQueue.map((o) => o.kind)).toEqual(['delete', 'delete']);
   });
 
-  it('persist migration v1→v2 queues existing history; merge deep-merges settings', () => {
+  it('persist migration v2→v3 drops the old sync queue; merge ignores unknown keys and deep-merges settings', () => {
     const options = useWorkoutStore.persist.getOptions();
-    const migrated = options.migrate!({ history: [{ id: 's1' }, { id: 's2' }] } as never, 1) as { syncQueue: { sessionId: string }[] };
-    expect(migrated.syncQueue.map((o) => o.sessionId)).toEqual(['s1', 's2']);
-    const untouched = options.migrate!({ history: [], syncQueue: [] } as never, 2) as { syncQueue: unknown[] };
-    expect(untouched.syncQueue).toEqual([]);
+    expect(options.version).toBe(3);
+    const migrated = options.migrate!(
+      { history: [{ id: 's1' }], syncQueue: [{ kind: 'upsert', sessionId: 's1', enqueuedAt: 1 }] } as never,
+      2,
+    ) as Record<string, unknown>;
+    expect(migrated).not.toHaveProperty('syncQueue');
+    expect(migrated.history).toEqual([{ id: 's1' }]);
+    const untouched = options.migrate!({ history: [] } as never, 3) as Record<string, unknown>;
+    expect(untouched).toEqual({ history: [] });
 
-    const merged = options.merge!({ settings: { hapticsEnabled: false } } as never, useWorkoutStore.getState());
+    const merged = options.merge!(
+      { settings: { hapticsEnabled: false }, syncQueue: [{}] } as never,
+      useWorkoutStore.getState(),
+    ) as unknown as Record<string, unknown>;
     expect(merged.settings).toEqual({ ...DEFAULT_SETTINGS, hapticsEnabled: false });
+    expect(merged).not.toHaveProperty('syncQueue');
   });
 });

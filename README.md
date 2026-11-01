@@ -22,7 +22,6 @@ It loads today's routine automatically, runs the workout set by set with a rest 
 9. [Where the data differs from the brief or the design](#where-the-data-differs-from-the-brief-or-the-design)
 10. [Verification](#verification)
 11. [Known limitations and next steps](#known-limitations-and-next-steps)
-12. [Postgres backend & sync](#postgres-backend--sync)
 
 ---
 
@@ -451,30 +450,5 @@ Bugs found and fixed during testing:
 - **Exercise photos:** the form tile is a placeholder. The PDF has one photo per exercise (pp. 7–31). These could be extracted into `assets/exercises/` and linked through `Exercise.thumbnailKey`, once you confirm you're allowed to redistribute them. The stretching posters (pp. 33–35) are third-party.
 - **Plan and Library tabs** from the design were not built (they weren't in the brief). The Today week strip covers picking a day, and the form guide covers exercise details.
 - **Duration estimate:** gives ~83 min for Push A against the design's ~70; tune `estimateDurationMinutes()` if needed.
-- **Version control:** the project is not a git repository yet.
 
 ---
-
-## Postgres backend & sync
-
-The app stays offline-first: every write lands in the persisted Zustand store, and finishing / deleting a
-session adds a `SyncOp` to `syncQueue`. `lib/sync.ts` (mounted in `app/_layout.tsx`) drains that queue to
-`POST /api/sessions/sync` on launch, after each new op and when the app returns to the foreground, with
-exponential backoff while offline. Sync is off unless `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_API_TOKEN`
-are set in `.env.local` (see `.env.example`).
-
-The API lives in `server/` (Fastify + `pg`, its own `package.json`):
-
-```bash
-cd server
-cp .env.example .env          # set DATABASE_URL + API_TOKEN
-npm install
-npm run db:up                 # local Postgres 17 via Docker (or point DATABASE_URL at Neon / Railway / a VPS)
-npm run migrate               # applies db/migrations/*.sql
-npm run dev
-```
-
-Schema: `server/db/migrations/001_init.sql` — `workout_sessions` → `session_exercises` → `exercise_sets`,
-client-generated UUID keys, `ON DELETE CASCADE`, CHECK constraints for the enums, and indexes by date,
-routine and exercise. Each synced session is written in its own transaction as a full replace, so
-re-sending is idempotent.

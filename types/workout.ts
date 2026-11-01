@@ -6,7 +6,7 @@
  *  - Log (user data, persisted): WorkoutSession → SessionExercise → ExerciseSet.
  *
  * Everything in the log layer uses string UUIDs and ISO-8601 timestamps so it maps
- * 1:1 onto the Postgres tables in server/db/migrations (workout_sessions, session_exercises, exercise_sets).
+ * cleanly onto relational tables.
  */
 
 import type { ExerciseImageKey, StretchPosterKey } from '@/assets/exercises';
