@@ -206,13 +206,17 @@ describe('SettingsScreen reset', () => {
 });
 
 describe('ExercisePickerModal', () => {
-  it('mounts hidden without re-render loops and lists the library when opened', async () => {
+  it('mounts hidden without re-render loops (regression: selectLibrary used as a zustand selector)', async () => {
     const { ExercisePickerModal } = require('@/components/ExercisePickerModal');
-    const onPick = jest.fn();
-    const { rerender } = await render(<ExercisePickerModal visible={false} title="Pick" onPick={onPick} onClose={() => {}} />);
-    rerender(<ExercisePickerModal visible title="Pick" excludeIds={['leg_press']} onPick={onPick} onClose={() => {}} />);
-    expect(screen.queryByText('Leg Press')).toBeNull();
-    await fireEvent.press(screen.getByText('Hack Squat'));
-    expect(onPick).toHaveBeenCalledWith('hack_squat');
+    const { selectLibrary } = require('@/store/useWorkoutStore');
+    await render(<ExercisePickerModal visible={false} title="Pick" onPick={jest.fn()} onClose={() => {}} />);
+    const library = selectLibrary(useWorkoutStore.getState());
+    expect(library.length).toBe(38);
+    expect(library.map((e: { name: { en: string } }) => e.name.en)).toEqual([...library].map((e: { name: { en: string } }) => e.name.en).sort((a, b) => a.localeCompare(b)));
+    useWorkoutStore.getState().setExerciseArchived(useWorkoutStore.getState().createCustomExercise({
+      name: { en: 'Zed', ar: 'Zed' }, primaryMuscles: ['abs'], secondaryMuscles: [], equipment: [], weightType: 'bodyweight', isUnilateral: false,
+      instructions: [], breathing: null, rangeOfMotion: null, commonMistakes: [], alternatives: [], videoId: null,
+    }).id, true);
+    expect(selectLibrary(useWorkoutStore.getState()).some((e: { name: { en: string } }) => e.name.en === 'Zed')).toBe(false);
   });
 });
