@@ -3,12 +3,15 @@ import * as SQLite from 'expo-sqlite';
 import { AppState } from 'react-native';
 
 import { deleteAllCustomExercisePhotos } from '@/lib/customMedia';
+import { attachProgressPersistence, useProgressStore } from '@/store/useProgressStore';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, useWorkoutStore } from '@/store/useWorkoutStore';
 
 import { createExpoDriver } from './driver.expo';
 import type { Driver } from './driver';
 import { importFromAsyncStorage } from './importer';
 import { SCHEMA_VERSION, getUserVersion, migrate } from './migrations';
+import { EMPTY_PROGRESS, ProgressRepository } from './progressRepository';
+import { ensureProgressSchema } from './progressSchema';
 import { WorkoutRepository } from './repository';
 import { BACKUP_DATABASE_NAME, DATABASE_NAME } from './schema';
 import { seedExercises, seedPlans } from './seed';
@@ -79,6 +82,13 @@ async function boot(): Promise<void> {
     useWorkoutStore.getState().hydrate(seeded);
     attachPersistence({ persist: (prev, next) => repo.persistDiff(prev, next) });
 
+    // Phase 4: body measurements and goals (ADR-010).
+    const repaired = ensureProgressSchema(driver);
+    if (repaired.length > 0) console.warn(`[db] created missing Phase 4 tables: ${repaired.join(', ')}`);
+    const progressRepo = new ProgressRepository(driver);
+    useProgressStore.getState().hydrate(progressRepo.loadAll());
+    attachProgressPersistence({ persist: (prev, next) => progressRepo.persistDiff(prev, next) });
+
     if (!appStateSubscribed) {
       appStateSubscribed = true;
       AppState.addEventListener('change', (state) => {
@@ -108,6 +118,8 @@ async function boot(): Promise<void> {
  */
 export async function resetAllData(): Promise<void> {
   attachPersistence(null);
+  attachProgressPersistence(null);
+  useProgressStore.getState().hydrate(EMPTY_PROGRESS);
   useWorkoutStore.getState().hydrate({
     exercises: [],
     plans: [],
