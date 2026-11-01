@@ -7,14 +7,13 @@
 ## Gates still open
 - D5 (Apple credentials) before M3 device tests; D3 before M7; D4 before M4 completes.
 
-## Next task: M6 — localization + RTL (ADR-005)
-1. Branch `phase1/m6-i18n`. `npx expo install expo-localization i18n-js`; config plugin (`supportsRTL` default true).
-2. `i18n/` dictionaries (en, ar) + `useT()`; extract every UI string from screens/components (lint: no raw JSX string literals outside `i18n/`).
-3. `LocaleProvider` from expo-router in the root layout; language setting in Settings; switch applies `I18nManager.allowRTL/forceRTL` and reloads (`Updates.reloadAsync` rejects in dev builds — use `DevSettings.reload()` in dev, `Updates.reloadAsync` in release).
-4. Digits per D8 default: Western digits for weights/reps. RTL review set: `xcrun simctl launch booted com.gymrat.app -AppleLanguages "(ar)" -AppleLocale ar_EG` + screenshots of every screen; read them.
-5. Gates: snapshots unchanged in English; no untranslated strings; tsc/lint/jest.
+## Phase 1 complete — next: owner verification, then Phase 2 approval
+- Report: `reviews/2026-11-01-phase1-report.md` (changes, evidence, owner checklist, limitations).
+- Blockers carried: D5 (Apple credentials → device build/TestFlight), D4 (program + Starter content + illustration mapping), D3 (owner-vs-tester confirm), D8 (digits).
+- Phase 2 first tasks (when approved): exercise library table + RepDB exact-match mapping (ADR-004) → owner review → import script → manifest + lint → Library detail; then plan editor; then session engine additions.
 
-## Done: M5, M4, M3, M2, M1, M0
+## Done: M8, M7, M6, M5, M4, M3, M2, M1, M0
+
 - M5: theme system. See `decisions/sde`.
 , M3, M2, M1, M0
 - M4: rotation model, reducer, Today rewrite. See `decisions/sde`, `decisions/dba`.

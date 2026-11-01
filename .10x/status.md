@@ -2,7 +2,7 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
-**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. M0–M7 complete (M6/M7 on branches pending RTL verification, then merge).
+**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. **Phase 1 complete (M0–M8 merged to main).** Awaiting owner verification (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
 
 ## Phase tracking
 
@@ -12,7 +12,7 @@
 | 1 Strategy | Done | `decisions/cto/`, `decisions/product-manager/` |
 | 2 Design | Done (Proposed) | ADR-001…005; `decisions/architect/`, `decisions/staff-engineer/` |
 | 3 Planning | Done for Phase 1 | M0–M8 in `decisions/engineering-manager/`, approach in `decisions/senior-engineer/` |
-| 4 Implementation | In progress | Phase 1 M0 done; M1 next |
+| 4 Implementation | Phase 1 done | Phase 2 needs explicit approval |
 | 5 Verification | Not started | |
 | 6 Delivery | Not started | |
 
@@ -33,9 +33,9 @@
 | M3 | SQLite behind store facade + importer | **Done** (Jest proves commit-before-apply; simulator boot verified; physical tap-and-kill test pending D5 device) |
 | M4 | Plan/rotation + session reducer | **Done** (Starter content = draft pending D4) |
 | M5 | Theme system | **Done** |
-| M6 | Localization + RTL | **Done** pending RTL screenshot after `supportedLocales` rebuild |
+| M6 | Localization + RTL | **Done** (RTL verified on simulator) |
 | M7 | Four tabs + onboarding | **Done** (onboarding verified on a fresh simulator install) |
-| M8 | Reset All Data + eas.json + dev build | Next |
+| M8 | Reset All Data + eas.json + dev build | **Done** (simulator build; device build blocked by D5) |
 
 ## Quality baseline (measured 2026-11-01)
 `npx tsc --noEmit` 0 errors · `npx expo lint` clean · `npx expo-doctor` 20/20 · local iOS build succeeded (`.expo/xcodebuild.log`) · no tests · never run on a physical device (README).
