@@ -5,6 +5,8 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { resetAllData } from '@/data/db/boot';
+import { SCHEMA_VERSION } from '@/data/db/migrations';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { HIT } from '@/constants/theme';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
@@ -49,12 +51,13 @@ export default function SettingsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const settings = useWorkoutStore((state) => state.settings);
   const updateSettings = useWorkoutStore((state) => state.updateSettings);
   const sessionCount = useWorkoutStore((state) => state.history.length);
-  const clearHistory = useWorkoutStore((state) => state.clearHistory);
+  const persistenceError = useWorkoutStore((state) => state.persistenceError);
 
   const set = (patch: Partial<WorkoutSettings>) => updateSettings(patch);
   const setAppearance = (patch: Partial<AppearanceSettings>) =>
@@ -226,29 +229,42 @@ export default function SettingsScreen() {
               <Text style={[styles.rowTitle, styles.flex]}>{t('settings.loggedSessions')}</Text>
               <Text style={styles.rowValue}>{sessionCount}</Text>
             </View>
+            <View style={[styles.row, styles.divider]}>
+              <View style={styles.flex}>
+                <Text style={styles.rowTitle}>{t('settings.storage')}</Text>
+                <Text style={[styles.rowDetail, persistenceError ? styles.errorText : null]}>
+                  {persistenceError ? t('settings.storageError', { error: persistenceError }) : t('settings.storageOk', { version: SCHEMA_VERSION })}
+                </Text>
+              </View>
+            </View>
             <Pressable
-              onPress={() => setConfirmClear(true)}
-              disabled={sessionCount === 0}
+              onPress={() => setConfirmReset(true)}
+              disabled={resetting}
               accessibilityRole="button"
-              accessibilityState={{ disabled: sessionCount === 0 }}
-              style={({ pressed }) => [styles.row, sessionCount === 0 && styles.disabled, pressed && styles.pressed]}
+              accessibilityState={{ disabled: resetting }}
+              style={({ pressed }) => [styles.row, resetting && styles.disabled, pressed && styles.pressed]}
             >
-              <Text style={styles.destructive}>{t('settings.deleteAll')}</Text>
+              <Text style={styles.destructive}>{t('settings.resetAll')}</Text>
             </Pressable>
           </View>
         </View>
       </ScrollView>
 
       <ConfirmDialog
-        visible={confirmClear}
-        title={t('settings.deleteAllTitle')}
-        message={t('settings.deleteAllMessage', { count: sessionCount })}
-        confirmLabel={t('settings.deleteAllConfirm')}
+        visible={confirmReset}
+        title={t('settings.resetAllTitle')}
+        message={t('settings.resetAllMessage', { count: sessionCount })}
+        confirmLabel={t('settings.resetAllConfirm')}
         destructive
-        onCancel={() => setConfirmClear(false)}
+        onCancel={() => setConfirmReset(false)}
         onConfirm={() => {
-          clearHistory();
-          setConfirmClear(false);
+          setConfirmReset(false);
+          setResetting(true);
+          void resetAllData().finally(() => {
+            setResetting(false);
+            // Onboarding is now pending; the protected routes redirect to it.
+            router.replace('/');
+          });
         }}
       />
     </View>
@@ -394,6 +410,9 @@ const useStyles = createStyles((t) =>
     },
     segmentValueSelected: {
       color: t.colors.onTint,
+    },
+    errorText: {
+      color: t.colors.destructive,
     },
     destructive: {
       ...t.typography.body,

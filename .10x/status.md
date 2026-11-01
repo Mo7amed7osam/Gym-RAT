@@ -2,7 +2,7 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
-**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. M0–M5 complete (merged to main).
+**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. M0–M7 complete (M6/M7 on branches pending RTL verification, then merge).
 
 ## Phase tracking
 
@@ -33,9 +33,9 @@
 | M3 | SQLite behind store facade + importer | **Done** (Jest proves commit-before-apply; simulator boot verified; physical tap-and-kill test pending D5 device) |
 | M4 | Plan/rotation + session reducer | **Done** (Starter content = draft pending D4) |
 | M5 | Theme system | **Done** |
-| M6 | Localization + RTL | Next |
-| M7 | Four tabs + onboarding | Not started |
-| M8 | Reset All Data + eas.json + dev build | Not started |
+| M6 | Localization + RTL | **Done** pending RTL screenshot after `supportedLocales` rebuild |
+| M7 | Four tabs + onboarding | **Done** (onboarding verified on a fresh simulator install) |
+| M8 | Reset All Data + eas.json + dev build | Next |
 
 ## Quality baseline (measured 2026-11-01)
 `npx tsc --noEmit` 0 errors · `npx expo lint` clean · `npx expo-doctor` 20/20 · local iOS build succeeded (`.expo/xcodebuild.log`) · no tests · never run on a physical device (README).

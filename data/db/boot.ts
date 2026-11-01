@@ -23,6 +23,8 @@ export type BootStatus = 'idle' | 'loading' | 'ready' | 'error';
 let status: BootStatus = 'idle';
 let bootError: string | null = null;
 let bootPromise: Promise<void> | null = null;
+let openDb: SQLite.SQLiteDatabase | null = null;
+let appStateSubscribed = false;
 const listeners = new Set<() => void>();
 
 const notify = () => listeners.forEach((listener) => listener());
@@ -51,6 +53,7 @@ async function boot(): Promise<void> {
   setStatus('loading');
   try {
     const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    openDb = db;
     const driver = createExpoDriver(db);
 
     // Pragmas must run outside a transaction.
@@ -75,14 +78,17 @@ async function boot(): Promise<void> {
     useWorkoutStore.getState().hydrate(seeded);
     attachPersistence({ persist: (prev, next) => repo.persistDiff(prev, next) });
 
-    AppState.addEventListener('change', (state) => {
-      if (state === 'active') return;
-      try {
-        driver.exec('PRAGMA wal_checkpoint(TRUNCATE)');
-      } catch (error) {
-        console.warn('[db] checkpoint failed', error);
-      }
-    });
+    if (!appStateSubscribed) {
+      appStateSubscribed = true;
+      AppState.addEventListener('change', (state) => {
+        if (state === 'active' || !openDb) return;
+        try {
+          openDb.execSync('PRAGMA wal_checkpoint(TRUNCATE)');
+        } catch (error) {
+          console.warn('[db] checkpoint failed', error);
+        }
+      });
+    }
 
     setStatus('ready');
   } catch (error) {
@@ -92,6 +98,44 @@ async function boot(): Promise<void> {
     // Let the app open; writes will keep failing loudly rather than silently.
     setStatus('error', message);
   }
+}
+
+/**
+ * Spec §21 "Reset All Data": wipes the database, its backup and every
+ * AsyncStorage key, then boots again from scratch. The store ends up with
+ * defaults (onboarding pending, Starter plan active). Irreversible.
+ */
+export async function resetAllData(): Promise<void> {
+  attachPersistence(null);
+  useWorkoutStore.getState().hydrate({
+    plans: [],
+    activeSession: null,
+    history: [],
+    restTimer: IDLE_REST_TIMER,
+    settings: DEFAULT_SETTINGS,
+  });
+  if (openDb) {
+    try {
+      await openDb.closeAsync();
+    } catch (error) {
+      console.warn('[db] close before reset failed', error);
+    }
+    openDb = null;
+  }
+  for (const name of [DATABASE_NAME, BACKUP_DATABASE_NAME]) {
+    try {
+      await SQLite.deleteDatabaseAsync(name);
+    } catch {
+      // Missing file (e.g. no backup yet) is fine.
+    }
+  }
+  try {
+    await AsyncStorage.clear();
+  } catch (error) {
+    console.warn('[db] AsyncStorage clear failed', error);
+  }
+  bootPromise = boot();
+  await bootPromise;
 }
 
 /**

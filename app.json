@@ -8,8 +8,12 @@
     "scheme": "gymrat",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.gymrat.app"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.gymrat.app",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -59,6 +63,10 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "splash": null
   }
 }
