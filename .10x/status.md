@@ -2,7 +2,7 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
-**Current phase:** Implementation — product Phase 2 authorized by owner (2026-11-01) and implemented (W1–W7, commits after `e2466f7`). Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…009 Accepted (ADR-006: extracted program is an ordinary template; schema v3). **Phase 1 complete; Phase 2 implemented and simulator-verified 2026-11-01 (report: reviews/2026-11-01-phase2-report.md, 133 tests).** Simulator verification run 2026-11-01 (owner chose simulator over a physical iPhone): kill test 10/10, rotation advance/repeat, pause, Arabic RTL, theme, Reset All Data, reboot all passed; two defects found and fixed (Library search focus, dialog label truncation). Physical-device rows still pending. Awaiting (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
+**Current phase:** Implementation — product Phase 3 (Smart Training) authorized by owner 2026-11-02 and implemented (W1–W6, commits `644cd30`…`cd19cc9`; report `reviews/2026-11-02-phase3-report.md`, 168 tests). Phase 2 authorized 2026-11-01 and implemented (W1–W7, commits after `e2466f7`). Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…009 Accepted (ADR-006: extracted program is an ordinary template; schema v3). **Phase 1 complete; Phase 2 implemented and simulator-verified 2026-11-01 (report: reviews/2026-11-01-phase2-report.md, 133 tests).** Simulator verification run 2026-11-01 (owner chose simulator over a physical iPhone): kill test 10/10, rotation advance/repeat, pause, Arabic RTL, theme, Reset All Data, reboot all passed; two defects found and fixed (Library search focus, dialog label truncation). Physical-device rows still pending. Awaiting (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
 
 ## Phase tracking
 
@@ -12,8 +12,8 @@
 | 1 Strategy | Done | `decisions/cto/`, `decisions/product-manager/` |
 | 2 Design | Done (Proposed) | ADR-001…005; `decisions/architect/`, `decisions/staff-engineer/` |
 | 3 Planning | Done for Phase 1 | M0–M8 in `decisions/engineering-manager/`, approach in `decisions/senior-engineer/` |
-| 4 Implementation | Phase 1 done; Phase 2 implemented (library, media, plan builder, session engine, sets/rest, templates, video prep) | Phase 3 needs explicit approval |
-| 5 Verification | Not started | |
+| 4 Implementation | Phase 1 done; Phase 2 done; Phase 3 done (PR engine, progression rules, coach, smart targets, substitution; ADR-010, schema v7) | Phase 4 / 5 / TestFlight need explicit approval |
+| 5 Verification | Partial | Jest 168/168; simulator: Phase 1/2 checklists + Phase 3 coach/chip/apply/PR toast; owner checklist in the Phase 3 report; physical iPhone never run |
 | 6 Delivery | Not started | |
 
 ## Owner decisions still open (block or shape Phase 1)
