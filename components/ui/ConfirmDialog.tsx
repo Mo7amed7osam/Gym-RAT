@@ -26,6 +26,8 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const styles = useStyles();
+  // Long labels ("Erase everything") truncate side by side; stack them like a native alert.
+  const stacked = confirmLabel.length + cancelLabel.length > 18;
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onCancel}>
       <View style={styles.backdrop}>
@@ -35,14 +37,14 @@ export function ConfirmDialog({
             {title}
           </Text>
           <Text style={styles.message}>{message}</Text>
-          <View style={styles.actions}>
-            <Button label={cancelLabel} variant="secondary" onPress={onCancel} style={styles.action} />
+          <View style={[styles.actions, stacked && styles.actionsStacked]}>
             <Button
               label={confirmLabel}
               variant={destructive ? 'destructive' : 'primary'}
               onPress={onConfirm}
               style={styles.action}
             />
+            <Button label={cancelLabel} variant="secondary" onPress={onCancel} style={styles.action} />
           </View>
         </View>
       </View>
@@ -76,9 +78,12 @@ const useStyles = createStyles((t) =>
       color: t.colors.labelSecondary,
     },
     actions: {
-      flexDirection: 'row',
+      flexDirection: 'row-reverse',
       gap: t.spacing.sm,
       marginTop: t.spacing.sm,
+    },
+    actionsStacked: {
+      flexDirection: 'column',
     },
     action: {
       flex: 1,
