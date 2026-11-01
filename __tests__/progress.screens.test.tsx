@@ -99,6 +99,43 @@ describe('SessionDetailScreen', () => {
     expect(screen.getByText('Edit workout')).toBeTruthy(); // back in review mode
   });
 
+  it('corrects the duration and refuses an impossible start time', async () => {
+    const { history } = seed();
+    const target = history[0];
+    mockParams = { id: target.id };
+    await render(<SessionDetailScreen />);
+    await fireEvent.press(screen.getByText('Edit workout'));
+    await fireEvent.changeText(screen.getByLabelText('Start time (24 h)'), '25:00');
+    await fireEvent.press(screen.getByText('Save changes'));
+    expect(screen.getByText('Enter a start time like 18:30 and a duration in minutes.')).toBeTruthy();
+    expect(useWorkoutStore.getState().history[0]).toBe(target);
+
+    await fireEvent.changeText(screen.getByLabelText('Start time (24 h)'), '18:00');
+    await fireEvent.changeText(screen.getByLabelText('Duration (min)'), '70');
+    await fireEvent.press(screen.getByText('Save changes'));
+    const saved = useWorkoutStore.getState().history.find((s) => s.id === target.id)!;
+    expect(saved.startedAt).toBe(target.startedAt);
+    expect(Date.parse(saved.endedAtOverride!) - Date.parse(saved.startedAt)).toBe(70 * 60_000);
+    expect(saved.summary!.durationSeconds).toBe(4200);
+  });
+
+  it('adds a set, flags a warm-up and removes a set in edit mode', async () => {
+    const { history } = seed();
+    const target = history[0];
+    mockParams = { id: target.id };
+    await render(<SessionDetailScreen />);
+    await fireEvent.press(screen.getByText('Edit workout'));
+    await fireEvent.press(screen.getByText('Add set'));
+    await fireEvent.press(screen.getByLabelText('Set 1: switch warm-up / working'));
+    await fireEvent.press(screen.getByLabelText('Remove set 2'));
+    await fireEvent.press(screen.getByText('Save changes'));
+    const sets = useWorkoutStore.getState().history.find((s) => s.id === target.id)!.exercises[0].sets;
+    expect(sets.map((s) => [s.setNumber, s.type, s.weightKg, s.reps, s.completed])).toEqual([
+      [1, 'warmup', 70, 8, true],
+      [2, 'working', 70, 7, true],
+    ]);
+  });
+
   it('refuses a completed set without reps and keeps the draft', async () => {
     const { history } = seed();
     mockParams = { id: history[0].id };

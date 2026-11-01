@@ -5,7 +5,7 @@
 ## Automated
 | Check | Result |
 |---|---|
-| `npx jest` | 23 suites, 213 tests, all pass |
+| `npx jest` | 23 suites, 223 tests, all pass |
 | `sh scripts/test-timezones.sh` | 57 date-sensitive tests × 6 zones (Cairo, London, Los Angeles, Auckland, Riyadh, UTC): all pass |
 | `npx tsc --noEmit` | 0 errors |
 | `npx expo lint` | clean |
@@ -22,6 +22,7 @@ Coverage of the brief's correctness list:
 | Active session never corrupted | `analytics.edge.test.ts` (edit + delete with an in-progress session: object identity and DB rows unchanged; history actions refuse the active session) |
 | Migration across branches | `progress.migration-merge.test.ts` (v6, Phase 3 v7, Phase 4 v7 → merged sequence, history intact; renumber-only gap demonstrated; boot repair) |
 | Strings | `progress.i18n.test.ts` (every referenced key resolves in en + ar) |
+| Time correction, add/remove set, warm-up flag (screen level) | `progress.screens.test.tsx`; `parseTimeInput` table in `analytics.edge.test.ts` |
 
 ## Simulator (real expo-sqlite, Hermes)
 Seeded 11 workouts over 6 weeks, 5 weigh-ins, 2 goals directly into the app database, then:
@@ -38,6 +39,7 @@ Seeded 11 workouts over 6 weeks, 5 weigh-ins, 2 goals directly into the app data
 | Body: 900 kg → error; 81.2 kg on "yesterday" | ar RTL | refused with range message; saved 81.2 at 08:00 local on 1 Nov |
 | Goal: create exercise weight goal (picker search, target 130, 8-week deadline) | ar RTL | row with baseline 110 and deadline 27 Dec |
 | Goal: edit target, archive | ar RTL | target updated, archived goal moves under "Show archived (1)" |
+| Edit workout time: one day earlier, duration 55 → 70 min, add a set | ar RTL | DB `started_at` 31 → 30 Oct, `ended_at_override` = start + 70 min, `durationSeconds` 4200, 4 sets |
 | Calendar: previous month, select 27 Oct, open workout, back, next month | ar RTL | correct day list, navigation and back state preserved; next disabled on the current month |
 | Progress period chips, exercise metric/range chips | ar RTL | tiles and chart switch |
 

@@ -13,4 +13,4 @@ Report: `reviews/2026-11-02-phase4-qa-report.md`.
 Jest + timezone script green, tsc 0, lint clean, migration-merge test green with Phase 3's real DDL, simulator re-run of edit/delete PR recompute after the strength engine is registered.
 
 ## Results
-213/213 tests, 6/6 time zones, 9 defects found and fixed, open items listed in the report.
+223/223 tests, 6/6 time zones, 9 defects found and fixed, open items listed in the report.
