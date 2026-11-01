@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CoachCard } from '@/components/CoachCard';
 import { ExerciseGuideModal } from '@/components/ExerciseGuideModal';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -166,6 +167,8 @@ export default function TodayDashboardScreen() {
             </View>
           </>
         ) : null}
+
+        <CoachCard now={now.getTime()} />
 
         <View style={styles.coachNote}>
           <Text style={styles.coachLabel}>{t('today.coachNote')}</Text>

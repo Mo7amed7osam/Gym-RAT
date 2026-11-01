@@ -20,7 +20,9 @@ import { ExerciseOptionsSheet, type SheetAction } from '@/components/ExerciseOpt
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
 import { SessionTargetsSheet } from '@/components/SessionTargetsSheet';
 import { WorkoutReviewModal } from '@/components/WorkoutReviewModal';
+import { detectSetRecords } from '@/domain/records';
 import { lastActivityMs } from '@/domain/session/reducer';
+import { hapticSetCompleted } from '@/lib/feedback';
 import { WarmupRoutine, getRoutineProgress } from '@/components/WarmupRoutine';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -162,6 +164,31 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
   // Inactivity: no set logged, no resume, for N minutes while the app is open and not paused.
   const inactiveMs = now - lastActivityMs(session);
   const inactivityDue = inactivityMinutes > 0 && !paused && inactiveMs > inactivityMinutes * 60_000 && now > inactivitySnoozedUntil && !reviewing;
+
+  // PR feedback for the set just logged (rest-timer context tracks it). Compared to history without this session; nothing stored.
+  const hiddenRecordKinds = useWorkoutStore((state) => state.settings.hiddenRecordKinds);
+  const history = useWorkoutStore((state) => state.history);
+  const [lastPrKey, setLastPrKey] = useState<string | null>(null);
+  const prExercise = session.exercises.find((item) => item.id === restContext?.sessionExerciseId);
+  const prSet = prExercise?.sets.find((set) => set.id === restContext?.completedSetId);
+  const prRecords =
+    prExercise && prSet && prSet.completed
+      ? detectSetRecords(history, prExercise.exerciseId, exerciseMap.get(prExercise.exerciseId)?.weightType ?? 'total', prSet, session.id).filter(
+          (record) => !hiddenRecordKinds.includes(record.kind),
+        )
+      : [];
+  const prKey = prSet?.id ?? null;
+  if (prKey && prKey !== lastPrKey) {
+    setLastPrKey(prKey);
+    if (prRecords.length > 0) {
+      const record = prRecords[0];
+      const kindLabel = t(PR_LABEL_KEY[record.kind]);
+      const value = record.kind === 'reps_at_weight' ? `${record.value} × ${record.weightKg} kg` : record.kind === 'set_volume' ? `${record.value} kg` : `${Math.round(record.value * 2) / 2} kg`;
+      setToast(t('coach.records.newPr', { kind: kindLabel, value }));
+      setTimeout(() => setToast((current) => (current && current.startsWith(t('coach.records.newPr', { kind: '', value: '' }).slice(0, 6)) ? null : current)), 4000);
+      if (useWorkoutStore.getState().settings.hapticsEnabled) hapticSetCompleted();
+    }
+  }
 
   const showToast = (message: string) => {
     setToast(message);
@@ -316,6 +343,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                 total={session.exercises.length}
                 onOpenGuide={setVideoExerciseId}
                 onOpenOptions={() => setOptionsOpen(true)}
+                onOpenTargets={() => setTargetsFor(current.id)}
               />
 
               {next ? (
@@ -431,6 +459,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         visible={picker !== null}
         title={picker === 'add' ? t('workout.addExerciseAfter') : t('workout.substitute')}
         excludeIds={picker === 'add' ? session.exercises.map((item) => item.exerciseId) : current ? [current.exerciseId] : []}
+        suggestFor={picker === 'substitute' && current ? (exerciseMap.get(current.exerciseId) ?? null) : null}
         onClose={() => setPicker(null)}
         onPick={(exerciseId) => {
           if (picker === 'add') addSessionExercise(exerciseId);
@@ -572,9 +601,15 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
                     <Text style={styles.prName} numberOfLines={1}>
                       {exerciseMap.get(record.exerciseId)?.name.en}
                     </Text>
-                    <Text style={styles.prDetail}>{t('workout.prWas', { kind: t(PR_LABEL_KEY[record.kind]), previous: record.previous ?? t('common.none') })}</Text>
+                    <Text style={styles.prDetail}>
+                      {record.kind === 'reps_at_weight'
+                        ? `${t(PR_LABEL_KEY[record.kind])} · ${t('history.wasLabel', { previous: record.previous ?? t('common.none') })}`
+                        : t('workout.prWas', { kind: t(PR_LABEL_KEY[record.kind]), previous: record.previous === null ? t('common.none') : Math.round(record.previous * 2) / 2 })}
+                    </Text>
                   </View>
-                  <Text style={styles.prValue}>{t('workout.prValue', { value: record.value })}</Text>
+                  <Text style={styles.prValue}>
+                    {record.kind === 'reps_at_weight' ? `${record.value} × ${record.weightKg} kg` : t('workout.prValue', { value: Math.round(record.value * 2) / 2 })}
+                  </Text>
                 </View>
               ))}
             </View>

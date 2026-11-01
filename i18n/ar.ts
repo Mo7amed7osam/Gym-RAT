@@ -162,6 +162,7 @@ export const ar: Dictionary = {
     feedbackTitle: 'ما مدى صعوبة المجموعة %{n}؟',
   },
   history: {
+    wasLabel: 'كان %{previous}',
     title: 'السجل',
     emptyTitle: 'لا توجد تمارين مسجلة',
     emptyBody: 'أنهِ جلسة لتظهر هنا: الحجم الأسبوعي، أفضل يوم لكل تمرين، كل مجموعة رفعتها والأرقام القياسية.',
@@ -398,6 +399,15 @@ export const ar: Dictionary = {
     positionEnd: 'النهاية',
     toggleHint: 'اضغط للتبديل بين وضع البداية والنهاية',
     attribution: 'الرسم التوضيحي: بيانات التمارين من RepDB (repdb.co)',
+    suggested: 'مقترح',
+    allExercises: 'كل التمارين',
+    equivalence: { equivalent: 'مكافئ', similar: 'مشابه', different: 'مختلف' },
+    equivalenceReason: {
+      equivalent: 'نفس العضلات ونفس طريقة التحميل. أرقامك ستنتقل بشكل قريب.',
+      similarMuscle: 'نفس العضلات المستهدفة لكن حركة أو أداة مختلفة. اعتبر أرقامك نقطة بداية.',
+      similarLoad: 'نفس العضلات المستهدفة لكن الوزن يُسجل بطريقة مختلفة. الأرقام لن تتطابق.',
+      different: 'يدرب %{muscles} لكنه تمرين مختلف. ابدأ بوزن خفيف.',
+    },
     detail: {
       close: 'إغلاق',
       muscles: 'العضلات',

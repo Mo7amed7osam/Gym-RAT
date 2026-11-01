@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Chip } from '@/components/ui/Chip';
+import { RecommendationChip } from '@/components/RecommendationChip';
 import { ExerciseIllustration } from '@/components/ui/ExerciseIllustration';
 import { SET_GRID_COLUMNS, SetRow } from '@/components/SetRow';
 import { HIT } from '@/constants/theme';
@@ -29,9 +30,11 @@ interface ExerciseCardProps {
   onOpenGuide: (exerciseId: string) => void;
   /** Opens the exercise options sheet (reorder, substitute, targets, set kinds…). Absent in previews. */
   onOpenOptions?: () => void;
+  /** Opens the session targets sheet (used by the overload suggestion's Edit). Absent in previews. */
+  onOpenTargets?: () => void;
 }
 
-export function ExerciseCard({ sessionExercise, position, total, onOpenGuide, onOpenOptions }: ExerciseCardProps) {
+export function ExerciseCard({ sessionExercise, position, total, onOpenGuide, onOpenOptions, onOpenTargets }: ExerciseCardProps) {
   const t = useT();
   const locale = useLocale();
   const styles = useStyles();
@@ -114,6 +117,8 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenGuide, on
           </View>
         </View>
       </Pressable>
+
+      {onOpenTargets ? <RecommendationChip sessionExercise={sessionExercise} onEdit={onOpenTargets} /> : null}
 
       <View style={styles.stats}>
         <Stat label={t('exercise.target')} value={`${prescription.sets} × ${formatRepRange(prescription.reps.min, prescription.reps.max)}`} />

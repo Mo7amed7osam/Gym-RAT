@@ -9,11 +9,12 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { resetAllData } from '@/data/db/boot';
 import { SCHEMA_VERSION } from '@/data/db/migrations';
 import { SectionHeader } from '@/components/ui/SectionHeader';
+import { SelectChip } from '@/components/ui/SelectChip';
 import { HIT } from '@/constants/theme';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { applyLayoutDirection, resolveLocale, useT } from '@/i18n';
 import { ACCENTS, ACCENT_IDS, createStyles, useTheme } from '@/theme';
-import type { AppearanceSettings, Density, LanguageSetting, TextScale, ThemeMode, WorkoutSettings } from '@/types/workout';
+import type { AppearanceSettings, Density, LanguageSetting, PersonalRecordKind, TextScale, ThemeMode, WorkoutSettings } from '@/types/workout';
 
 type ToggleKey = 'autoStartRestTimer' | 'prefillFromHistory' | 'hapticsEnabled' | 'restSoundEnabled';
 
@@ -26,6 +27,10 @@ const TOGGLES: { key: ToggleKey; title: string; detail: string }[] = [
 
 const WARNING_OPTIONS = [5, 10, 15, 30] as const;
 const WARMUP_REST_OPTIONS = [30, 45, 60, 90] as const;
+const STEP_OPTIONS = [1.25, 2.5, 5] as const;
+const STEP_PER_HAND_OPTIONS = [0.5, 1, 2] as const;
+const RECORD_KINDS: PersonalRecordKind[] = ['top_weight', 'estimated_1rm', 'reps_at_weight', 'set_volume'];
+const RECORD_KIND_KEY: Record<PersonalRecordKind, string> = { top_weight: 'coach.records.topWeight', estimated_1rm: 'coach.records.estimated1rm', reps_at_weight: 'coach.records.repsAtWeight', set_volume: 'coach.records.setVolume' };
 const INACTIVITY_OPTIONS = [0, 10, 20, 30] as const;
 const MODES: { value: ThemeMode; label: string }[] = [
   { value: 'system', label: 'settings.modeSystem' },
@@ -270,6 +275,69 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
+          <SectionHeader title={t('settings.smartTraining')} />
+          <View style={styles.group}>
+            <View style={[styles.row, styles.divider]}>
+              <View style={styles.flex}>
+                <Text style={styles.rowTitle}>{t('settings.recommendationsTitle')}</Text>
+                <Text style={styles.rowDetail}>{t('settings.recommendationsDetail')}</Text>
+              </View>
+              <Switch value={settings.recommendationsEnabled} onValueChange={(value) => set({ recommendationsEnabled: value })} trackColor={{ true: theme.colors.tint }} accessibilityLabel={t('settings.recommendationsTitle')} />
+            </View>
+            <View style={[styles.row, styles.divider]}>
+              <View style={styles.flex}>
+                <Text style={styles.rowTitle}>{t('settings.coachTitle')}</Text>
+                <Text style={styles.rowDetail}>{t('settings.coachDetail')}</Text>
+              </View>
+              <Switch value={settings.coachEnabled} onValueChange={(value) => set({ coachEnabled: value })} trackColor={{ true: theme.colors.tint }} accessibilityLabel={t('settings.coachTitle')} />
+            </View>
+            <View style={[styles.row, styles.divider]}>
+              <View style={styles.flex}>
+                <Text style={styles.rowTitle}>{t('settings.stepKg')}</Text>
+                <Text style={styles.rowDetail}>{t('settings.stepDetail')}</Text>
+                <View style={styles.chipRow}>
+                  {STEP_OPTIONS.map((step) => (
+                    <SelectChip key={step} label={`${step}`} selected={settings.progressionStepKg === step} onPress={() => set({ progressionStepKg: step })} />
+                  ))}
+                </View>
+              </View>
+            </View>
+            <View style={[styles.row, styles.divider]}>
+              <View style={styles.flex}>
+                <Text style={styles.rowTitle}>{t('settings.stepPerHandKg')}</Text>
+                <View style={styles.chipRow}>
+                  {STEP_PER_HAND_OPTIONS.map((step) => (
+                    <SelectChip key={step} label={`${step}`} selected={settings.progressionStepPerHandKg === step} onPress={() => set({ progressionStepPerHandKg: step })} />
+                  ))}
+                </View>
+              </View>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.flex}>
+                <Text style={styles.rowTitle}>{t('coach.records.hidden')}</Text>
+                <View style={styles.chipRow}>
+                  {RECORD_KINDS.map((kind) => (
+                    <SelectChip
+                      key={kind}
+                      role="checkbox"
+                      label={t(RECORD_KIND_KEY[kind])}
+                      selected={settings.hiddenRecordKinds.includes(kind)}
+                      onPress={() =>
+                        set({
+                          hiddenRecordKinds: settings.hiddenRecordKinds.includes(kind)
+                            ? settings.hiddenRecordKinds.filter((item) => item !== kind)
+                            : [...settings.hiddenRecordKinds, kind],
+                        })
+                      }
+                    />
+                  ))}
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
           <SectionHeader title={t('settings.yourData')} />
           <View style={styles.group}>
             <View style={[styles.row, styles.divider]}>
@@ -483,6 +551,7 @@ const useStyles = createStyles((t) =>
     errorText: {
       color: t.colors.destructive,
     },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: t.spacing.sm, marginTop: t.spacing.sm },
     link: {
       ...t.typography.body,
       color: t.colors.link,

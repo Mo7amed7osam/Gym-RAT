@@ -43,6 +43,7 @@ function TargetsForm({ exercise, canSaveToPlan, onClose, onSavedToPlan }: { exer
   const t = useT();
   const updateSessionPrescription = useWorkoutStore((state) => state.updateSessionPrescription);
   const saveTargetsToPlan = useWorkoutStore((state) => state.saveTargetsToPlan);
+  const markRecommendationEdited = useWorkoutStore((state) => state.markRecommendationEdited);
   const { prescription } = exercise;
   const [sets, setSets] = useState(String(prescription.sets));
   const [min, setMin] = useState(String(prescription.reps.min));
@@ -55,7 +56,14 @@ function TargetsForm({ exercise, canSaveToPlan, onClose, onSavedToPlan }: { exer
     const patch: Parameters<typeof updateSessionPrescription>[1] = {};
     if (s !== null && s >= 1 && s !== prescription.sets) patch.sets = s;
     if (lo !== null && hi !== null && lo >= 1 && (lo !== prescription.reps.min || hi !== prescription.reps.max)) patch.reps = { min: Math.min(lo, hi), max: Math.max(lo, hi) };
-    if (Object.keys(patch).length > 0) updateSessionPrescription(exercise.id, patch);
+    if (Object.keys(patch).length > 0) {
+      updateSessionPrescription(exercise.id, patch);
+      // Phase 3: an open suggestion the user re-targets by hand counts as "edited" (never silently accepted).
+      if (exercise.recommendation && exercise.recommendation.decision !== 'dismissed') {
+        const reps = patch.reps ?? prescription.reps;
+        markRecommendationEdited(exercise.id, exercise.recommendation.weightKg, reps);
+      }
+    }
   };
 
   return (

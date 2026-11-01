@@ -151,6 +151,7 @@ export default function PlanDayEditorScreen() {
         visible={picker !== null}
         title={t('plan.editor.pickTitle')}
         excludeIds={picker?.mode === 'add' ? day.exercises.map((item) => item.exerciseId) : []}
+        suggestFor={picker?.mode === 'substitute' ? (exercises.get(day.exercises[picker.index]?.exerciseId ?? '') ?? null) : null}
         onClose={() => setPicker(null)}
         onPick={(exerciseId) => {
           if (picker?.mode === 'add') addPlanExercise(plan.id, day.id, exerciseId);

@@ -9,9 +9,11 @@ import { SelectChip } from '@/components/ui/SelectChip';
 import { HIT } from '@/constants/theme';
 import { EQUIPMENT_LABELS, MUSCLE_LABELS } from '@/data/exercisesData';
 import { getExerciseMedia } from '@/data/media';
+import { computeExerciseRecords } from '@/domain/records';
+import { rankSubstitutes } from '@/domain/substitution';
 import { intlLocale, useLocale, useT } from '@/i18n';
 import { formatSet, getExerciseBests, getPreviousPerformance, isCountedSet } from '@/lib/workoutMath';
-import { selectActivePlan, useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
+import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 import type { Exercise } from '@/types/workout';
 
@@ -33,7 +35,6 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
   const theme = useTheme();
   const t = useT();
   const locale = useLocale();
-  const exercises = useExerciseMap();
   const history = useWorkoutStore((state) => state.history);
   const activePlan = useWorkoutStore(selectActivePlan);
   const updateExerciseUser = useWorkoutStore((state) => state.updateExerciseUser);
@@ -50,7 +51,14 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
     () => (activePlan?.days ?? []).filter((day) => day.exercises.some((item) => item.exerciseId === exercise.id)).map((day) => day.code),
     [activePlan, exercise.id],
   );
-  const alternatives = exercise.alternatives.map((id) => exercises.get(id)).filter((item): item is Exercise => item !== undefined && !item.archived);
+  const hiddenRecordKinds = useWorkoutStore((state) => state.settings.hiddenRecordKinds);
+  const records = useMemo(() => computeExerciseRecords(history, exercise.id, exercise.weightType), [history, exercise.id, exercise.weightType]);
+  const allExercises = useWorkoutStore((state) => state.exercises);
+  const ranked = useMemo(() => rankSubstitutes(exercise, allExercises), [exercise, allExercises]);
+  const alternatives = ranked.filter((item) => item.listed || item.equivalence === 'equivalent').slice(0, 6);
+  const formatDate = (iso: string) => new Date(iso).toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'short', year: 'numeric' });
+  const recordLabel = (kind: string) =>
+    t(kind === 'top_weight' ? 'coach.records.topWeight' : kind === 'estimated_1rm' ? 'coach.records.estimated1rm' : kind === 'set_volume' ? 'coach.records.setVolume' : 'coach.records.repsAtWeight');
 
   const commitNotes = () => {
     if (notes !== exercise.userNotes) updateExerciseUser(exercise.id, { userNotes: notes });
@@ -143,12 +151,16 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
           <View style={styles.card}>
             {alternatives.map((item, index) => (
               <Pressable
-                key={item.id}
-                onPress={() => onOpenExercise(item.id)}
+                key={item.exercise.id}
+                onPress={() => onOpenExercise(item.exercise.id)}
                 accessibilityRole="button"
                 style={({ pressed }) => [styles.linkRow, index < alternatives.length - 1 && styles.divider, pressed && styles.pressed]}
               >
-                <Text style={[styles.body, styles.flex]}>{item.name.en}</Text>
+                <Text style={[styles.body, styles.flex]}>{item.exercise.name.en}</Text>
+                <Chip
+                  label={t(`library.equivalence.${item.equivalence}`)}
+                  tone={item.equivalence === 'equivalent' ? 'success' : item.equivalence === 'similar' ? 'tint' : 'neutral'}
+                />
                 <ChevronRight size={18} color={theme.colors.labelTertiary} />
               </Pressable>
             ))}
@@ -183,6 +195,46 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
           accessibilityLabel={t('library.detail.notes')}
           style={styles.notes}
         />
+      </View>
+
+      <View style={styles.section}>
+        <SectionHeader title={t('coach.records.title')} />
+        <View style={styles.card}>
+          {!records.topWeight && records.repsAtWeight.length === 0 ? (
+            <Text style={[styles.secondary, styles.padded]}>{t('coach.records.none')}</Text>
+          ) : (
+            <>
+              {records.topWeight && !hiddenRecordKinds.includes('top_weight') ? (
+                <LabelRow label={t('coach.records.topWeight')} value={`${records.topWeight.value} kg · ${formatDate(records.topWeight.date)}`} />
+              ) : null}
+              {records.bestEstimated1rm && !hiddenRecordKinds.includes('estimated_1rm') ? (
+                <LabelRow label={t('coach.records.estimated1rm')} value={`${Math.round(records.bestEstimated1rm.value * 2) / 2} kg · ${formatDate(records.bestEstimated1rm.date)}`} />
+              ) : null}
+              {records.bestSetVolume && !hiddenRecordKinds.includes('set_volume') ? (
+                <LabelRow label={t('coach.records.setVolume')} value={`${records.bestSetVolume.value} kg · ${formatDate(records.bestSetVolume.date)}`} />
+              ) : null}
+              {!hiddenRecordKinds.includes('reps_at_weight') ? (
+                <LabelRow label={t('coach.records.repsAtWeight')} value={records.repsAtWeight.slice(0, 3).map((item) => `${item.value} × ${item.weightKg} kg`).join(' · ')} last={records.events.length === 0} />
+              ) : null}
+              {records.events.length > 0 ? (
+                <View style={styles.labelRow}>
+                  <Text style={styles.label}>{t('coach.records.history')}</Text>
+                  {[...records.events]
+                    .reverse()
+                    .filter((event) => !hiddenRecordKinds.includes(event.kind))
+                    .slice(0, 8)
+                    .map((event) => (
+                      <Text key={`${event.kind}-${event.setId}`} style={styles.secondary}>
+                        {formatDate(event.date)} · {recordLabel(event.kind)}: {event.kind === 'reps_at_weight' ? `${event.value} × ${event.weightKg} kg` : `${Math.round(event.value * 2) / 2} kg`}
+                        {event.previous !== null ? ` (${t('history.wasLabel', { previous: event.kind === 'reps_at_weight' ? event.previous : Math.round(event.previous * 2) / 2 })})` : ''}
+                      </Text>
+                    ))}
+                </View>
+              ) : null}
+            </>
+          )}
+          <Text style={[styles.secondary, styles.padded]}>{t('coach.records.estimateNote')}</Text>
+        </View>
       </View>
 
       <View style={styles.section}>

@@ -42,3 +42,10 @@
 ## Phase 3 — W1 PR engine (2026-11-02)
 - `domain/records`: records derived from history on read (ADR-010): top weight, e1RM (Epley, null above 12 reps), set volume, reps-at-weight, event trail oldest-first; weight-type rules (assisted → reps only, bodyweight → reps at 0 kg); first set is a baseline. `detectSetRecords` (in-workout toast, excludes the active session) and `detectSessionRecords` (summary, one per kind per exercise) replace `detectPersonalRecords`.
 - `PersonalRecordKind` gains `reps_at_weight` and `set_volume`; summaries stay shape-compatible. Schema v7 adds `session_exercises.recommendation_json`; legacy blob v7 defaults it. New settings: progression steps, recommendations/coach toggles, hidden record kinds, dismissed insights.
+
+## Phase 3 — W2–W6 (2026-11-02)
+- `domain/progression` (11 numbered rules), `domain/coach` (6 insight rules, max 3, dated dismissals), `domain/substitution` (equivalent / similar / different ranking, listed alternatives always candidates). All pure; tests per rule.
+- Store: `recommendationFor`, `applyRecommendation` (incomplete sets only; decision on the session exercise, schema v7), `dismissRecommendation`, `markRecommendationEdited` (targets sheet edits while a suggestion is open), `dismissInsight`.
+- UI: `RecommendationChip` above the stat tiles (Use / Edit / Ignore, explanation, "based on N sessions"); PR toast after a logged set (`detectSetRecords`, hidden kinds respected); `CoachCard` on Today; Records section + PR history + equivalence chips on the exercise detail; "Suggested" group with reasons in the picker when substituting; Settings → Smart training (toggles, suggestion steps, hidden record kinds); summary shows reps-at-weight records.
+- Protected grid untouched: the four snapshots are byte-identical to Phase 2.
+- Tech debt: RPE/RIR still has no entry UI (rule 5a can only fire from data entered programmatically); coach ignores template sessions' volume split; the chip re-evaluates `recommend()` on every render of the card (cheap; history is small).

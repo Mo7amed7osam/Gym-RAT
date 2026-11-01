@@ -3,7 +3,9 @@ import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Chip } from '@/components/ui/Chip';
 import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
+import { rankSubstitutes, type SubstituteSuggestion } from '@/domain/substitution';
 import { HIT } from '@/constants/theme';
 import { MUSCLE_LABELS } from '@/data/exercisesData';
 import { useLocale, useT } from '@/i18n';
@@ -16,12 +18,14 @@ interface ExercisePickerModalProps {
   title: string;
   /** Ids to leave out (already on the day). */
   excludeIds?: readonly string[];
+  /** When substituting: the exercise being replaced; ranked suggestions appear above the list. */
+  suggestFor?: Exercise | null;
   onPick: (exerciseId: string) => void;
   onClose: () => void;
 }
 
 /** Searchable picker over the non-archived library, used by the plan builder and the session engine. */
-export function ExercisePickerModal({ visible, title, excludeIds = [], onPick, onClose }: ExercisePickerModalProps) {
+export function ExercisePickerModal({ visible, title, excludeIds = [], suggestFor = null, onPick, onClose }: ExercisePickerModalProps) {
   const styles = useStyles();
   // Track how many times the sheet opened so the search resets each time (state lives in PickerContent).
   const [openCount, setOpenCount] = useState(0);
@@ -32,12 +36,12 @@ export function ExercisePickerModal({ visible, title, excludeIds = [], onPick, o
   }
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <PickerContent key={openCount} title={title} excludeIds={excludeIds} onPick={onPick} onClose={onClose} styles={styles} />
+      <PickerContent key={openCount} title={title} excludeIds={excludeIds} suggestFor={suggestFor} onPick={onPick} onClose={onClose} styles={styles} />
     </Modal>
   );
 }
 
-function PickerContent({ title, excludeIds, onPick, onClose, styles }: Omit<ExercisePickerModalProps, 'visible'> & { excludeIds: readonly string[]; styles: ReturnType<typeof useStyles> }) {
+function PickerContent({ title, excludeIds, suggestFor, onPick, onClose, styles }: Omit<ExercisePickerModalProps, 'visible'> & { excludeIds: readonly string[]; styles: ReturnType<typeof useStyles> }) {
   const theme = useTheme();
   const t = useT();
   const locale = useLocale();
@@ -46,6 +50,7 @@ function PickerContent({ title, excludeIds, onPick, onClose, styles }: Omit<Exer
   const exercises = useWorkoutStore((state) => state.exercises);
   const [query, setQuery] = useState('');
 
+  const suggestions = useMemo(() => (suggestFor ? rankSubstitutes(suggestFor, selectLibrary({ exercises })).filter((item) => !excludeIds.includes(item.exercise.id)).slice(0, 5) : []), [suggestFor, exercises, excludeIds]);
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
     const library = selectLibrary({ exercises });
@@ -87,11 +92,49 @@ function PickerContent({ title, excludeIds, onPick, onClose, styles }: Omit<Exer
           keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + theme.spacing.xxl }]}
+          ListHeaderComponent={
+            suggestions.length > 0 && !query.trim() ? (
+              <View>
+                <Text style={styles.sectionTitle}>{t('library.suggested')}</Text>
+                {suggestions.map((item) => (
+                  <SuggestionRow key={item.exercise.id} item={item} locale={locale} onPress={() => onPick(item.exercise.id)} />
+                ))}
+                <Text style={styles.sectionTitle}>{t('library.allExercises')}</Text>
+              </View>
+            ) : undefined
+          }
           ListEmptyComponent={<Text style={styles.empty}>{t('library.empty')}</Text>}
           renderItem={({ item }) => <Row exercise={item} locale={locale} onPress={() => onPick(item.id)} />}
         />
       </View>
     </>
+  );
+}
+
+function SuggestionRow({ item, locale, onPress }: { item: SubstituteSuggestion; locale: 'en' | 'ar'; onPress: () => void }) {
+  const styles = useStyles();
+  const t = useT();
+  const reason =
+    item.equivalence === 'equivalent'
+      ? t('library.equivalenceReason.equivalent')
+      : item.equivalence === 'similar'
+        ? t(item.sameWeightType ? 'library.equivalenceReason.similarMuscle' : 'library.equivalenceReason.similarLoad')
+        : t('library.equivalenceReason.different', { muscles: item.sharedPrimary.map((m) => MUSCLE_LABELS[m][locale]).join(', ') || item.exercise.primaryMuscles.map((m) => MUSCLE_LABELS[m][locale]).join(', ') });
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${item.exercise.name.en}, ${t(`library.equivalence.${item.equivalence}`)}`} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+      <ExerciseThumb exerciseId={item.exercise.id} size={48} />
+      <View style={styles.flex}>
+        <View style={styles.nameRow}>
+          <Text style={[styles.name, styles.shrink]} numberOfLines={2}>
+            {item.exercise.name.en}
+          </Text>
+          <Chip label={t(`library.equivalence.${item.equivalence}`)} tone={item.equivalence === 'equivalent' ? 'success' : item.equivalence === 'similar' ? 'tint' : 'neutral'} />
+        </View>
+        <Text style={styles.secondary} numberOfLines={2}>
+          {reason}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -135,6 +178,9 @@ const useStyles = createStyles((t) =>
     row: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.md, minHeight: 64, paddingVertical: t.spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.colors.separator },
     pressed: { opacity: 0.6 },
     name: { ...t.typography.headline, color: t.colors.label },
+    shrink: { flexShrink: 1 },
+    nameRow: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm },
+    sectionTitle: { ...t.typography.footnote, color: t.colors.labelSecondary, paddingTop: t.spacing.md, paddingBottom: t.spacing.xs },
     secondary: { ...t.typography.footnote, fontWeight: '400', color: t.colors.labelSecondary },
     empty: { ...t.typography.body, color: t.colors.labelSecondary, textAlign: 'center', paddingVertical: t.spacing.xxxl },
   }),

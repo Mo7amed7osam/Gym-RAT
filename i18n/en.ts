@@ -157,6 +157,7 @@ export const en = {
     feedbackTitle: 'How hard was set %{n}?',
   },
   history: {
+    wasLabel: 'was %{previous}',
     title: 'History',
     emptyTitle: 'No workouts logged',
     emptyBody: 'Finish a session and it lands here: weekly volume, your best day per routine, every set you lifted and the PRs you hit.',
@@ -393,6 +394,15 @@ export const en = {
     positionEnd: 'End',
     toggleHint: 'Tap to switch between the start and end positions',
     attribution: 'Illustration: Exercise data by RepDB (repdb.co)',
+    suggested: 'Suggested',
+    allExercises: 'All exercises',
+    equivalence: { equivalent: 'Equivalent', similar: 'Similar', different: 'Different' },
+    equivalenceReason: {
+      equivalent: 'Same muscles, same way of loading. Your numbers should carry over closely.',
+      similarMuscle: 'Same target muscles but a different movement or equipment. Treat your numbers as a starting point.',
+      similarLoad: 'Same target muscles, but the weight is logged differently. Numbers will not match.',
+      different: 'Trains %{muscles}, but it is a different exercise. Start light.',
+    },
     detail: {
       close: 'Close',
       muscles: 'Muscles',
