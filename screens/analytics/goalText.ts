@@ -25,7 +25,8 @@ export function goalValueText(evaluation: GoalEvaluation, t: Translate): string 
   if (evaluation.achieved && goal.kind !== 'weekly_sessions' && goal.kind !== 'weekly_volume') return t('progress.goals.achieved');
   if (evaluation.current === null) return t('progress.goals.noData');
   return t('progress.goals.currentOfTarget', {
-    current: formatGoalValue(goal.kind, goal.bodyMetric, evaluation.current, t),
+    // "1 of 3 workouts", not "1 workout of 3 workouts".
+    current: goal.kind === 'weekly_sessions' ? String(Math.round(evaluation.current)) : formatGoalValue(goal.kind, goal.bodyMetric, evaluation.current, t),
     target: formatGoalValue(goal.kind, goal.bodyMetric, goal.targetValue, t),
   });
 }

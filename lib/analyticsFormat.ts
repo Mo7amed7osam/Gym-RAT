@@ -2,21 +2,22 @@
 
 import { getCurrentLocale, intlLocale } from '@/i18n';
 
+// Hermes ignores the `-u-nu-latn` extension in date formatting, so the option is passed explicitly too (D8).
 const locale = () => intlLocale(getCurrentLocale());
 
 /** "November 2026" */
 export function formatMonthYear(date: Date): string {
-  return date.toLocaleDateString(locale(), { month: 'long', year: 'numeric' });
+  return date.toLocaleDateString(locale(), { month: 'long', year: 'numeric', numberingSystem: 'latn' });
 }
 
 /** "2 Nov" */
 export function formatDayMonth(date: Date | number): string {
-  return new Date(date).toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
+  return new Date(date).toLocaleDateString(locale(), { day: 'numeric', month: 'short', numberingSystem: 'latn' });
 }
 
 /** "2 Nov 2026" */
 export function formatDayMonthYear(date: Date | number): string {
-  return new Date(date).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(date).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric', numberingSystem: 'latn' });
 }
 
 /** Up to `digits` decimals, grouped: "1,250", "80.5". */

@@ -143,6 +143,12 @@ function GoalCard({ evaluation, title, onArchive, onDelete }: { evaluation: Goal
         <Text style={[styles.goalTitle, styles.flex]}>{title}</Text>
         {evaluation.overdue ? <Chip label={t('progress.goals.overdue')} tone="tint" /> : null}
         {evaluation.achieved && !recurring ? <Chip label={t('progress.goals.achieved')} tone="success" /> : null}
+        <Pressable onPress={onArchive} accessibilityRole="button" accessibilityLabel={t(goal.archived ? 'progress.goals.unarchive' : 'progress.goals.archive')} style={styles.iconButton}>
+          <ArchiveIcon size={18} color={theme.colors.labelSecondary} />
+        </Pressable>
+        <Pressable onPress={onDelete} accessibilityRole="button" accessibilityLabel={t('progress.goals.delete')} style={styles.iconButton}>
+          <Trash2 size={18} color={theme.colors.destructive} />
+        </Pressable>
       </View>
       <ProgressBar value={evaluation.progress} tone={evaluation.achieved ? 'success' : 'tint'} />
       <Text style={styles.caption}>
@@ -152,14 +158,6 @@ function GoalCard({ evaluation, title, onArchive, onDelete }: { evaluation: Goal
         {goal.deadline ? ` · ${t('progress.goals.by', { date: formatDayMonthYear(Date.parse(goal.deadline)) })}` : ''}
         {goal.achievedAt && !recurring ? ` · ${t('progress.goals.achievedOn', { date: formatDayMonthYear(Date.parse(goal.achievedAt)) })}` : ''}
       </Text>
-      <View style={styles.goalActions}>
-        <Pressable onPress={onArchive} accessibilityRole="button" accessibilityLabel={t(goal.archived ? 'progress.goals.unarchive' : 'progress.goals.archive')} style={styles.iconButton}>
-          <ArchiveIcon size={18} color={theme.colors.labelSecondary} />
-        </Pressable>
-        <Pressable onPress={onDelete} accessibilityRole="button" accessibilityLabel={t('progress.goals.delete')} style={styles.iconButton}>
-          <Trash2 size={18} color={theme.colors.destructive} />
-        </Pressable>
-      </View>
     </Card>
   );
 }
@@ -338,10 +336,6 @@ const useStyles = createStyles((t) =>
     goalTitle: {
       ...t.typography.headline,
       color: t.colors.label,
-    },
-    goalActions: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
     },
     iconButton: {
       minWidth: HIT,
