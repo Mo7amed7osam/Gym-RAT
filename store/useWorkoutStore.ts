@@ -1,7 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
+import type { PersistedWorkoutState } from '@/data/db/repository';
 import { getDaySchedule, weekdayFromDate } from '@/data/scheduleData';
 import {
   buildSessionSummary,
@@ -21,21 +21,15 @@ import type {
   WorkoutSettings,
 } from '@/types/workout';
 
-import { createBatchedStorage } from './batchedStorage';
+export type { PersistedWorkoutState };
 
 // ─── State shape ─────────────────────────────────────────────────────────────
-
-interface PersistedWorkoutState {
-  activeSession: WorkoutSession | null;
-  /** Finished sessions, newest first. */
-  history: WorkoutSession[];
-  restTimer: RestTimerState;
-  settings: WorkoutSettings;
-}
 
 interface WorkoutState extends PersistedWorkoutState {
   /** Manual day override from the Plan screen; null = follow the calendar. */
   selectedWeekday: Weekday | null;
+  /** Last database write failure, if any. Not persisted. */
+  persistenceError: string | null;
 }
 
 export type StartWorkoutResult =
@@ -86,6 +80,11 @@ interface WorkoutActions {
   deleteSession: (sessionId: string) => void;
   clearHistory: () => void;
   updateSettings: (patch: Partial<WorkoutSettings>) => void;
+
+  // Persistence plumbing (called by data/db/boot.ts)
+  /** Replaces the persisted slices with what the database holds. Does not write. */
+  hydrate: (state: PersistedWorkoutState) => void;
+  reportPersistenceError: (message: string | null) => void;
 }
 
 export type WorkoutStore = WorkoutState & WorkoutActions;
@@ -110,6 +109,35 @@ export const DEFAULT_SETTINGS: WorkoutSettings = {
 };
 
 const MIN_REST_DURATION_MS = 5_000;
+
+// ─── Write-through persistence ───────────────────────────────────────────────
+
+export interface Persistence {
+  /** Must write synchronously and throw on failure; a throw cancels the state change. */
+  persist: (prev: PersistedWorkoutState, next: PersistedWorkoutState) => void;
+}
+
+let persistence: Persistence | null = null;
+/** The write-through `set`, captured so `useWorkoutStore.setState` can be routed through it too. */
+let guardedSet: ((partial: Partial<WorkoutStore> | ((state: WorkoutStore) => Partial<WorkoutStore>), replace?: boolean) => void) | null = null;
+
+/** Installed once by the database boot; `null` detaches (tests). */
+export function attachPersistence(adapter: Persistence | null): void {
+  persistence = adapter;
+}
+
+const pickPersisted = (state: WorkoutState): PersistedWorkoutState => ({
+  activeSession: state.activeSession,
+  history: state.history,
+  restTimer: state.restTimer,
+  settings: state.settings,
+});
+
+const persistedChanged = (prev: WorkoutState, next: WorkoutState): boolean =>
+  prev.activeSession !== next.activeSession ||
+  prev.history !== next.history ||
+  prev.restTimer !== next.restTimer ||
+  prev.settings !== next.settings;
 
 // ─── Pure helpers ────────────────────────────────────────────────────────────
 
@@ -200,9 +228,31 @@ function clampIndex(session: WorkoutSession, index: number): number {
 
 // ─── Store ───────────────────────────────────────────────────────────────────
 
-export const useWorkoutStore = create<WorkoutStore>()(
-  persist(
-    (set, get) => {
+export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
+      /**
+       * Every state change goes through here: the new state is computed, the
+       * persisted slices are written in one transaction, and only then does the
+       * in-memory state (and the UI) change. A failed write leaves the state
+       * untouched and records the error.
+       */
+      const set: typeof rawSet = (partial, replace) => {
+        const prev = get();
+        const patch = typeof partial === 'function' ? partial(prev) : partial;
+        const next = (replace ? patch : { ...prev, ...patch }) as WorkoutStore;
+        if (persistence && persistedChanged(prev, next)) {
+          try {
+            persistence.persist(pickPersisted(prev), pickPersisted(next));
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error('[db] write failed; state change discarded', error);
+            rawSet({ persistenceError: message });
+            return;
+          }
+        }
+        rawSet(next, true);
+      };
+      guardedSet = set as typeof guardedSet;
+
       /** Immutable update of one exercise inside the active session. */
       const patchExercise = (
         sessionExerciseId: string,
@@ -234,6 +284,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
 
       return {
         selectedWeekday: null,
+        persistenceError: null,
         activeSession: null,
         history: [],
         restTimer: IDLE_REST_TIMER,
@@ -493,59 +544,17 @@ export const useWorkoutStore = create<WorkoutStore>()(
         clearHistory: () => set({ history: [] }),
 
         updateSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
+
+        // ── Persistence plumbing ─────────────────────────────────────────────
+
+        hydrate: (state) => rawSet({ ...state }),
+
+        reportPersistenceError: (message) => rawSet({ persistenceError: message }),
       };
-    },
-    {
-      name: 'gym-rat/workout-store',
-      version: 4,
-      storage: createBatchedStorage<PersistedWorkoutState>(),
-      partialize: (state): PersistedWorkoutState => ({
-        activeSession: state.activeSession,
-        history: state.history,
-        restTimer: state.restTimer,
-        settings: state.settings,
-      }),
-      // Deep-merge settings so new defaults survive app updates. Only known keys are
-      // taken from disk, so fields dropped by a migration (e.g. the old sync queue)
-      // can never leak back into memory.
-      merge: (persisted, current) => {
-        const saved = (persisted ?? {}) as Partial<PersistedWorkoutState>;
-        return {
-          ...current,
-          activeSession: saved.activeSession ?? current.activeSession,
-          history: saved.history ?? current.history,
-          restTimer: saved.restTimer ?? current.restTimer,
-          settings: { ...current.settings, ...saved.settings },
-        };
-      },
-      migrate: (persisted, version) => {
-        let state = persisted as PersistedWorkoutState & { syncQueue?: unknown };
-        // v3: the server sync queue was removed (the app is local-only).
-        if (version < 3) {
-          const { syncQueue: _dropped, ...rest } = state;
-          state = rest;
-        }
-        // v4: post-workout cool-down and the fixed weight increment were removed.
-        if (version < 4) {
-          const stripSession = (session: WorkoutSession & { cooldownCompletedIds?: unknown }): WorkoutSession => {
-            const { cooldownCompletedIds: _ids, ...rest } = session;
-            return rest;
-          };
-          const { weightIncrementKg: _step, ...settings } = (state.settings ?? {}) as WorkoutSettings & {
-            weightIncrementKg?: unknown;
-          };
-          state = {
-            ...state,
-            activeSession: state.activeSession ? stripSession(state.activeSession) : state.activeSession,
-            history: (state.history ?? []).map(stripSession),
-            settings: settings as WorkoutSettings,
-          };
-        }
-        return state;
-      },
-    },
-  ),
-);
+});
+
+// External writers (tests, dev tools) must persist too.
+useWorkoutStore.setState = ((partial, replace) => guardedSet?.(partial as never, replace as never)) as typeof useWorkoutStore.setState;
 
 // ─── Selectors ───────────────────────────────────────────────────────────────
 // All selectors return primitives or existing references, so they are safe to
@@ -576,6 +585,3 @@ export const selectPreviousExercise =
 export function getRoutineHistory(state: WorkoutState, routineId: WorkoutSession['routineId']): WorkoutSession[] {
   return state.history.filter((session) => session.routineId === routineId);
 }
-
-/** True once AsyncStorage has rehydrated the store. */
-export const hasWorkoutStoreHydrated = (): boolean => useWorkoutStore.persist.hasHydrated();

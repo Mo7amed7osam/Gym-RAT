@@ -9,3 +9,5 @@
 - Dates: ISO strings in DB; `Date` only at edges.
 - Tests: every `domain/` module has table-driven tests; repositories tested on better-sqlite3.
 - Branch per milestone `phase1/mN-*`; one reviewable PR each.
+- Decision (M3): keep the existing root folders (`data/`, `store/`, `lib/`…) rather than moving to `src/` mid-Phase-1; a tree move adds churn without acceptance value. Revisit after Phase 1.
+- Rule: `expo-sqlite` is imported only by `data/db/driver.expo.ts` and `data/db/boot.ts`; everything else talks to the `Driver` interface so Jest runs on `node:sqlite`.

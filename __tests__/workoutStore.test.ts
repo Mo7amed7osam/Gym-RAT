@@ -1,9 +1,11 @@
-import { DEFAULT_SETTINGS, IDLE_REST_TIMER, getRestRemainingMs, useWorkoutStore } from '@/store/useWorkoutStore';
+import { PERSISTED_STATE_VERSION, migratePersistedState } from '@/store/migratePersistedState';
+import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, getRestRemainingMs, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { RestTimerState } from '@/types/workout';
 
 const resetStore = () =>
   useWorkoutStore.setState({
     selectedWeekday: null,
+    persistenceError: null,
     activeSession: null,
     history: [],
     restTimer: IDLE_REST_TIMER,
@@ -256,38 +258,77 @@ describe('navigation, checklists, selectors, migration', () => {
     expect(useWorkoutStore.getState().history).toHaveLength(0);
   });
 
-  it('persist migration v3→v4 strips cool-down ids and the weight increment', () => {
-    const options = useWorkoutStore.persist.getOptions();
-    const migrated = options.migrate!(
+  it('migratePersistedState strips cool-down ids and the weight increment (v3→v4)', () => {
+    const migrated = migratePersistedState(
       {
         activeSession: { id: 'a', warmupCompletedIds: ['x'], cooldownCompletedIds: ['y'] },
         history: [{ id: 'h', cooldownCompletedIds: [] }],
         settings: { ...DEFAULT_SETTINGS, weightIncrementKg: 2.5 },
-      } as never,
+      },
       3,
-    ) as unknown as { activeSession: Record<string, unknown>; history: Record<string, unknown>[]; settings: Record<string, unknown> };
+    ) as { activeSession: Record<string, unknown>; history: Record<string, unknown>[]; settings: Record<string, unknown> };
     expect(migrated.activeSession).toEqual({ id: 'a', warmupCompletedIds: ['x'] });
     expect(migrated.history[0]).toEqual({ id: 'h' });
     expect(migrated.settings).toEqual(DEFAULT_SETTINGS);
   });
 
-  it('persist migration v2→v3 drops the old sync queue; merge ignores unknown keys and deep-merges settings', () => {
-    const options = useWorkoutStore.persist.getOptions();
-    expect(options.version).toBe(4);
-    const migrated = options.migrate!(
-      { history: [{ id: 's1' }], syncQueue: [{ kind: 'upsert', sessionId: 's1', enqueuedAt: 1 }] } as never,
-      2,
-    ) as unknown as Record<string, unknown>;
+  it('migratePersistedState drops the sync queue (v2→v3) and is a no-op at the current version', () => {
+    expect(PERSISTED_STATE_VERSION).toBe(4);
+    const migrated = migratePersistedState({ history: [{ id: 's1' }], syncQueue: [{ kind: 'upsert' }] }, 2);
     expect(migrated).not.toHaveProperty('syncQueue');
     expect(migrated.history).toEqual([{ id: 's1' }]);
-    const untouched = options.migrate!({ history: [] } as never, 4) as unknown as Record<string, unknown>;
-    expect(untouched).toEqual({ history: [] });
+    expect(migratePersistedState({ history: [] }, 4)).toEqual({ history: [] });
+  });
+});
 
-    const merged = options.merge!(
-      { settings: { hapticsEnabled: false }, syncQueue: [{}] } as never,
-      useWorkoutStore.getState(),
-    ) as unknown as Record<string, unknown>;
-    expect(merged.settings).toEqual({ ...DEFAULT_SETTINGS, hapticsEnabled: false });
-    expect(merged).not.toHaveProperty('syncQueue');
+describe('write-through persistence', () => {
+  afterEach(() => attachPersistence(null));
+
+  it('calls the adapter with the previous and next persisted slices before applying state', () => {
+    const calls: { prevHistory: number; nextHistory: number }[] = [];
+    attachPersistence({
+      persist: (prev, next) => {
+        calls.push({ prevHistory: prev.history.length, nextHistory: next.history.length });
+        // State must not have changed yet.
+        expect(useWorkoutStore.getState().history.length).toBe(prev.history.length);
+      },
+    });
+    const store = useWorkoutStore.getState();
+    store.selectWeekday('monday'); // not persisted → no call
+    expect(calls).toHaveLength(0);
+    const result = store.startWorkout('saturday');
+    if (!result.ok) throw new Error('expected session');
+    store.finishWorkout();
+    expect(calls.length).toBeGreaterThanOrEqual(2);
+    expect(calls[calls.length - 1]).toEqual({ prevHistory: 0, nextHistory: 1 });
+  });
+
+  it('discards the state change and records the error when the write throws', () => {
+    attachPersistence({
+      persist: () => {
+        throw new Error('disk full');
+      },
+    });
+    const store = useWorkoutStore.getState();
+    const result = store.startWorkout('saturday');
+    expect(result.ok).toBe(true);
+    expect(useWorkoutStore.getState().activeSession).toBeNull();
+    expect(useWorkoutStore.getState().persistenceError).toBe('disk full');
+    store.reportPersistenceError(null);
+    expect(useWorkoutStore.getState().persistenceError).toBeNull();
+  });
+
+  it('hydrate replaces persisted slices without writing', () => {
+    let writes = 0;
+    attachPersistence({ persist: () => void writes++ });
+    useWorkoutStore.getState().hydrate({
+      activeSession: null,
+      history: [],
+      restTimer: { ...IDLE_REST_TIMER, durationMs: 1 },
+      settings: { ...DEFAULT_SETTINGS, hapticsEnabled: false },
+    });
+    expect(writes).toBe(0);
+    expect(useWorkoutStore.getState().settings.hapticsEnabled).toBe(false);
+    expect(useWorkoutStore.getState().restTimer.durationMs).toBe(1);
   });
 });

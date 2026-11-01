@@ -14,3 +14,6 @@ Later: `cardio_sessions`, `body_metrics`, `body_photos`, `goals`, `pr_cache`.
 
 ## Pragmas
 `journal_mode=WAL`, `synchronous=NORMAL` (D7), `foreign_keys=ON`.
+
+## M3 implemented (2026-11-01)
+Schema v1 as planned (`data/db/schema.ts`). `title_json`, `prescription_json`, `summary_json`, `warmup_completed_json` keep today's object shapes verbatim; M4 normalises plans. Whole-session replace per write (delete exercises/sets for the id, reinsert) inside one transaction. Pragmas set at boot outside transactions. Backup file `gymrat.backup.db` via `backupDatabaseAsync` before any migration of a non-empty DB; restored on failure. The backup hook is untestable until schema v2 exists (noted in tests).
