@@ -11,6 +11,7 @@ import 'react-native-reanimated';
 
 import { isRtlLocale, setCurrentLocale, useLocale } from '@/i18n';
 import { useStoreHydrated } from '@/store/useStoreHydrated';
+import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { ThemeProvider, useTheme } from '@/theme';
 
 export {
@@ -52,6 +53,7 @@ function ThemedNavigation() {
   const theme = useTheme();
   const locale = useLocale();
   setCurrentLocale(locale);
+  const onboarded = useWorkoutStore((state) => state.settings.onboardingComplete);
   const navigationBase = theme.scheme === 'dark' ? DarkTheme : DefaultTheme;
   const navigationTheme = {
     ...navigationBase,
@@ -69,9 +71,14 @@ function ThemedNavigation() {
       <NavigationThemeProvider value={navigationTheme}>
         <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="workout" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
-          <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+          <Stack.Protected guard={!onboarded}>
+            <Stack.Screen name="onboarding/index" options={{ gestureEnabled: false }} />
+          </Stack.Protected>
+          <Stack.Protected guard={onboarded}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="workout" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
+            <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+          </Stack.Protected>
         </Stack>
       </NavigationThemeProvider>
     </LocaleProvider>

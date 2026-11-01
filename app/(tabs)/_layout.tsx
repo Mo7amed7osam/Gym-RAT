@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
-import { ChartColumn, House } from 'lucide-react-native';
+import { BookOpen, CalendarDays, ChartColumn, House } from 'lucide-react-native';
+
 import { useT } from '@/i18n';
 import { useTheme } from '@/theme';
-
 
 export default function TabLayout() {
   const theme = useTheme();
@@ -29,10 +29,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="plan"
         options={{
-          title: t('tabs.history'),
+          title: t('tabs.plan'),
+          tabBarIcon: ({ color, size }) => <CalendarDays color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="progress"
+        options={{
+          title: t('tabs.progress'),
           tabBarIcon: ({ color, size }) => <ChartColumn color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="library"
+        options={{
+          title: t('tabs.library'),
+          tabBarIcon: ({ color, size }) => <BookOpen color={color} size={size} />,
         }}
       />
     </Tabs>

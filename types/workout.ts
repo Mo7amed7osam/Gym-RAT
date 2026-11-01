@@ -293,7 +293,21 @@ export interface AppearanceSettings {
 
 export type LanguageSetting = 'system' | 'en' | 'ar';
 
+export type TrainingGoal = 'hypertrophy' | 'strength' | 'general';
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
+
+/** Answers from onboarding; all optional, used by later recommendations. */
+export interface UserProfile {
+  goal: TrainingGoal | null;
+  experience: ExperienceLevel | null;
+  bodyweightKg: number | null;
+  heightCm: number | null;
+}
+
 export interface WorkoutSettings {
+  /** First-launch flow finished (or skipped). Legacy installs with history are treated as complete. */
+  onboardingComplete: boolean;
+  profile: UserProfile;
   appearance: AppearanceSettings;
   /** UI language; `system` follows the device. Exercise names stay English with an Arabic subtitle. */
   language: LanguageSetting;

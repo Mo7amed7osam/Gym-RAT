@@ -37,7 +37,14 @@ export function seedPlans(state: PersistedWorkoutState, now: string = new Date()
     changed = true;
   }
 
-  return changed ? { ...state, plans } : state;
+  // Anyone with workout data already knows the app: never show first-launch onboarding to them.
+  let settings = state.settings;
+  if (!settings.onboardingComplete && (state.history.length > 0 || state.activeSession !== null)) {
+    settings = { ...settings, onboardingComplete: true };
+    changed = true;
+  }
+
+  return changed ? { ...state, plans, settings } : state;
 }
 
 /** Day after the most recent completed session of the source program. */

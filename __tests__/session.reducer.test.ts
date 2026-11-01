@@ -153,3 +153,17 @@ describe('isSessionForDay', () => {
     expect(isSessionForDay(other, active, active.days[1])).toBe(false);
   });
 });
+
+describe('seedPlans onboarding', () => {
+  const empty = () => ({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
+
+  it('leaves onboarding pending on a fresh install and marks it complete for installs with history', () => {
+    expect(seedPlans(empty()).settings.onboardingComplete).toBe(false);
+    const withHistory = { ...empty(), history: [{ ...session({ status: 'completed' }), id: 'h' }] };
+    expect(seedPlans(withHistory).settings.onboardingComplete).toBe(true);
+    const withActive = { ...empty(), activeSession: session() };
+    expect(seedPlans(withActive).settings.onboardingComplete).toBe(true);
+    const already = { ...empty(), settings: { ...DEFAULT_SETTINGS, onboardingComplete: true } };
+    expect(seedPlans(already).settings).toBe(already.settings);
+  });
+});

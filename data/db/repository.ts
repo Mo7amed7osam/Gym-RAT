@@ -49,6 +49,7 @@ export function mergeSettings(defaults: WorkoutSettings, stored: Partial<Workout
     ...defaults,
     ...(stored ?? {}),
     appearance: { ...defaults.appearance, ...(stored?.appearance ?? {}) },
+    profile: { ...defaults.profile, ...(stored?.profile ?? {}) },
   };
 }
 
