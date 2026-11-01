@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { HIT, colors, fonts, spacing } from '@/constants/theme';
+import { HIT } from '@/constants/theme';
+import { createStyles } from '@/theme';
 
 interface SectionHeaderProps {
   title: string;
@@ -9,6 +10,7 @@ interface SectionHeaderProps {
 }
 
 export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderProps) {
+  const styles = useStyles();
   return (
     <View style={styles.row}>
       <Text style={styles.title} accessibilityRole="header">
@@ -23,28 +25,30 @@ export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderPro
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xxs,
-    minHeight: 28,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 24,
-    lineHeight: 28,
-    color: colors.label,
-  },
-  action: {
-    minHeight: HIT,
-    justifyContent: 'center',
-    marginVertical: -8,
-  },
-  actionText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.link,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: t.spacing.xxs,
+      minHeight: 28,
+    },
+    title: {
+      fontFamily: t.fonts.display,
+      fontSize: 24,
+      lineHeight: 28,
+      color: t.colors.label,
+    },
+    action: {
+      minHeight: HIT,
+      justifyContent: 'center',
+      marginVertical: -8,
+    },
+    actionText: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: t.colors.link,
+    },
+  }),
+);

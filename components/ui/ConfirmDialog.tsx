@@ -1,7 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
-import { colors, radii, spacing, typography } from '@/constants/theme';
+import { createStyles } from '@/theme';
 
 interface ConfirmDialogProps {
   visible: boolean;
@@ -25,6 +25,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const styles = useStyles();
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onCancel}>
       <View style={styles.backdrop}>
@@ -49,36 +50,38 @@ export function ConfirmDialog({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xxl,
-    backgroundColor: colors.scrim,
-  },
-  dialog: {
-    width: '100%',
-    maxWidth: 360,
-    gap: spacing.md,
-    padding: spacing.xl,
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-  },
-  title: {
-    ...typography.title3,
-    color: colors.label,
-  },
-  message: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  action: {
-    flex: 1,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    backdrop: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: t.spacing.xxl,
+      backgroundColor: t.colors.scrim,
+    },
+    dialog: {
+      width: '100%',
+      maxWidth: 360,
+      gap: t.spacing.md,
+      padding: t.spacing.xl,
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+    },
+    title: {
+      ...t.typography.title3,
+      color: t.colors.label,
+    },
+    message: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: t.spacing.sm,
+      marginTop: t.spacing.sm,
+    },
+    action: {
+      flex: 1,
+    },
+  }),
+);

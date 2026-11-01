@@ -8,13 +8,14 @@ import { WeeklyVolumeChart } from '@/components/WeeklyVolumeChart';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
+import { HIT } from '@/constants/theme';
 import { getExercise } from '@/data/exercisesData';
 import { isSessionForDay } from '@/data/plans';
 import { formatDuration, formatKg, formatKgCompact, formatShortDate, percentChange, startOfWeek } from '@/lib/format';
 import { formatSet, isCountedSet, sessionVolumeKg, weeklyVolumeKg } from '@/lib/workoutMath';
 import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { WorkoutSession } from '@/types/workout';
+import { createStyles, useTheme } from '@/theme';
 
 const CHART_WEEKS = 8;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -29,6 +30,8 @@ interface VolumeRecord {
 const volumeOf = (session: WorkoutSession) => session.summary?.totalVolumeKg ?? sessionVolumeKg(session);
 
 export default function HistoryScreen() {
+  const styles = useStyles();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [now] = useState(() => new Date());
@@ -66,7 +69,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.root}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.lg }]} showsVerticalScrollIndicator={false}>
         <Text style={styles.largeTitle} accessibilityRole="header">
           History
         </Text>
@@ -74,7 +77,7 @@ export default function HistoryScreen() {
         {completed.length === 0 ? (
           <View style={styles.empty}>
             <View style={styles.emptyIcon}>
-              <ChartColumn size={28} color={colors.tint} />
+              <ChartColumn size={28} color={theme.colors.tint} />
             </View>
             <Text style={styles.emptyTitle}>No workouts logged</Text>
             <Text style={styles.secondary}>
@@ -89,7 +92,7 @@ export default function HistoryScreen() {
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>Weekly volume</Text>
                 {weekChange !== null ? (
-                  <Text style={[styles.change, { color: weekChange >= 0 ? colors.success : colors.labelSecondary }]}>
+                  <Text style={[styles.change, { color: weekChange >= 0 ? theme.colors.success : theme.colors.labelSecondary }]}>
                     {weekChange >= 0 ? '+' : ''}
                     {weekChange}% vs last week
                   </Text>
@@ -170,6 +173,8 @@ function SessionRow({
   onToggle: () => void;
   onDelete: () => void;
 }) {
+  const styles = useStyles();
+  const theme = useTheme();
   const summary = session.summary;
   const prCount = summary?.personalRecords.length ?? 0;
   const prSetIds = new Set(summary?.personalRecords.map((record) => record.setId));
@@ -196,12 +201,12 @@ function SessionRow({
         </View>
         {prCount > 0 ? (
           <View style={styles.prChip}>
-            <Star size={11} color={colors.tint} fill={colors.tint} />
+            <Star size={11} color={theme.colors.tint} fill={theme.colors.tint} />
             <Text style={styles.prChipText}>{prCount}</Text>
           </View>
         ) : null}
         <Text style={styles.recordValue}>{formatKg(volumeOf(session))}</Text>
-        {expanded ? <ChevronUp size={18} color={colors.labelSecondary} /> : <ChevronDown size={18} color={colors.labelSecondary} />}
+        {expanded ? <ChevronUp size={18} color={theme.colors.labelSecondary} /> : <ChevronDown size={18} color={theme.colors.labelSecondary} />}
       </Pressable>
 
       {expanded ? (
@@ -217,14 +222,14 @@ function SessionRow({
                     <Text style={styles.detailTitle} numberOfLines={1}>
                       {getExercise(exercise.exerciseId)?.name.en ?? exercise.exerciseId}
                     </Text>
-                    {hasPr ? <Star size={12} color={colors.tint} fill={colors.tint} /> : null}
+                    {hasPr ? <Star size={12} color={theme.colors.tint} fill={theme.colors.tint} /> : null}
                   </View>
                   <Text style={styles.detailSets}>{sets.map((set) => formatSet(set)).join(' · ')}</Text>
                 </View>
               );
             })}
           <Pressable onPress={onDelete} accessibilityRole="button" style={styles.deleteButton}>
-            <Trash size={16} color={colors.destructive} />
+            <Trash size={16} color={theme.colors.destructive} />
             <Text style={styles.deleteText}>Delete session</Text>
           </Pressable>
         </View>
@@ -242,6 +247,7 @@ function badgeFor(code: string): string {
 }
 
 function Badge({ code }: { code: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.badge} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <Text style={styles.badgeText} numberOfLines={1} adjustsFontSizeToFit>
@@ -252,6 +258,7 @@ function Badge({ code }: { code: string }) {
 }
 
 function Tile({ label, value }: { label: string; value: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.tile} accessible accessibilityLabel={`${label} ${value}`}>
       <Text style={styles.tileValue} numberOfLines={1} adjustsFontSizeToFit>
@@ -262,208 +269,210 @@ function Tile({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    paddingHorizontal: spacing.screen,
-    paddingBottom: spacing.xxxl * 2,
-    gap: spacing.xl,
-  },
-  flex: {
-    flex: 1,
-    minWidth: 0,
-  },
-  largeTitle: {
-    ...typography.largeTitle,
-    color: colors.label,
-  },
-  empty: {
-    padding: spacing.xl,
-    gap: spacing.sm,
-    borderRadius: 24,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-  },
-  emptyTitle: {
-    ...typography.title1,
-    color: colors.label,
-  },
-  card: {
-    padding: spacing.xl,
-    borderRadius: 24,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: spacing.xs,
-  },
-  cardTitle: {
-    fontFamily: fonts.display,
-    fontSize: 24,
-    lineHeight: 28,
-    color: colors.label,
-  },
-  change: {
-    ...typography.subheadline,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
-  tiles: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  tile: {
-    flex: 1,
-    padding: spacing.md,
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-  },
-  tileValue: {
-    fontFamily: fonts.display,
-    fontSize: 28,
-    lineHeight: 32,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  section: {
-    gap: spacing.sm,
-  },
-  group: {
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-    overflow: 'hidden',
-  },
-  divider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.separator,
-  },
-  recordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    minHeight: 58,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  sessionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    minHeight: 64,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  badge: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.tile,
-    backgroundColor: colors.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: {
-    fontFamily: fonts.display,
-    fontSize: 16,
-    color: colors.tint,
-  },
-  headline: {
-    ...typography.headline,
-    color: colors.label,
-  },
-  caption: {
-    ...typography.caption,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  secondary: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-  },
-  recordValue: {
-    fontFamily: fonts.display,
-    fontSize: 20,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  details: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-    gap: spacing.sm,
-  },
-  detailRow: {
-    padding: spacing.md,
-    borderRadius: radii.row,
-    backgroundColor: colors.surfaceRaised,
-    gap: 2,
-  },
-  detailName: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  detailTitle: {
-    ...typography.subheadline,
-    fontWeight: '600',
-    color: colors.label,
-    flexShrink: 1,
-  },
-  detailSets: {
-    ...typography.mono,
-    fontSize: 13,
-    color: colors.labelSecondary,
-  },
-  deleteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    minHeight: HIT,
-  },
-  deleteText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.destructive,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  emptyIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: radii.card,
-    backgroundColor: colors.tintMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xs,
-  },
-  emptyButton: {
-    marginTop: spacing.md,
-  },
-  prChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radii.pill,
-    backgroundColor: colors.tintMuted,
-  },
-  prChipText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.tint,
-    fontVariant: ['tabular-nums'],
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    root: {
+      flex: 1,
+      backgroundColor: t.colors.background,
+    },
+    content: {
+      paddingHorizontal: t.spacing.screen,
+      paddingBottom: t.spacing.xxxl * 2,
+      gap: t.spacing.xl,
+    },
+    flex: {
+      flex: 1,
+      minWidth: 0,
+    },
+    largeTitle: {
+      ...t.typography.largeTitle,
+      color: t.colors.label,
+    },
+    empty: {
+      padding: t.spacing.xl,
+      gap: t.spacing.sm,
+      borderRadius: 24,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+    },
+    emptyTitle: {
+      ...t.typography.title1,
+      color: t.colors.label,
+    },
+    card: {
+      padding: t.spacing.xl,
+      borderRadius: 24,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      marginBottom: t.spacing.xs,
+    },
+    cardTitle: {
+      fontFamily: t.fonts.display,
+      fontSize: 24,
+      lineHeight: 28,
+      color: t.colors.label,
+    },
+    change: {
+      ...t.typography.subheadline,
+      fontWeight: '600',
+      fontVariant: ['tabular-nums'],
+    },
+    tiles: {
+      flexDirection: 'row',
+      gap: t.spacing.sm,
+    },
+    tile: {
+      flex: 1,
+      padding: t.spacing.md,
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+    },
+    tileValue: {
+      fontFamily: t.fonts.display,
+      fontSize: 28,
+      lineHeight: 32,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    section: {
+      gap: t.spacing.sm,
+    },
+    group: {
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+      overflow: 'hidden',
+    },
+    divider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.colors.separator,
+    },
+    recordRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+      minHeight: 58,
+      paddingHorizontal: t.spacing.lg,
+      paddingVertical: t.spacing.sm,
+    },
+    sessionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+      minHeight: 64,
+      paddingHorizontal: t.spacing.lg,
+      paddingVertical: t.spacing.sm,
+    },
+    badge: {
+      width: 44,
+      height: 44,
+      borderRadius: t.radii.tile,
+      backgroundColor: t.colors.surfaceRaised,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    badgeText: {
+      fontFamily: t.fonts.display,
+      fontSize: 16,
+      color: t.colors.tint,
+    },
+    headline: {
+      ...t.typography.headline,
+      color: t.colors.label,
+    },
+    caption: {
+      ...t.typography.caption,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    secondary: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+    },
+    recordValue: {
+      fontFamily: t.fonts.display,
+      fontSize: 20,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    details: {
+      paddingHorizontal: t.spacing.lg,
+      paddingBottom: t.spacing.sm,
+      gap: t.spacing.sm,
+    },
+    detailRow: {
+      padding: t.spacing.md,
+      borderRadius: t.radii.row,
+      backgroundColor: t.colors.surfaceRaised,
+      gap: 2,
+    },
+    detailName: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.xs,
+    },
+    detailTitle: {
+      ...t.typography.subheadline,
+      fontWeight: '600',
+      color: t.colors.label,
+      flexShrink: 1,
+    },
+    detailSets: {
+      ...t.typography.mono,
+      fontSize: 13,
+      color: t.colors.labelSecondary,
+    },
+    deleteButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: t.spacing.xs,
+      minHeight: HIT,
+    },
+    deleteText: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: t.colors.destructive,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    emptyIcon: {
+      width: 56,
+      height: 56,
+      borderRadius: t.radii.card,
+      backgroundColor: t.colors.tintMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: t.spacing.xs,
+    },
+    emptyButton: {
+      marginTop: t.spacing.md,
+    },
+    prChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.tintMuted,
+    },
+    prChipText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: t.colors.tint,
+      fontVariant: ['tabular-nums'],
+    },
+  }),
+);

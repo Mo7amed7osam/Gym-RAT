@@ -1,7 +1,7 @@
 import { migratePersistedState } from '@/store/migratePersistedState';
 import type { WorkoutSession } from '@/types/workout';
 
-import type { PersistedWorkoutState, WorkoutRepository } from './repository';
+import { mergeSettings, type PersistedWorkoutState, type WorkoutRepository } from './repository';
 import { KV } from './schema';
 
 /** The AsyncStorage key the zustand `persist` middleware used before SQLite. */
@@ -86,7 +86,7 @@ function parseLegacyBlob(raw: string, defaults: Pick<PersistedWorkoutState, 'res
     activeSession,
     history,
     restTimer: migrated.restTimer ?? defaults.restTimer,
-    settings: { ...defaults.settings, ...(migrated.settings ?? {}) },
+    settings: mergeSettings(defaults.settings, migrated.settings ?? null),
   };
 }
 

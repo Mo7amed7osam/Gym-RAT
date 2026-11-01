@@ -7,10 +7,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EXERCISE_IMAGES, exerciseImageAspect } from '@/assets/exercises';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
-import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
+import { HIT } from '@/constants/theme';
 import { MUSCLE_LABELS, getExercise } from '@/data/exercisesData';
 import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Exercise } from '@/types/workout';
+import { createStyles, useTheme } from '@/theme';
 
 interface VideoModalProps {
   /** Exercise to show; null hides the modal. */
@@ -47,6 +48,8 @@ function VideoSheetContent({
   onClose: () => void;
   bottomInset: number;
 }) {
+  const styles = useStyles();
+  const theme = useTheme();
   const [openError, setOpenError] = useState<string | null>(null);
 
   const activePlan = useWorkoutStore(selectActivePlan);
@@ -62,8 +65,8 @@ function VideoSheetContent({
     setOpenError(null);
     try {
       await WebBrowser.openBrowserAsync(exercise.videoUrl, {
-        controlsColor: colors.tint,
-        toolbarColor: colors.background,
+        controlsColor: theme.colors.tint,
+        toolbarColor: theme.colors.background,
         dismissButtonStyle: 'close',
         presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
       });
@@ -95,11 +98,11 @@ function VideoSheetContent({
           hitSlop={8}
           style={styles.closeButton}
         >
-          <X size={20} color={colors.labelSecondary} strokeWidth={2.5} />
+          <X size={20} color={theme.colors.labelSecondary} strokeWidth={2.5} />
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: bottomInset + spacing.xxl }]}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: bottomInset + theme.spacing.xxl }]}>
         <Pressable
           onPress={openInApp}
           accessibilityRole="button"
@@ -115,7 +118,7 @@ function VideoSheetContent({
             <Image source={EXERCISE_IMAGES[exercise.thumbnailKey]} style={styles.photo} resizeMode="cover" />
           ) : (
             <>
-              <CirclePlay size={64} color={colors.label} strokeWidth={1.5} />
+              <CirclePlay size={64} color={theme.colors.label} strokeWidth={1.5} />
               <Text style={styles.playerCaption}>Tutorials on YouTube</Text>
             </>
           )}
@@ -172,133 +175,135 @@ function formatList(items: readonly string[]): string {
   return items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.screen,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  toolbarTitle: {
-    ...typography.headline,
-    color: colors.label,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    paddingHorizontal: spacing.screen,
-    gap: spacing.xl,
-  },
-  player: {
-    aspectRatio: 16 / 9,
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-  },
-  playerEmpty: {
-    maxHeight: 240,
-  },
-  playerPhoto: {
-    backgroundColor: '#ffffff',
-    overflow: 'hidden',
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-  },
-  playerCaption: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-  },
-  header: {
-    gap: spacing.xxs,
-  },
-  title: {
-    ...typography.title1,
-    color: colors.label,
-  },
-  arabic: {
-    ...typography.arabic,
-    fontSize: 15,
-    color: colors.labelSecondary,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  usedIn: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-    marginTop: spacing.xs,
-  },
-  actions: {
-    gap: spacing.md,
-  },
-  error: {
-    ...typography.subheadline,
-    color: colors.destructive,
-  },
-  section: {
-    gap: spacing.sm,
-  },
-  sectionLabel: {
-    fontFamily: fonts.display,
-    fontSize: 24,
-    lineHeight: 28,
-    color: colors.label,
-    paddingHorizontal: spacing.xxs,
-  },
-  cues: {
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-  },
-  cueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    minHeight: HIT + 8,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  cueDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.separator,
-  },
-  cueNumber: {
-    width: 26,
-    height: 26,
-    borderRadius: radii.pill,
-    backgroundColor: colors.tintMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cueNumberText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.tint,
-  },
-  cueText: {
-    ...typography.body,
-    flex: 1,
-    color: colors.label,
-  },
-  pressed: {
-    opacity: 0.75,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    root: {
+      flex: 1,
+      backgroundColor: t.colors.background,
+    },
+    toolbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: t.spacing.screen,
+      paddingTop: t.spacing.md,
+      paddingBottom: t.spacing.sm,
+    },
+    toolbarTitle: {
+      ...t.typography.headline,
+      color: t.colors.label,
+    },
+    closeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surfaceRaised,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    content: {
+      paddingHorizontal: t.spacing.screen,
+      gap: t.spacing.xl,
+    },
+    player: {
+      aspectRatio: 16 / 9,
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: t.spacing.sm,
+    },
+    playerEmpty: {
+      maxHeight: 240,
+    },
+    playerPhoto: {
+      backgroundColor: t.colors.photoBackground,
+      overflow: 'hidden',
+    },
+    photo: {
+      width: '100%',
+      height: '100%',
+    },
+    playerCaption: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+    },
+    header: {
+      gap: t.spacing.xxs,
+    },
+    title: {
+      ...t.typography.title1,
+      color: t.colors.label,
+    },
+    arabic: {
+      ...t.typography.arabic,
+      fontSize: 15,
+      color: t.colors.labelSecondary,
+    },
+    chips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: t.spacing.sm,
+      marginTop: t.spacing.sm,
+    },
+    usedIn: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+      marginTop: t.spacing.xs,
+    },
+    actions: {
+      gap: t.spacing.md,
+    },
+    error: {
+      ...t.typography.subheadline,
+      color: t.colors.destructive,
+    },
+    section: {
+      gap: t.spacing.sm,
+    },
+    sectionLabel: {
+      fontFamily: t.fonts.display,
+      fontSize: 24,
+      lineHeight: 28,
+      color: t.colors.label,
+      paddingHorizontal: t.spacing.xxs,
+    },
+    cues: {
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+    },
+    cueRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+      minHeight: HIT + 8,
+      paddingHorizontal: t.spacing.lg,
+      paddingVertical: t.spacing.sm,
+    },
+    cueDivider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.colors.separator,
+    },
+    cueNumber: {
+      width: 26,
+      height: 26,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.tintMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cueNumberText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: t.colors.tint,
+    },
+    cueText: {
+      ...t.typography.body,
+      flex: 1,
+      color: t.colors.label,
+    },
+    pressed: {
+      opacity: 0.75,
+    },
+  }),
+);

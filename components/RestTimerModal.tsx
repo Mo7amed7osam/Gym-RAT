@@ -5,13 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { ProgressRing } from '@/components/ui/ProgressRing';
-import { HIT, colors, radii, restPhaseColors, spacing, typography } from '@/constants/theme';
+import { HIT } from '@/constants/theme';
 import { getExercise } from '@/data/exercisesData';
 import { hapticSelection, restCompleteFeedback } from '@/lib/feedback';
 import { formatSet, getPreviousSetAt } from '@/lib/workoutMath';
 import { formatRestTime, useRestTimerCountdown, type RestTimerPhase } from '@/store/useRestTimerCountdown';
 import { selectPreviousExercise, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { ExerciseSet, SessionExercise } from '@/types/workout';
+import { createStyles, useTheme } from '@/theme';
 
 const MAX_RING_SIZE = 248;
 const PHASE_LABEL: Record<RestTimerPhase, string> = {
@@ -46,6 +47,8 @@ interface RestTimerModalProps {
  * "rest finished" haptic + chime even while minimised.
  */
 export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
+  const styles = useStyles();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const ringSize = Math.min(MAX_RING_SIZE, Math.round(height * 0.3));
@@ -65,7 +68,7 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
   const previousExercise = useWorkoutStore(selectPreviousExercise(exercise?.exerciseId ?? ''));
 
   const exerciseName = exercise ? getExercise(exercise.exerciseId)?.name.en ?? exercise.exerciseId : 'Rest';
-  const ringColor = restPhaseColors[countdown.phase];
+  const ringColor = theme.restPhaseColors[countdown.phase];
   const isPaused = countdown.phase === 'paused';
   // Ring drains as rest runs out; full red once in overtime.
   const ringProgress = countdown.phase === 'overtime' ? 1 : 1 - countdown.progress;
@@ -87,7 +90,7 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
     >
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onMinimize} accessibilityLabel="Minimise rest timer" />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }]}>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + theme.spacing.lg }]}>
           <Pressable onPress={onMinimize} accessibilityRole="button" accessibilityLabel="Minimise rest timer" style={styles.grabberArea}>
             <View style={styles.grabber} />
           </Pressable>
@@ -111,7 +114,7 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
           >
             <ProgressRing size={ringSize} strokeWidth={14} progress={ringProgress} color={ringColor}>
               <Text style={[styles.phase, { color: ringColor }]}>{PHASE_LABEL[countdown.phase]}</Text>
-              <Text style={[styles.time, countdown.phase === 'overtime' && { color: colors.destructive }]}>
+              <Text style={[styles.time, countdown.phase === 'overtime' && { color: theme.colors.destructive }]}>
                 {formatRestTime(countdown.remainingSeconds)}
               </Text>
               <Text style={styles.ofTotal}>of {formatRestTime(Math.round(countdown.durationMs / 1000))}</Text>
@@ -126,7 +129,7 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
               accessibilityLabel={isPaused ? 'Resume rest timer' : 'Pause rest timer'}
               style={({ pressed }) => [styles.playPause, pressed && styles.pressed]}
             >
-              {isPaused ? <Play size={26} color={colors.label} fill={colors.label} /> : <Pause size={26} color={colors.label} fill={colors.label} />}
+              {isPaused ? <Play size={26} color={theme.colors.label} fill={theme.colors.label} /> : <Pause size={26} color={theme.colors.label} fill={theme.colors.label} />}
             </Pressable>
             <RoundControl label="+30 s" accessibilityLabel="Add 30 seconds" onPress={() => adjust(30)} />
           </View>
@@ -165,6 +168,7 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
 }
 
 function RoundControl({ label, accessibilityLabel, onPress }: { label: string; accessibilityLabel: string; onPress: () => void }) {
+  const styles = useStyles();
   return (
     <Pressable
       onPress={onPress}
@@ -183,11 +187,13 @@ interface RestTimerPillProps {
 
 /** Sticky mini timer shown while the sheet is minimised. Renders nothing when idle. */
 export function RestTimerPill({ onExpand }: RestTimerPillProps) {
+  const styles = useStyles();
+  const theme = useTheme();
   const countdown = useRestTimerCountdown();
   const { next } = useRestContext();
   if (countdown.phase === 'idle') return null;
 
-  const color = restPhaseColors[countdown.phase];
+  const color = theme.restPhaseColors[countdown.phase];
   return (
     <Pressable
       onPress={onExpand}
@@ -205,155 +211,157 @@ export function RestTimerPill({ onExpand }: RestTimerPillProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.scrim,
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.sheet,
-    borderTopRightRadius: radii.sheet,
-    paddingHorizontal: spacing.xl,
-    gap: spacing.xl,
-  },
-  grabberArea: {
-    alignSelf: 'center',
-    width: 120,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  grabber: {
-    width: 36,
-    height: 5,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceHigh,
-  },
-  titleBlock: {
-    alignItems: 'center',
-    gap: 2,
-  },
-  exerciseName: {
-    ...typography.headline,
-    color: colors.label,
-  },
-  subtitle: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  ringWrap: {
-    alignItems: 'center',
-  },
-  phase: {
-    ...typography.footnote,
-  },
-  time: {
-    ...typography.timer,
-    color: colors.label,
-  },
-  ofTotal: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xxl,
-  },
-  roundControl: {
-    width: 84,
-    height: 56,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  roundControlText: {
-    ...typography.headline,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  playPause: {
-    width: 68,
-    height: 68,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceHigh,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quickAdjust: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.md,
-    marginTop: -spacing.sm,
-  },
-  quickChip: {
-    minHeight: HIT,
-    paddingHorizontal: spacing.lg,
-    justifyContent: 'center',
-  },
-  quickChipText: {
-    ...typography.subheadline,
-    fontWeight: '600',
-    color: colors.link,
-  },
-  upNext: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: spacing.lg,
-    borderRadius: radii.card,
-    backgroundColor: colors.surfaceRaised,
-  },
-  upNextLabel: {
-    ...typography.footnote,
-    color: colors.labelSecondary,
-  },
-  upNextBody: {
-    alignItems: 'flex-end',
-  },
-  upNextValue: {
-    ...typography.headline,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  upNextLast: {
-    ...typography.mono,
-    color: colors.labelSecondary,
-  },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    minHeight: HIT + 4,
-    paddingHorizontal: spacing.lg,
-    borderRadius: 24,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.surfaceRaised,
-  },
-  pillDot: {
-    width: 10,
-    height: 10,
-    borderRadius: radii.pill,
-  },
-  pillLabel: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.label,
-  },
-  pillTime: {
-    ...typography.headline,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    backdrop: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: t.colors.scrim,
+    },
+    sheet: {
+      backgroundColor: t.colors.surface,
+      borderTopLeftRadius: t.radii.sheet,
+      borderTopRightRadius: t.radii.sheet,
+      paddingHorizontal: t.spacing.xl,
+      gap: t.spacing.xl,
+    },
+    grabberArea: {
+      alignSelf: 'center',
+      width: 120,
+      height: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    grabber: {
+      width: 36,
+      height: 5,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surfaceHigh,
+    },
+    titleBlock: {
+      alignItems: 'center',
+      gap: 2,
+    },
+    exerciseName: {
+      ...t.typography.headline,
+      color: t.colors.label,
+    },
+    subtitle: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    ringWrap: {
+      alignItems: 'center',
+    },
+    phase: {
+      ...t.typography.footnote,
+    },
+    time: {
+      ...t.typography.timer,
+      color: t.colors.label,
+    },
+    ofTotal: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    controls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: t.spacing.xxl,
+    },
+    roundControl: {
+      width: 84,
+      height: 56,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surfaceRaised,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    roundControlText: {
+      ...t.typography.headline,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    playPause: {
+      width: 68,
+      height: 68,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surfaceHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    quickAdjust: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: t.spacing.md,
+      marginTop: -t.spacing.sm,
+    },
+    quickChip: {
+      minHeight: HIT,
+      paddingHorizontal: t.spacing.lg,
+      justifyContent: 'center',
+    },
+    quickChipText: {
+      ...t.typography.subheadline,
+      fontWeight: '600',
+      color: t.colors.link,
+    },
+    upNext: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: t.spacing.lg,
+      borderRadius: t.radii.card,
+      backgroundColor: t.colors.surfaceRaised,
+    },
+    upNextLabel: {
+      ...t.typography.footnote,
+      color: t.colors.labelSecondary,
+    },
+    upNextBody: {
+      alignItems: 'flex-end',
+    },
+    upNextValue: {
+      ...t.typography.headline,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    upNextLast: {
+      ...t.typography.mono,
+      color: t.colors.labelSecondary,
+    },
+    pill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+      minHeight: HIT + 4,
+      paddingHorizontal: t.spacing.lg,
+      borderRadius: 24,
+      backgroundColor: t.colors.background,
+      borderWidth: 1,
+      borderColor: t.colors.surfaceRaised,
+    },
+    pillDot: {
+      width: 10,
+      height: 10,
+      borderRadius: t.radii.pill,
+    },
+    pillLabel: {
+      flex: 1,
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.label,
+    },
+    pillTime: {
+      ...t.typography.headline,
+      fontWeight: '700',
+      fontVariant: ['tabular-nums'],
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  }),
+);

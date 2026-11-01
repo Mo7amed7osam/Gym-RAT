@@ -6,13 +6,14 @@ import { EXERCISE_IMAGES, exerciseImageAspect } from '@/assets/exercises';
 
 import { Chip } from '@/components/ui/Chip';
 import { SET_GRID_COLUMNS, SetRow } from '@/components/SetRow';
-import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
+import { HIT } from '@/constants/theme';
 import { MUSCLE_LABELS, getExercise } from '@/data/exercisesData';
 import { hapticSelection, hapticSetCompleted } from '@/lib/feedback';
 import { formatSet, getExerciseBests, getPreviousSetAt } from '@/lib/workoutMath';
 import { formatRestTime } from '@/store/useRestTimerCountdown';
 import { selectPreviousExercise, useWorkoutStore, type SetValues } from '@/store/useWorkoutStore';
 import type { Equipment, RestPeriod, SessionExercise } from '@/types/workout';
+import { createStyles, useTheme } from '@/theme';
 
 const EQUIPMENT_LABELS: Record<Equipment, string> = {
   barbell: 'Barbell',
@@ -39,6 +40,8 @@ interface ExerciseCardProps {
 }
 
 export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: ExerciseCardProps) {
+  const styles = useStyles();
+  const theme = useTheme();
   const exercise = getExercise(sessionExercise.exerciseId);
   const { prescription, sets } = sessionExercise;
 
@@ -111,7 +114,7 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
           <Image source={imageSource} style={styles.photo} resizeMode="cover" accessibilityIgnoresInvertColors />
         ) : (
           <>
-            <Dumbbell size={56} color={colors.surfaceHigh} strokeWidth={1.5} />
+            <Dumbbell size={56} color={theme.colors.surfaceHigh} strokeWidth={1.5} />
             <View style={styles.thumbnailCues}>
               {cues.map((cue) => (
                 <Text key={cue} style={styles.thumbnailCue} numberOfLines={1}>
@@ -122,7 +125,7 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
           </>
         )}
         <View style={styles.playBadge}>
-          <CirclePlay size={18} color={colors.link} />
+          <CirclePlay size={18} color={theme.colors.link} />
           <Text style={styles.playText}>Form video</Text>
         </View>
       </Pressable>
@@ -175,7 +178,7 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
           accessibilityLabel="Add set"
           style={({ pressed }) => [styles.footerButton, pressed && styles.pressed]}
         >
-          <Plus size={18} color={colors.link} strokeWidth={2.25} />
+          <Plus size={18} color={theme.colors.link} strokeWidth={2.25} />
           <Text style={styles.footerText}>Add set</Text>
         </Pressable>
         <Pressable
@@ -202,6 +205,7 @@ function formatRepRange(min: number, max: number): string {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.stat} accessible accessibilityLabel={`${label} ${value}`}>
       <Text style={styles.statLabel}>{label}</Text>
@@ -212,156 +216,158 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: spacing.lg,
-  },
-  header: {
-    gap: spacing.xxs,
-  },
-  eyebrow: {
-    ...typography.footnote,
-    color: colors.tint,
-  },
-  title: {
-    ...typography.title1,
-    fontSize: 36,
-    lineHeight: 38,
-    color: colors.label,
-  },
-  arabic: {
-    ...typography.arabic,
-    fontSize: 15,
-    color: colors.labelSecondary,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  thumbnail: {
-    height: 168,
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-  },
-  thumbnailPhoto: {
-    height: undefined,
-    width: '100%',
-    // PDF photos are shot on white; match it so `contain` letterboxing is invisible.
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 0,
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-  },
-  cues: {
-    gap: 2,
-    marginTop: -spacing.sm,
-    paddingHorizontal: spacing.xxs,
-  },
-  thumbnailCues: {
-    alignSelf: 'stretch',
-    gap: 2,
-  },
-  thumbnailCue: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-  },
-  playBadge: {
-    position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    minHeight: 32,
-    borderRadius: radii.pill,
-    backgroundColor: colors.background,
-  },
-  playText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.link,
-  },
-  stats: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  stat: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.tile,
-    backgroundColor: colors.surface,
-  },
-  statLabel: {
-    ...typography.caption,
-    color: colors.labelSecondary,
-  },
-  statValue: {
-    fontFamily: fonts.display,
-    fontSize: 24,
-    lineHeight: 28,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  grid: {
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-    overflow: 'hidden',
-  },
-  gridHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  columnLabel: {
-    ...typography.footnote,
-    fontSize: 12,
-    color: colors.labelSecondary,
-  },
-  previousColumn: {
-    flex: 1,
-  },
-  centered: {
-    textAlign: 'center',
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  footerButton: {
-    flex: 1,
-    minHeight: HIT,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-  },
-  footerText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.link,
-  },
-  disabled: {
-    opacity: 0.4,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    container: {
+      gap: t.spacing.lg,
+    },
+    header: {
+      gap: t.spacing.xxs,
+    },
+    eyebrow: {
+      ...t.typography.footnote,
+      color: t.colors.tint,
+    },
+    title: {
+      ...t.typography.title1,
+      fontSize: 36,
+      lineHeight: 38,
+      color: t.colors.label,
+    },
+    arabic: {
+      ...t.typography.arabic,
+      fontSize: 15,
+      color: t.colors.labelSecondary,
+    },
+    chips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: t.spacing.sm,
+      marginTop: t.spacing.sm,
+    },
+    thumbnail: {
+      height: 168,
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+      gap: t.spacing.md,
+      paddingHorizontal: t.spacing.lg,
+    },
+    thumbnailPhoto: {
+      height: undefined,
+      width: '100%',
+      // PDF photos are shot on white; match it so `contain` letterboxing is invisible.
+      backgroundColor: t.colors.photoBackground,
+      paddingHorizontal: 0,
+    },
+    photo: {
+      width: '100%',
+      height: '100%',
+    },
+    cues: {
+      gap: 2,
+      marginTop: -t.spacing.sm,
+      paddingHorizontal: t.spacing.xxs,
+    },
+    thumbnailCues: {
+      alignSelf: 'stretch',
+      gap: 2,
+    },
+    thumbnailCue: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+    },
+    playBadge: {
+      position: 'absolute',
+      top: t.spacing.md,
+      right: t.spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
+      minHeight: 32,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.background,
+    },
+    playText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.link,
+    },
+    stats: {
+      flexDirection: 'row',
+      gap: t.spacing.sm,
+    },
+    stat: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: t.spacing.md,
+      borderRadius: t.radii.tile,
+      backgroundColor: t.colors.surface,
+    },
+    statLabel: {
+      ...t.typography.caption,
+      color: t.colors.labelSecondary,
+    },
+    statValue: {
+      fontFamily: t.fonts.display,
+      fontSize: 24,
+      lineHeight: 28,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    grid: {
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+      overflow: 'hidden',
+    },
+    gridHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 4,
+    },
+    columnLabel: {
+      ...t.typography.footnote,
+      fontSize: 12,
+      color: t.colors.labelSecondary,
+    },
+    previousColumn: {
+      flex: 1,
+    },
+    centered: {
+      textAlign: 'center',
+    },
+    footer: {
+      flexDirection: 'row',
+      gap: t.spacing.sm,
+    },
+    footerButton: {
+      flex: 1,
+      minHeight: HIT,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surface,
+    },
+    footerText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: t.colors.link,
+    },
+    disabled: {
+      opacity: 0.4,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  }),
+);

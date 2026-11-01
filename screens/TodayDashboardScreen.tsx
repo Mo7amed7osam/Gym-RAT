@@ -10,7 +10,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
+import { HIT } from '@/constants/theme';
 import { getExercise } from '@/data/exercisesData';
 import { estimateDurationMinutes, getTotalSets, isSessionForDay } from '@/data/plans';
 import { PDF_PROGRAM_INFO } from '@/data/seeds/pdfProgram';
@@ -19,11 +19,14 @@ import { formatDuration, formatKg, formatLongDate, formatShortDate, percentChang
 import { countSets, formatSet, getExerciseBests, weeklyVolumeKg } from '@/lib/workoutMath';
 import { selectActivePlan, selectNextDay, selectPreviewedDay, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Plan, PlanDay, WorkoutSession } from '@/types/workout';
+import { createStyles, useTheme } from '@/theme';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function TodayDashboardScreen() {
+  const styles = useStyles();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [now] = useState(() => new Date());
@@ -62,7 +65,7 @@ export default function TodayDashboardScreen() {
   return (
     <View style={styles.root}>
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.lg }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
@@ -79,7 +82,7 @@ export default function TodayDashboardScreen() {
               accessibilityLabel="Back to the next workout"
               style={styles.todayButton}
             >
-              <RotateCcw size={16} color={colors.link} />
+              <RotateCcw size={16} color={theme.colors.link} />
               <Text style={styles.todayButtonText}>Next up</Text>
             </Pressable>
           ) : null}
@@ -89,7 +92,7 @@ export default function TodayDashboardScreen() {
             accessibilityLabel="Settings"
             style={styles.settingsButton}
           >
-            <Settings size={20} color={colors.labelSecondary} />
+            <Settings size={20} color={theme.colors.labelSecondary} />
           </Pressable>
         </View>
 
@@ -201,6 +204,7 @@ function RotationStrip({
   nextDayId: string | null;
   onSelect: (index: number | null) => void;
 }) {
+  const styles = useStyles();
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rotation} accessibilityRole="tablist">
       {plan.days.map((day) => {
@@ -232,6 +236,7 @@ function RotationStrip({
 
 /** Seven days of the current week; a green dot marks days with a completed session (actual dates). */
 function WeekCalendar({ weekStart, now, history }: { weekStart: Date; now: Date; history: readonly WorkoutSession[] }) {
+  const styles = useStyles();
   const doneDays = useMemo(() => {
     const done = new Set<number>();
     for (const session of history) {
@@ -279,6 +284,8 @@ function DayHero({
   canStart: boolean;
   onStart: () => void;
 }) {
+  const styles = useStyles();
+  const theme = useTheme();
   const isActiveDay = activeSession !== null && isSessionForDay(activeSession, plan, day);
   const sessionSets = isActiveDay && activeSession ? countSets(activeSession) : null;
   const progress = sessionSets && sessionSets.total > 0 ? sessionSets.completed / sessionSets.total : 0;
@@ -312,7 +319,7 @@ function DayHero({
           </Text>
         </View>
         {isActiveDay ? (
-          <ProgressRing size={76} strokeWidth={8} progress={progress} color={colors.tint}>
+          <ProgressRing size={76} strokeWidth={8} progress={progress} color={theme.colors.tint}>
             <Text style={styles.ringText}>{Math.round(progress * 100)}%</Text>
           </ProgressRing>
         ) : null}
@@ -366,6 +373,7 @@ function ResumeBanner({
   onResume: () => void;
   onDiscard: () => void;
 }) {
+  const styles = useStyles();
   const { completed, total } = countSets(session);
   return (
     <View style={styles.resume}>
@@ -390,6 +398,8 @@ function ExerciseList({
   history: readonly WorkoutSession[];
   onOpen: (exerciseId: string) => void;
 }) {
+  const styles = useStyles();
+  const theme = useTheme();
   return (
     <View style={styles.group}>
       {day.exercises.map((item, index) => {
@@ -416,7 +426,7 @@ function ExerciseList({
                 {best ? <Text style={styles.best}>Best {formatSet(best)}</Text> : null}
               </View>
             </View>
-            <ChevronRight size={18} color={colors.labelTertiary} />
+            <ChevronRight size={18} color={theme.colors.labelTertiary} />
           </Pressable>
         );
       })}
@@ -425,6 +435,7 @@ function ExerciseList({
 }
 
 function Figure({ value, label }: { value: string; label: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.figure} accessible accessibilityLabel={`${value} ${label}`}>
       <Text style={styles.figureValue}>{value}</Text>
@@ -444,377 +455,381 @@ function StatCard({
   detail: string;
   detailTone?: 'neutral' | 'success';
 }) {
+  const styles = useStyles();
+  const theme = useTheme();
   return (
     <View style={styles.statCard} accessible accessibilityLabel={`${label}: ${value}. ${detail}`}>
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
-      <Text style={[styles.statDetail, detailTone === 'success' && { color: colors.success }]}>{detail}</Text>
+      <Text style={[styles.statDetail, detailTone === 'success' && { color: theme.colors.success }]}>{detail}</Text>
     </View>
   );
 }
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    paddingHorizontal: spacing.screen,
-    paddingBottom: spacing.xxxl * 2,
-    gap: spacing.xl,
-  },
-  flex: {
-    flex: 1,
-    minWidth: 0,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: spacing.md,
-  },
-  eyebrow: {
-    ...typography.footnote,
-    color: colors.labelSecondary,
-  },
-  largeTitle: {
-    ...typography.largeTitle,
-    color: colors.label,
-  },
-  todayButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: HIT,
-    paddingHorizontal: 14,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-  },
-  settingsButton: {
-    width: HIT,
-    height: HIT,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  todayButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.link,
-  },
-  rotation: {
-    gap: spacing.sm,
-    paddingVertical: 2,
-  },
-  rotationChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    minHeight: HIT,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-  },
-  rotationChipSelected: {
-    backgroundColor: colors.tint,
-  },
-  rotationIndex: {
-    fontFamily: fonts.display,
-    fontSize: 20,
-    lineHeight: 22,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  rotationCode: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.label,
-  },
-  weekStrip: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  weekDay: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: spacing.sm,
-    minHeight: HIT,
-    borderRadius: radii.tile,
-    backgroundColor: colors.surface,
-  },
-  weekDayToday: {
-    borderWidth: 1,
-    borderColor: colors.tint,
-  },
-  weekDayLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.labelSecondary,
-  },
-  weekDayNumber: {
-    fontFamily: fonts.display,
-    fontSize: 22,
-    lineHeight: 24,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  todayNumber: {
-    color: colors.tint,
-  },
-  onTint: {
-    color: colors.onTint,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: radii.pill,
-  },
-  dotRest: {
-    borderWidth: 1,
-    borderColor: colors.surfaceHigh,
-  },
-  dotDone: {
-    backgroundColor: colors.success,
-  },
-  resume: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    padding: spacing.lg,
-    borderRadius: radii.sheet,
-    backgroundColor: colors.tintMuted,
-  },
-  resumeButton: {
-    minHeight: HIT,
-    paddingHorizontal: spacing.md,
-  },
-  hero: {
-    padding: spacing.xl,
-    paddingTop: spacing.lg,
-    borderRadius: 24,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-    gap: spacing.lg,
-  },
-  heroTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  heroText: {
-    gap: 2,
-  },
-  heroEyebrow: {
-    ...typography.footnote,
-    color: colors.tint,
-  },
-  heroTitle: {
-    ...typography.display,
-    color: colors.label,
-  },
-  ringText: {
-    fontFamily: fonts.display,
-    fontSize: 22,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  lastSession: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  stats: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    padding: spacing.lg,
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-    gap: 2,
-  },
-  statLabel: {
-    ...typography.footnote,
-    fontSize: 12,
-    color: colors.labelSecondary,
-  },
-  statValue: {
-    fontFamily: fonts.display,
-    fontSize: 34,
-    lineHeight: 38,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  statDetail: {
-    ...typography.caption,
-    color: colors.labelSecondary,
-  },
-  section: {
-    gap: spacing.sm,
-  },
-  group: {
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-    overflow: 'hidden',
-  },
-  groupRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    minHeight: HIT,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  divider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.separator,
-  },
-  stageIndex: {
-    width: 22,
-    ...typography.subheadline,
-    fontWeight: '600',
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  exerciseRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    minHeight: 76,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-  },
-  exerciseMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  best: {
-    ...typography.subheadline,
-    color: colors.success,
-    fontVariant: ['tabular-nums'],
-  },
-  headline: {
-    ...typography.headline,
-    color: colors.label,
-  },
-  body: {
-    ...typography.body,
-    color: colors.label,
-  },
-  secondary: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-  },
-  secondaryNums: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  arabic: {
-    ...typography.arabic,
-    color: colors.labelSecondary,
-  },
-  coachNote: {
-    gap: spacing.xxs,
-    paddingLeft: spacing.md,
-    marginHorizontal: spacing.xs,
-    borderLeftWidth: 2,
-    borderLeftColor: colors.tint,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  heroMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: -spacing.sm,
-  },
-  heroDay: {
-    ...typography.footnote,
-    fontWeight: '500',
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  heroMuscles: {
-    ...typography.headline,
-    fontWeight: '500',
-    color: colors.label,
-    opacity: 0.85,
-  },
-  arabicStart: {
-    textAlign: 'left',
-    alignSelf: 'flex-start',
-  },
-  previewRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  previewMore: {
-    flex: 1,
-    aspectRatio: 1,
-    borderRadius: radii.row,
-    backgroundColor: colors.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  previewMoreText: {
-    fontFamily: fonts.display,
-    fontSize: 20,
-    color: colors.labelSecondary,
-  },
-  figures: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    paddingVertical: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator,
-  },
-  figure: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  figureRule: {
-    width: StyleSheet.hairlineWidth,
-    backgroundColor: colors.separator,
-  },
-  figureValue: {
-    fontFamily: fonts.display,
-    fontSize: 30,
-    lineHeight: 32,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  figureLabel: {
-    ...typography.caption,
-    color: colors.labelSecondary,
-  },
-  exerciseText: {
-    gap: 3,
-  },
-  exerciseName: {
-    ...typography.headline,
-    color: colors.label,
-  },
-  coachLabel: {
-    ...typography.footnote,
-    color: colors.tint,
-  },
-  coachText: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    root: {
+      flex: 1,
+      backgroundColor: t.colors.background,
+    },
+    content: {
+      paddingHorizontal: t.spacing.screen,
+      paddingBottom: t.spacing.xxxl * 2,
+      gap: t.spacing.xl,
+    },
+    flex: {
+      flex: 1,
+      minWidth: 0,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: t.spacing.md,
+    },
+    eyebrow: {
+      ...t.typography.footnote,
+      color: t.colors.labelSecondary,
+    },
+    largeTitle: {
+      ...t.typography.largeTitle,
+      color: t.colors.label,
+    },
+    todayButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      minHeight: HIT,
+      paddingHorizontal: 14,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surface,
+    },
+    settingsButton: {
+      width: HIT,
+      height: HIT,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    todayButtonText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: t.colors.link,
+    },
+    rotation: {
+      gap: t.spacing.sm,
+      paddingVertical: 2,
+    },
+    rotationChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.sm,
+      minHeight: HIT,
+      paddingHorizontal: t.spacing.md,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surface,
+    },
+    rotationChipSelected: {
+      backgroundColor: t.colors.tint,
+    },
+    rotationIndex: {
+      fontFamily: t.fonts.display,
+      fontSize: 20,
+      lineHeight: 22,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    rotationCode: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: t.colors.label,
+    },
+    weekStrip: {
+      flexDirection: 'row',
+      gap: 6,
+    },
+    weekDay: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: t.spacing.sm,
+      minHeight: HIT,
+      borderRadius: t.radii.tile,
+      backgroundColor: t.colors.surface,
+    },
+    weekDayToday: {
+      borderWidth: 1,
+      borderColor: t.colors.tint,
+    },
+    weekDayLabel: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: t.colors.labelSecondary,
+    },
+    weekDayNumber: {
+      fontFamily: t.fonts.display,
+      fontSize: 22,
+      lineHeight: 24,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    todayNumber: {
+      color: t.colors.tint,
+    },
+    onTint: {
+      color: t.colors.onTint,
+    },
+    dot: {
+      width: 6,
+      height: 6,
+      borderRadius: t.radii.pill,
+    },
+    dotRest: {
+      borderWidth: 1,
+      borderColor: t.colors.surfaceHigh,
+    },
+    dotDone: {
+      backgroundColor: t.colors.success,
+    },
+    resume: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.sm,
+      padding: t.spacing.lg,
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.tintMuted,
+    },
+    resumeButton: {
+      minHeight: HIT,
+      paddingHorizontal: t.spacing.md,
+    },
+    hero: {
+      padding: t.spacing.xl,
+      paddingTop: t.spacing.lg,
+      borderRadius: 24,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+      gap: t.spacing.lg,
+    },
+    heroTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+    },
+    heroText: {
+      gap: 2,
+    },
+    heroEyebrow: {
+      ...t.typography.footnote,
+      color: t.colors.tint,
+    },
+    heroTitle: {
+      ...t.typography.display,
+      color: t.colors.label,
+    },
+    ringText: {
+      fontFamily: t.fonts.display,
+      fontSize: 22,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    lastSession: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    stats: {
+      flexDirection: 'row',
+      gap: t.spacing.sm,
+    },
+    statCard: {
+      flex: 1,
+      padding: t.spacing.lg,
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+      gap: 2,
+    },
+    statLabel: {
+      ...t.typography.footnote,
+      fontSize: 12,
+      color: t.colors.labelSecondary,
+    },
+    statValue: {
+      fontFamily: t.fonts.display,
+      fontSize: 34,
+      lineHeight: 38,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    statDetail: {
+      ...t.typography.caption,
+      color: t.colors.labelSecondary,
+    },
+    section: {
+      gap: t.spacing.sm,
+    },
+    group: {
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+      overflow: 'hidden',
+    },
+    groupRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+      minHeight: HIT,
+      paddingHorizontal: t.spacing.lg,
+      paddingVertical: t.spacing.sm,
+    },
+    divider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.colors.separator,
+    },
+    stageIndex: {
+      width: 22,
+      ...t.typography.subheadline,
+      fontWeight: '600',
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    exerciseRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+      minHeight: 76,
+      paddingHorizontal: t.spacing.md,
+      paddingVertical: 10,
+    },
+    exerciseMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+    },
+    best: {
+      ...t.typography.subheadline,
+      color: t.colors.success,
+      fontVariant: ['tabular-nums'],
+    },
+    headline: {
+      ...t.typography.headline,
+      color: t.colors.label,
+    },
+    body: {
+      ...t.typography.body,
+      color: t.colors.label,
+    },
+    secondary: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+    },
+    secondaryNums: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    arabic: {
+      ...t.typography.arabic,
+      color: t.colors.labelSecondary,
+    },
+    coachNote: {
+      gap: t.spacing.xxs,
+      paddingLeft: t.spacing.md,
+      marginHorizontal: t.spacing.xs,
+      borderLeftWidth: 2,
+      borderLeftColor: t.colors.tint,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    heroMeta: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: -t.spacing.sm,
+    },
+    heroDay: {
+      ...t.typography.footnote,
+      fontWeight: '500',
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    heroMuscles: {
+      ...t.typography.headline,
+      fontWeight: '500',
+      color: t.colors.label,
+      opacity: 0.85,
+    },
+    arabicStart: {
+      textAlign: 'left',
+      alignSelf: 'flex-start',
+    },
+    previewRow: {
+      flexDirection: 'row',
+      gap: t.spacing.sm,
+    },
+    previewMore: {
+      flex: 1,
+      aspectRatio: 1,
+      borderRadius: t.radii.row,
+      backgroundColor: t.colors.surfaceRaised,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    previewMoreText: {
+      fontFamily: t.fonts.display,
+      fontSize: 20,
+      color: t.colors.labelSecondary,
+    },
+    figures: {
+      flexDirection: 'row',
+      alignItems: 'stretch',
+      paddingVertical: t.spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.separator,
+    },
+    figure: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    figureRule: {
+      width: StyleSheet.hairlineWidth,
+      backgroundColor: t.colors.separator,
+    },
+    figureValue: {
+      fontFamily: t.fonts.display,
+      fontSize: 30,
+      lineHeight: 32,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    figureLabel: {
+      ...t.typography.caption,
+      color: t.colors.labelSecondary,
+    },
+    exerciseText: {
+      gap: 3,
+    },
+    exerciseName: {
+      ...t.typography.headline,
+      color: t.colors.label,
+    },
+    coachLabel: {
+      ...t.typography.footnote,
+      color: t.colors.tint,
+    },
+    coachText: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+    },
+  }),
+);

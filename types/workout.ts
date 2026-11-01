@@ -279,7 +279,20 @@ export interface RestTimerState {
 
 // ─── Settings ────────────────────────────────────────────────────────────────
 
+export type ThemeMode = 'system' | 'light' | 'dark' | 'trueBlack';
+export type AccentId = 'orange' | 'blue' | 'green' | 'purple' | 'pink' | 'teal';
+export type TextScale = 'default' | 'large' | 'xlarge';
+export type Density = 'comfortable' | 'compact';
+
+export interface AppearanceSettings {
+  mode: ThemeMode;
+  accent: AccentId;
+  textScale: TextScale;
+  density: Density;
+}
+
 export interface WorkoutSettings {
+  appearance: AppearanceSettings;
   /** First day of the week for weekly stats; Saturday matches the original program. */
   weekStart: WeekStart;
   autoStartRestTimer: boolean;

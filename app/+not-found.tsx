@@ -1,9 +1,10 @@
 import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
+import { createStyles } from '@/theme';
 
-import { colors, spacing, typography } from '@/constants/theme';
 
 export default function NotFoundScreen() {
+  const styles = useStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.title}>This screen doesn&apos;t exist.</Text>
@@ -14,22 +15,24 @@ export default function NotFoundScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.lg,
-    padding: spacing.xl,
-    backgroundColor: colors.background,
-  },
-  title: {
-    ...typography.title3,
-    color: colors.label,
-  },
-  link: {
-    ...typography.headline,
-    color: colors.link,
-    paddingVertical: spacing.md,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: t.spacing.lg,
+      padding: t.spacing.xl,
+      backgroundColor: t.colors.background,
+    },
+    title: {
+      ...t.typography.title3,
+      color: t.colors.label,
+    },
+    link: {
+      ...t.typography.headline,
+      color: t.colors.link,
+      paddingVertical: t.spacing.md,
+    },
+  }),
+);

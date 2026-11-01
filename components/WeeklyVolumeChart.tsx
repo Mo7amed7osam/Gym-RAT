@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, typography } from '@/constants/theme';
 import { formatKg } from '@/lib/format';
+import { createStyles } from '@/theme';
 
 interface WeeklyVolumeChartProps {
   /** Oldest → newest. */
@@ -22,6 +22,7 @@ const axisDate = (date: Date) => `${date.getDate()}/${date.getMonth() + 1}`;
  * The latest week is selected by default.
  */
 export function WeeklyVolumeChart({ volumes, weekStarts, height = 140 }: WeeklyVolumeChartProps) {
+  const styles = useStyles();
   const [selected, setSelected] = useState(volumes.length - 1);
   const max = Math.max(...volumes, 1);
   const selectedIndex = Math.min(selected, volumes.length - 1);
@@ -76,70 +77,72 @@ export function WeeklyVolumeChart({ volumes, weekStarts, height = 140 }: WeeklyV
   );
 }
 
-const styles = StyleSheet.create({
-  readout: {
-    gap: 2,
-    marginBottom: spacing.md,
-  },
-  readoutValue: {
-    ...typography.title2,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  readoutLabel: {
-    ...typography.caption,
-    color: colors.labelSecondary,
-  },
-  plot: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 2,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.separator,
-  },
-  gridLine: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.separator,
-    opacity: 0.5,
-  },
-  column: {
-    flex: 1,
-    height: '100%',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  bar: {
-    width: '62%',
-    maxWidth: 28,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  barDefault: {
-    backgroundColor: colors.tint,
-    opacity: 0.45,
-  },
-  barSelected: {
-    backgroundColor: colors.tint,
-  },
-  barEmpty: {
-    backgroundColor: colors.surfaceHigh,
-  },
-  axis: {
-    flexDirection: 'row',
-    gap: 2,
-    marginTop: spacing.xs,
-  },
-  axisLabel: {
-    flex: 1,
-    fontSize: 11,
-    color: colors.labelSecondary,
-    textAlign: 'center',
-  },
-  axisLabelSelected: {
-    color: colors.label,
-    fontWeight: '600',
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    readout: {
+      gap: 2,
+      marginBottom: t.spacing.md,
+    },
+    readoutValue: {
+      ...t.typography.title2,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    readoutLabel: {
+      ...t.typography.caption,
+      color: t.colors.labelSecondary,
+    },
+    plot: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: 2,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.colors.separator,
+    },
+    gridLine: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: t.colors.separator,
+      opacity: 0.5,
+    },
+    column: {
+      flex: 1,
+      height: '100%',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+    },
+    bar: {
+      width: '62%',
+      maxWidth: 28,
+      borderTopLeftRadius: 4,
+      borderTopRightRadius: 4,
+    },
+    barDefault: {
+      backgroundColor: t.colors.tint,
+      opacity: 0.45,
+    },
+    barSelected: {
+      backgroundColor: t.colors.tint,
+    },
+    barEmpty: {
+      backgroundColor: t.colors.surfaceHigh,
+    },
+    axis: {
+      flexDirection: 'row',
+      gap: 2,
+      marginTop: t.spacing.xs,
+    },
+    axisLabel: {
+      flex: 1,
+      fontSize: 11,
+      color: t.colors.labelSecondary,
+      textAlign: 'center',
+    },
+    axisLabelSelected: {
+      color: t.colors.label,
+      fontWeight: '600',
+    },
+  }),
+);

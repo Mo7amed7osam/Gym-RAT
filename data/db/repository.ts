@@ -43,6 +43,15 @@ interface SessionRow {
 
 type SessionSummaryShape = NonNullable<WorkoutSession['summary']>;
 
+/** Defaults first, then stored values; nested appearance is merged too so new keys get defaults. */
+export function mergeSettings(defaults: WorkoutSettings, stored: Partial<WorkoutSettings> | null): WorkoutSettings {
+  return {
+    ...defaults,
+    ...(stored ?? {}),
+    appearance: { ...defaults.appearance, ...(stored?.appearance ?? {}) },
+  };
+}
+
 interface PlanRow {
   id: string;
   kind: string;
@@ -123,7 +132,7 @@ export class WorkoutRepository {
       activeSession: active[0] ?? null,
       history: sessions.filter((session) => session.status !== 'in_progress'),
       restTimer: this.readKv<RestTimerState>(KV.restTimer) ?? defaults.restTimer,
-      settings: { ...defaults.settings, ...(this.readKv<Partial<WorkoutSettings>>(KV.settings) ?? {}) },
+      settings: mergeSettings(defaults.settings, this.readKv<Partial<WorkoutSettings>>(KV.settings)),
     };
   }
 

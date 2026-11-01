@@ -116,6 +116,7 @@ export const IDLE_REST_TIMER: RestTimerState = {
 };
 
 export const DEFAULT_SETTINGS: WorkoutSettings = {
+  appearance: { mode: 'system', accent: 'orange', textScale: 'default', density: 'comfortable' },
   weekStart: 'saturday',
   autoStartRestTimer: true,
   prefillFromHistory: true,

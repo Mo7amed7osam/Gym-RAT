@@ -7,14 +7,16 @@
 ## Gates still open
 - D5 (Apple credentials) before M3 device tests; D3 before M7; D4 before M4 completes.
 
-## Next task: M5 — theme system (ADR-005)
-1. Branch `phase1/m5-theme`. Before touching stylesheets: RNTL snapshot of `SetRow` and `ExerciseCard` (store mocked) in the current dark theme.
-2. `theme/`: tokens seeded from `constants/theme.ts`; `ThemeProvider` (mode light/dark/system/trueBlack, accent, textScale, density) persisted in settings; `useTheme`, `useStyles(fn)` memoized per theme id.
-3. Migrate every `StyleSheet.create` referencing `colors` (~15 files) to `useStyles`; `app.json` `userInterfaceStyle: "automatic"`; appearance section in Settings.
-4. Lint rule: no colour literals in components/screens.
-5. Gates: snapshots identical in dark; four modes switch at runtime.
+## Next task: M6 — localization + RTL (ADR-005)
+1. Branch `phase1/m6-i18n`. `npx expo install expo-localization i18n-js`; config plugin (`supportsRTL` default true).
+2. `i18n/` dictionaries (en, ar) + `useT()`; extract every UI string from screens/components (lint: no raw JSX string literals outside `i18n/`).
+3. `LocaleProvider` from expo-router in the root layout; language setting in Settings; switch applies `I18nManager.allowRTL/forceRTL` and reloads (`Updates.reloadAsync` rejects in dev builds — use `DevSettings.reload()` in dev, `Updates.reloadAsync` in release).
+4. Digits per D8 default: Western digits for weights/reps. RTL review set: `xcrun simctl launch booted com.gymrat.app -AppleLanguages "(ar)" -AppleLocale ar_EG` + screenshots of every screen; read them.
+5. Gates: snapshots unchanged in English; no untranslated strings; tsc/lint/jest.
 
-## Done: M4, M3, M2, M1, M0
+## Done: M5, M4, M3, M2, M1, M0
+- M5: theme system. See `decisions/sde`.
+, M3, M2, M1, M0
 - M4: rotation model, reducer, Today rewrite. See `decisions/sde`, `decisions/dba`.
 , M2, M1, M0
 - M3: SQLite write-through persistence, importer, boot. See `decisions/sde`, `decisions/dba`.

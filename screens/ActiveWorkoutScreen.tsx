@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
 import { ProgressRing } from '@/components/ui/ProgressRing';
-import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
+import { HIT } from '@/constants/theme';
 import { getExercise } from '@/data/exercisesData';
 import { isSessionForDay } from '@/data/plans';
 import { formatDuration, formatElapsed, formatKg, formatLongDate, formatTime, percentChange } from '@/lib/format';
@@ -29,6 +29,7 @@ import { countSets } from '@/lib/workoutMath';
 import { activeSeconds, isPaused } from '@/domain/session/reducer';
 import { selectIsWorkoutPaused, selectNextDay, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { PersonalRecord, SessionExercise, WorkoutSession } from '@/types/workout';
+import { createStyles, useTheme } from '@/theme';
 
 type Stage = 'warmup' | 'exercises';
 
@@ -62,6 +63,7 @@ function useNow(intervalMs: number): number {
 
 /** Ticks on its own so the rest of the runner doesn't re-render every second. Shows active time (pauses excluded). */
 function ElapsedLabel({ session, completed, total }: { session: WorkoutSession; completed: number; total: number }) {
+  const styles = useStyles();
   const now = useNow(1000);
   const seconds = activeSeconds(session, now);
   const paused = isPaused(session);
@@ -79,6 +81,8 @@ function ElapsedLabel({ session, completed, total }: { session: WorkoutSession; 
 const isExerciseDone = (exercise: SessionExercise) => exercise.sets.length > 0 && exercise.sets.every((set) => set.completed);
 
 function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFinished: (session: WorkoutSession) => void }) {
+  const styles = useStyles();
+  const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -133,7 +137,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
           accessibilityLabel="Minimise workout"
           style={styles.iconButton}
         >
-          <ChevronDown size={24} color={colors.label} />
+          <ChevronDown size={24} color={theme.colors.label} />
         </Pressable>
         <View style={styles.topTitle}>
           <Text style={styles.topCode}>{session.code}</Text>
@@ -145,7 +149,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
           accessibilityLabel={paused ? 'Resume workout' : 'Pause workout'}
           style={styles.iconButton}
         >
-          {paused ? <Play size={22} color={colors.tint} fill={colors.tint} /> : <Pause size={22} color={colors.label} fill={colors.label} />}
+          {paused ? <Play size={22} color={theme.colors.tint} fill={theme.colors.tint} /> : <Pause size={22} color={theme.colors.label} fill={theme.colors.label} />}
         </Pressable>
         <Pressable onPress={requestFinish} accessibilityRole="button" style={styles.finishButton}>
           <Text style={styles.finishText}>Finish</Text>
@@ -206,7 +210,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                       <ExerciseThumb exerciseId={exercise.exerciseId} size={44} />
                       {done ? (
                         <View style={styles.navChipDone}>
-                          <Check size={18} strokeWidth={3} color={colors.label} />
+                          <Check size={18} strokeWidth={3} color={theme.colors.label} />
                         </View>
                       ) : null}
                     </Pressable>
@@ -257,7 +261,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                   </Pressable>
                 ) : null}
                 <Pressable onPress={() => setConfirm('discard')} accessibilityRole="button" style={styles.linkButton}>
-                  <Text style={[styles.linkText, { color: colors.destructive }]}>Discard workout</Text>
+                  <Text style={[styles.linkText, { color: theme.colors.destructive }]}>Discard workout</Text>
                 </Pressable>
               </View>
             </>
@@ -265,7 +269,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.sm }]}>
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + theme.spacing.sm }]}>
         <RestTimerPill onExpand={() => setDismissedRestKey(null)} />
         {stage === 'warmup' ? (
           <Button
@@ -283,7 +287,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
               accessibilityState={{ disabled: index === 0 }}
               style={[styles.prevButton, index === 0 && styles.disabled]}
             >
-              <ChevronLeft size={22} color={colors.label} />
+              <ChevronLeft size={22} color={theme.colors.label} />
             </Pressable>
             <Button
               label={isLastExercise ? 'Finish workout' : 'Next exercise'}
@@ -330,6 +334,8 @@ const PR_LABEL: Record<PersonalRecord['kind'], string> = {
 };
 
 function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; onDone: () => void }) {
+  const styles = useStyles();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const history = useWorkoutStore((state) => state.history);
   const nextDay = useWorkoutStore(selectNextDay);
@@ -358,10 +364,10 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
 
   return (
     <Modal visible animationType="fade" onRequestClose={onDone}>
-      <View style={[styles.root, { paddingTop: insets.top + spacing.xxl }]}>
+      <View style={[styles.root, { paddingTop: insets.top + theme.spacing.xxl }]}>
         <ScrollView contentContainerStyle={styles.summaryContent}>
           <View style={styles.summaryHeader}>
-            <ProgressRing size={132} strokeWidth={12} progress={progress} color={colors.success}>
+            <ProgressRing size={132} strokeWidth={12} progress={progress} color={theme.colors.success}>
               <Text style={styles.summaryPercent}>{Math.round(progress * 100)}%</Text>
             </ProgressRing>
             <Text style={styles.summaryTitle} accessibilityRole="header">
@@ -403,7 +409,7 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
                   style={[styles.prRow, i < summary.personalRecords.length - 1 && styles.divider]}
                 >
                   <View style={styles.prStar}>
-                    <Star size={16} color={colors.tint} fill={colors.tint} />
+                    <Star size={16} color={theme.colors.tint} fill={theme.colors.tint} />
                   </View>
                   <View style={styles.flex}>
                     <Text style={styles.prName} numberOfLines={1}>
@@ -431,7 +437,7 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
             </View>
           ) : null}
         </ScrollView>
-        <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.sm }]}>
+        <View style={[styles.bottomBar, { paddingBottom: insets.bottom + theme.spacing.sm }]}>
           <Button label="Done" onPress={onDone} />
         </View>
       </View>
@@ -440,301 +446,305 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
 }
 
 function SummaryTile({ label, value, detail, positive = false }: { label: string; value: string; detail: string; positive?: boolean }) {
+  const styles = useStyles();
+  const theme = useTheme();
   return (
     <View style={styles.summaryTile} accessible accessibilityLabel={`${label} ${value}. ${detail}`}>
       <Text style={styles.summaryTileLabel}>{label}</Text>
       <Text style={styles.summaryTileValue} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
-      <Text style={[styles.summaryTileDetail, positive && { color: colors.success }]}>{detail}</Text>
+      <Text style={[styles.summaryTileDetail, positive && { color: theme.colors.success }]}>{detail}</Text>
     </View>
   );
 }
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    minHeight: 52,
-  },
-  iconButton: {
-    width: HIT,
-    height: HIT,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  topTitle: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  topCode: {
-    fontFamily: fonts.display,
-    fontSize: 24,
-    lineHeight: 26,
-    color: colors.label,
-  },
-  topElapsed: {
-    ...typography.caption,
-    fontSize: 13,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  topElapsedPaused: {
-    color: colors.tint,
-  },
-  nextUp: {
-    padding: spacing.lg,
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-    gap: 2,
-  },
-  finishButton: {
-    minHeight: HIT,
-    paddingHorizontal: spacing.md,
-    justifyContent: 'center',
-  },
-  finishText: {
-    ...typography.headline,
-    color: colors.tint,
-  },
-  segmented: {
-    flexDirection: 'row',
-    marginHorizontal: spacing.screen,
-    marginBottom: spacing.sm,
-    padding: 3,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-  },
-  segment: {
-    flex: 1,
-    minHeight: 34,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.pill,
-  },
-  segmentSelected: {
-    backgroundColor: colors.surfaceHigh,
-  },
-  segmentText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.labelSecondary,
-  },
-  segmentTextSelected: {
-    fontWeight: '600',
-    color: colors.label,
-  },
-  content: {
-    paddingHorizontal: spacing.screen,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xxxl,
-    gap: spacing.lg,
-  },
-  navigator: {
-    gap: spacing.sm,
-    padding: 3,
-  },
-  navChip: {
-    borderRadius: radii.row + 4,
-    padding: 2,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  navChipDone: {
-    position: 'absolute',
-    top: 2,
-    left: 2,
-    right: 2,
-    bottom: 2,
-    borderRadius: radii.row,
-    backgroundColor: 'rgba(48,209,88,0.78)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navChipSelected: {
-    borderColor: colors.tint,
-  },
-  navChipSkipped: {
-    opacity: 0.35,
-  },
-  upNext: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-  },
-  upNextLabel: {
-    ...typography.caption,
-    color: colors.labelSecondary,
-  },
-  upNextName: {
-    ...typography.headline,
-    flex: 1,
-    color: colors.label,
-  },
-  upNextMeta: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  linkRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  linkButton: {
-    minHeight: HIT,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  linkText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.link,
-  },
-  bottomBar: {
-    gap: spacing.sm,
-    paddingHorizontal: spacing.screen,
-    paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.separator,
-    backgroundColor: colors.background,
-  },
-  navButtons: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  prevButton: {
-    width: 56,
-    minHeight: 50,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  disabled: {
-    opacity: 0.4,
-  },
-  summaryContent: {
-    paddingHorizontal: spacing.screen,
-    paddingBottom: spacing.xxxl,
-    gap: spacing.xxl,
-  },
-  summaryHeader: {
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  summaryPercent: {
-    fontFamily: fonts.display,
-    fontSize: 36,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  summaryTitle: {
-    ...typography.largeTitle,
-    color: colors.label,
-    marginTop: spacing.sm,
-  },
-  summaryDate: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
-    textAlign: 'center',
-  },
-  summaryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  summaryTile: {
-    flexBasis: '48%',
-    flexGrow: 1,
-    padding: spacing.lg,
-    borderRadius: radii.sheet,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.edge,
-    gap: 2,
-  },
-  summaryTileLabel: {
-    ...typography.footnote,
-    fontSize: 12,
-    color: colors.labelSecondary,
-  },
-  summaryTileValue: {
-    fontFamily: fonts.display,
-    fontSize: 30,
-    lineHeight: 34,
-    color: colors.label,
-    fontVariant: ['tabular-nums'],
-  },
-  summaryTileDetail: {
-    ...typography.caption,
-    color: colors.labelSecondary,
-  },
-  prList: {
-    borderRadius: radii.card,
-    backgroundColor: colors.surface,
-  },
-  prRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    minHeight: 60,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  divider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.separator,
-  },
-  prStar: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.pill,
-    backgroundColor: colors.tintMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  prName: {
-    ...typography.headline,
-    color: colors.label,
-  },
-  prDetail: {
-    ...typography.caption,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  prValue: {
-    ...typography.headline,
-    color: colors.tint,
-    fontVariant: ['tabular-nums'],
-  },
-  progressTrack: {
-    height: 3,
-    marginHorizontal: spacing.screen,
-    marginBottom: spacing.md,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceRaised,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: radii.pill,
-    backgroundColor: colors.tint,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    root: {
+      flex: 1,
+      backgroundColor: t.colors.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: t.spacing.sm,
+      minHeight: 52,
+    },
+    iconButton: {
+      width: HIT,
+      height: HIT,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    topTitle: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    topCode: {
+      fontFamily: t.fonts.display,
+      fontSize: 24,
+      lineHeight: 26,
+      color: t.colors.label,
+    },
+    topElapsed: {
+      ...t.typography.caption,
+      fontSize: 13,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    topElapsedPaused: {
+      color: t.colors.tint,
+    },
+    nextUp: {
+      padding: t.spacing.lg,
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+      gap: 2,
+    },
+    finishButton: {
+      minHeight: HIT,
+      paddingHorizontal: t.spacing.md,
+      justifyContent: 'center',
+    },
+    finishText: {
+      ...t.typography.headline,
+      color: t.colors.tint,
+    },
+    segmented: {
+      flexDirection: 'row',
+      marginHorizontal: t.spacing.screen,
+      marginBottom: t.spacing.sm,
+      padding: 3,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surface,
+    },
+    segment: {
+      flex: 1,
+      minHeight: 34,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: t.radii.pill,
+    },
+    segmentSelected: {
+      backgroundColor: t.colors.surfaceHigh,
+    },
+    segmentText: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: t.colors.labelSecondary,
+    },
+    segmentTextSelected: {
+      fontWeight: '600',
+      color: t.colors.label,
+    },
+    content: {
+      paddingHorizontal: t.spacing.screen,
+      paddingTop: t.spacing.sm,
+      paddingBottom: t.spacing.xxxl,
+      gap: t.spacing.lg,
+    },
+    navigator: {
+      gap: t.spacing.sm,
+      padding: 3,
+    },
+    navChip: {
+      borderRadius: t.radii.row + 4,
+      padding: 2,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    navChipDone: {
+      position: 'absolute',
+      top: 2,
+      left: 2,
+      right: 2,
+      bottom: 2,
+      borderRadius: t.radii.row,
+      backgroundColor: 'rgba(48,209,88,0.78)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    navChipSelected: {
+      borderColor: t.colors.tint,
+    },
+    navChipSkipped: {
+      opacity: 0.35,
+    },
+    upNext: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+      padding: t.spacing.md,
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+    },
+    upNextLabel: {
+      ...t.typography.caption,
+      color: t.colors.labelSecondary,
+    },
+    upNextName: {
+      ...t.typography.headline,
+      flex: 1,
+      color: t.colors.label,
+    },
+    upNextMeta: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    linkRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    linkButton: {
+      minHeight: HIT,
+      justifyContent: 'center',
+      paddingHorizontal: t.spacing.lg,
+    },
+    linkText: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: t.colors.link,
+    },
+    bottomBar: {
+      gap: t.spacing.sm,
+      paddingHorizontal: t.spacing.screen,
+      paddingTop: t.spacing.sm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: t.colors.separator,
+      backgroundColor: t.colors.background,
+    },
+    navButtons: {
+      flexDirection: 'row',
+      gap: t.spacing.sm,
+    },
+    prevButton: {
+      width: 56,
+      minHeight: 50,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surfaceRaised,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    disabled: {
+      opacity: 0.4,
+    },
+    summaryContent: {
+      paddingHorizontal: t.spacing.screen,
+      paddingBottom: t.spacing.xxxl,
+      gap: t.spacing.xxl,
+    },
+    summaryHeader: {
+      alignItems: 'center',
+      gap: t.spacing.sm,
+    },
+    summaryPercent: {
+      fontFamily: t.fonts.display,
+      fontSize: 36,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    summaryTitle: {
+      ...t.typography.largeTitle,
+      color: t.colors.label,
+      marginTop: t.spacing.sm,
+    },
+    summaryDate: {
+      ...t.typography.subheadline,
+      color: t.colors.labelSecondary,
+      textAlign: 'center',
+    },
+    summaryGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: t.spacing.sm,
+    },
+    summaryTile: {
+      flexBasis: '48%',
+      flexGrow: 1,
+      padding: t.spacing.lg,
+      borderRadius: t.radii.sheet,
+      backgroundColor: t.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.edge,
+      gap: 2,
+    },
+    summaryTileLabel: {
+      ...t.typography.footnote,
+      fontSize: 12,
+      color: t.colors.labelSecondary,
+    },
+    summaryTileValue: {
+      fontFamily: t.fonts.display,
+      fontSize: 30,
+      lineHeight: 34,
+      color: t.colors.label,
+      fontVariant: ['tabular-nums'],
+    },
+    summaryTileDetail: {
+      ...t.typography.caption,
+      color: t.colors.labelSecondary,
+    },
+    prList: {
+      borderRadius: t.radii.card,
+      backgroundColor: t.colors.surface,
+    },
+    prRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.md,
+      minHeight: 60,
+      paddingHorizontal: t.spacing.lg,
+      paddingVertical: t.spacing.sm,
+    },
+    divider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.colors.separator,
+    },
+    prStar: {
+      width: 32,
+      height: 32,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.tintMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    prName: {
+      ...t.typography.headline,
+      color: t.colors.label,
+    },
+    prDetail: {
+      ...t.typography.caption,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    prValue: {
+      ...t.typography.headline,
+      color: t.colors.tint,
+      fontVariant: ['tabular-nums'],
+    },
+    progressTrack: {
+      height: 3,
+      marginHorizontal: t.spacing.screen,
+      marginBottom: t.spacing.md,
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.surfaceRaised,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: t.radii.pill,
+      backgroundColor: t.colors.tint,
+    },
+  }),
+);

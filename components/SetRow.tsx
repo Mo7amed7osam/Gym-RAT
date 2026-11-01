@@ -2,11 +2,12 @@ import { Check } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { HIT, colors, fonts, radii, typography } from '@/constants/theme';
+import { HIT } from '@/constants/theme';
 import { formatInputNumber, parseReps, parseWeight } from '@/lib/parseNumber';
 import { formatSet } from '@/lib/workoutMath';
 import type { SetValues } from '@/store/useWorkoutStore';
 import type { ExerciseSet } from '@/types/workout';
+import { createStyles, useTheme } from '@/theme';
 
 interface SetRowProps {
   set: ExerciseSet;
@@ -38,6 +39,8 @@ export function SetRow({
   onToggleType,
   onRemove,
 }: SetRowProps) {
+  const styles = useStyles();
+  const theme = useTheme();
   const [weightText, setWeightText] = useState(() => formatInputNumber(set.weightKg));
   const [repsText, setRepsText] = useState(() => formatInputNumber(set.reps));
   const [syncedWeight, setSyncedWeight] = useState(set.weightKg);
@@ -107,7 +110,7 @@ export function SetRow({
             onChangeText={setWeightText}
             onEndEditing={() => onCommit({ weightKg: parseWeight(weightText) })}
             placeholder={placeholderWeight !== null ? String(placeholderWeight) : 'kg'}
-            placeholderTextColor={colors.labelTertiary}
+            placeholderTextColor={theme.colors.labelTertiary}
             keyboardType="decimal-pad"
             returnKeyType="next"
             selectTextOnFocus
@@ -120,7 +123,7 @@ export function SetRow({
             onChangeText={setRepsText}
             onEndEditing={() => onCommit({ reps: parseReps(repsText) })}
             placeholder={String(placeholderReps)}
-            placeholderTextColor={colors.labelTertiary}
+            placeholderTextColor={theme.colors.labelTertiary}
             keyboardType="number-pad"
             returnKeyType="done"
             selectTextOnFocus
@@ -145,7 +148,7 @@ export function SetRow({
         <Check
           size={20}
           strokeWidth={3}
-          color={set.completed ? colors.onTint : isActive ? colors.tint : colors.labelTertiary}
+          color={set.completed ? theme.colors.onTint : isActive ? theme.colors.tint : theme.colors.labelTertiary}
         />
       </Pressable>
     </View>
@@ -159,82 +162,84 @@ export const SET_GRID_COLUMNS = {
   check: HIT,
 } as const;
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    minHeight: 60,
-  },
-  rowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.separator,
-  },
-  rowCompleted: {
-    backgroundColor: colors.successRow,
-  },
-  setNumber: {
-    width: SET_GRID_COLUMNS.set,
-    minHeight: HIT,
-    justifyContent: 'center',
-  },
-  setNumberText: {
-    fontFamily: fonts.display,
-    fontSize: 20,
-    color: colors.labelSecondary,
-    fontVariant: ['tabular-nums'],
-  },
-  warmupText: {
-    color: colors.tint,
-  },
-  previous: {
-    ...typography.mono,
-    fontFamily: fonts.mono,
-    flex: 1,
-    color: colors.labelSecondary,
-  },
-  input: {
-    ...typography.metric,
-    height: HIT,
-    borderRadius: radii.row,
-    backgroundColor: colors.surfaceRaised,
-    color: colors.label,
-    textAlign: 'center',
-    paddingVertical: 0,
-    paddingHorizontal: 4,
-  },
-  weightColumn: {
-    width: SET_GRID_COLUMNS.weight,
-  },
-  repsColumn: {
-    width: SET_GRID_COLUMNS.reps,
-  },
-  valueText: {
-    ...typography.metric,
-    color: colors.label,
-    textAlign: 'center',
-  },
-  check: {
-    width: SET_GRID_COLUMNS.check,
-    height: SET_GRID_COLUMNS.check,
-    borderRadius: radii.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkDone: {
-    backgroundColor: colors.success,
-  },
-  checkActive: {
-    borderWidth: 2,
-    borderColor: colors.tint,
-  },
-  checkIdle: {
-    borderWidth: 2,
-    borderColor: colors.surfaceHigh,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      minHeight: 60,
+    },
+    rowDivider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.colors.separator,
+    },
+    rowCompleted: {
+      backgroundColor: t.colors.successRow,
+    },
+    setNumber: {
+      width: SET_GRID_COLUMNS.set,
+      minHeight: HIT,
+      justifyContent: 'center',
+    },
+    setNumberText: {
+      fontFamily: t.fonts.display,
+      fontSize: 20,
+      color: t.colors.labelSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    warmupText: {
+      color: t.colors.tint,
+    },
+    previous: {
+      ...t.typography.mono,
+      fontFamily: t.fonts.mono,
+      flex: 1,
+      color: t.colors.labelSecondary,
+    },
+    input: {
+      ...t.typography.metric,
+      height: HIT,
+      borderRadius: t.radii.row,
+      backgroundColor: t.colors.surfaceRaised,
+      color: t.colors.label,
+      textAlign: 'center',
+      paddingVertical: 0,
+      paddingHorizontal: 4,
+    },
+    weightColumn: {
+      width: SET_GRID_COLUMNS.weight,
+    },
+    repsColumn: {
+      width: SET_GRID_COLUMNS.reps,
+    },
+    valueText: {
+      ...t.typography.metric,
+      color: t.colors.label,
+      textAlign: 'center',
+    },
+    check: {
+      width: SET_GRID_COLUMNS.check,
+      height: SET_GRID_COLUMNS.check,
+      borderRadius: t.radii.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkDone: {
+      backgroundColor: t.colors.success,
+    },
+    checkActive: {
+      borderWidth: 2,
+      borderColor: t.colors.tint,
+    },
+    checkIdle: {
+      borderWidth: 2,
+      borderColor: t.colors.surfaceHigh,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  }),
+);

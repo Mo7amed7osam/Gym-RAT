@@ -1,16 +1,17 @@
 import type { LucideIcon } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
-import { BUTTON_HEIGHT, colors, radii } from '@/constants/theme';
+import { BUTTON_HEIGHT } from '@/constants/theme';
+import { createStyles, useTheme, type Theme } from '@/theme';
 
 export type ButtonVariant = 'primary' | 'tinted' | 'secondary' | 'destructive';
 
-const VARIANTS: Record<ButtonVariant, { background: string; foreground: string }> = {
+const variants = ({ colors }: Theme): Record<ButtonVariant, { background: string; foreground: string }> => ({
   primary: { background: colors.tint, foreground: colors.onTint },
   tinted: { background: colors.tintMuted, foreground: colors.tint },
   secondary: { background: colors.surfaceRaised, foreground: colors.link },
   destructive: { background: colors.surfaceRaised, foreground: colors.destructive },
-};
+});
 
 interface ButtonProps {
   label: string;
@@ -31,7 +32,9 @@ export function Button({
   accessibilityHint,
   style,
 }: ButtonProps) {
-  const palette = VARIANTS[variant];
+  const styles = useStyles();
+  const theme = useTheme();
+  const palette = variants(theme)[variant];
   return (
     <Pressable
       accessibilityRole="button"
@@ -54,19 +57,21 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    minHeight: BUTTON_HEIGHT,
-    borderRadius: radii.pill,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  label: {
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-  },
-});
+const useStyles = createStyles((t) =>
+  StyleSheet.create(  {
+    button: {
+      minHeight: BUTTON_HEIGHT,
+      borderRadius: t.radii.pill,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    label: {
+      fontSize: 17,
+      fontWeight: '700',
+      letterSpacing: -0.2,
+    },
+  }),
+);

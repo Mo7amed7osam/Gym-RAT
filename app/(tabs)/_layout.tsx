@@ -1,21 +1,22 @@
 import { Tabs } from 'expo-router';
 import { ChartColumn, House } from 'lucide-react-native';
+import { useTheme } from '@/theme';
 
-import { colors } from '@/constants/theme';
 
 export default function TabLayout() {
+  const theme = useTheme();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.tint,
-        tabBarInactiveTintColor: colors.labelSecondary,
+        tabBarActiveTintColor: theme.colors.tint,
+        tabBarInactiveTintColor: theme.colors.labelSecondary,
         tabBarStyle: {
-          backgroundColor: colors.tabBar,
-          borderTopColor: colors.separator,
+          backgroundColor: theme.colors.tabBar,
+          borderTopColor: theme.colors.separator,
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: '500' },
-        sceneStyle: { backgroundColor: colors.background },
+        sceneStyle: { backgroundColor: theme.colors.background },
       }}
     >
       <Tabs.Screen
