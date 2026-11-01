@@ -4,3 +4,4 @@
 
 ## Implementation log
 - 2026-11-01: `.10x/` initialized; git baseline commit. No application code changed.
+- 2026-11-01 **M0 done** (branch `phase1/m0-test-harness`): `jest-expo ~58.0.13`, `jest ~30.5.2`, `@types/jest 30` via `npx expo install --dev`; `package.json` `jest.preset = jest-expo` + `setupFiles` (`jest.setup.js` mocks AsyncStorage and `expo-crypto.randomUUID`); `tsconfig` `types: ["jest"]`; scripts `test`, `test:watch`; `coverage/` gitignored. Tests: `__tests__/parseNumber.test.ts`, `format.test.ts`, `workoutMath.test.ts`, `workoutStore.test.ts` (41 tests). No application source changed. Deviation: none. Tech debt: store tests cover sync/cool-down paths that M1/M2 will delete; those tests shrink with them.

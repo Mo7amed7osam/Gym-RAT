@@ -1,6 +1,6 @@
 # ADR-004: Static exercise illustrations (RepDB free tier, exact matches) + embedded YouTube
 
-**Status:** Proposed
+**Status:** Accepted (Phase 1 started 2026-11-01)
 **Date:** 2026-11-01
 **Feature:** transformation
 **Author:** 10x-Team (Architect + Product Manager + CTO)

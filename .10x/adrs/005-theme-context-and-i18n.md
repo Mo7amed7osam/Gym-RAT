@@ -1,6 +1,6 @@
 # ADR-005: Runtime theme context and i18n layer
 
-**Status:** Proposed
+**Status:** Accepted (Phase 1 started 2026-11-01)
 **Date:** 2026-11-01
 **Feature:** transformation
 **Author:** 10x-Team (Architect + Staff Engineer)

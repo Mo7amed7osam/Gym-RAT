@@ -1,6 +1,6 @@
 # ADR-001: Local-only persistence, remove sync server
 
-**Status:** Proposed (accepted on "start Phase 1")
+**Status:** Accepted (Phase 1 started 2026-11-01)
 **Date:** 2026-11-01
 **Feature:** transformation
 **Author:** 10x-Team (Architect + Staff Engineer)

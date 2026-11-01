@@ -1,6 +1,6 @@
 # ADR-003: Rotation-based plan model replaces weekday schedule
 
-**Status:** Proposed
+**Status:** Accepted (Phase 1 started 2026-11-01)
 **Date:** 2026-11-01
 **Feature:** transformation
 **Author:** 10x-Team (Architect + Product Manager)

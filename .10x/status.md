@@ -2,7 +2,7 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
-**Current phase:** Discovery Complete → Strategy Complete → Design Complete (ADRs Proposed) → Planning Complete for Phase 1 milestones. **Implementation NOT authorized.**
+**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. M0 complete on branch `phase1/m0-test-harness`.
 
 ## Phase tracking
 
@@ -12,7 +12,7 @@
 | 1 Strategy | Done | `decisions/cto/`, `decisions/product-manager/` |
 | 2 Design | Done (Proposed) | ADR-001…005; `decisions/architect/`, `decisions/staff-engineer/` |
 | 3 Planning | Done for Phase 1 | M0–M8 in `decisions/engineering-manager/`, approach in `decisions/senior-engineer/` |
-| 4 Implementation | **Blocked** | Needs explicit "start Phase 1" from owner |
+| 4 Implementation | In progress | Phase 1 M0 done; M1 next |
 | 5 Verification | Not started | |
 | 6 Delivery | Not started | |
 
@@ -27,8 +27,8 @@
 
 | M | Title | Status |
 |---|---|---|
-| M0 | Git + Jest harness + baseline tests | Not started (git init done as state prerequisite; Jest not added) |
-| M1 | Remove sync/server; persist v3 | Not started |
+| M0 | Git + Jest harness + baseline tests | **Done** — 41 tests, 96% stmts / 99% lines on the 4 target modules; tsc/lint clean |
+| M1 | Remove sync/server; persist v3 | Next |
 | M2 | Remove cool-down + weightIncrementKg | Not started |
 | M3 | SQLite behind store facade + importer | Not started |
 | M4 | Plan/rotation + session reducer | Not started |
