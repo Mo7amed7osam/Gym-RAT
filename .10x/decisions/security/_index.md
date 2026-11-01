@@ -4,3 +4,4 @@
 - Body photos stay in app sandbox; never leave the device via app features.
 ## Active features
 - [transformation](transformation.md)
+- [phase4-analytics](phase4-analytics.md)

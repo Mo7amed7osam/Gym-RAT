@@ -10,6 +10,7 @@ import { muscleSetDistribution } from '@/domain/analytics/muscles';
 import { exerciseProgression, trainedExercises } from '@/domain/analytics/progression';
 import { trendOf, weeklySeries } from '@/domain/analytics/trends';
 import { patchHistorySet } from '@/domain/history/edit';
+import { parseTimeInput } from '@/lib/analyticsFormat';
 import { removeFromHistory, replayHistory } from '@/domain/history/recompute';
 import { deleteHistorySession, saveHistorySession } from '@/store/historyActions';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, useWorkoutStore } from '@/store/useWorkoutStore';
@@ -185,4 +186,17 @@ describe('history edits never touch the active session', () => {
     expect(deleteHistorySession(active.id)).toBe(false);
     expect(useWorkoutStore.getState().activeSession).toBe(active);
   });
+});
+
+describe('time input parsing', () => {
+  it.each([
+    ['18:05', { hours: 18, minutes: 5 }],
+    ['6:5', { hours: 6, minutes: 5 }],
+    ['١٨:٣٠', { hours: 18, minutes: 30 }],
+    [' 7.45 ', { hours: 7, minutes: 45 }],
+    ['25:00', null],
+    ['18:60', null],
+    ['18', null],
+    ['', null],
+  ])('%p → %p', (raw, expected) => expect(parseTimeInput(raw)).toEqual(expected));
 });

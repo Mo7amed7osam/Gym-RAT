@@ -15,3 +15,6 @@
 - History edits: `useWorkoutStore.setState({ history })` → `WorkoutRepository.persistDiff` (one transaction; only sessions with new object references are rewritten).
 - Body/goals: `ProgressRepository.persistDiff` (one transaction; by id + reference).
 - Reset All Data: progress store detached and emptied before the file is deleted.
+
+## Merge plan update (2026-11-02, QA)
+Renumbering alone is unsafe (a Phase 4 v7 database would skip Phase 3's step 7). Prescribed: 7 = Phase 3, 8 = Phase 4, 9 = reconcile both create-only steps; guard any non-idempotent Phase 3 DDL with `PRAGMA table_info`. `ensureProgressSchema` (boot) repairs missing Phase 4 tables on any database. Proven in `__tests__/progress.migration-merge.test.ts`. Full sequence: `specs/2026-11-02-phase4-phase3-integration-handoff.md` §4.

@@ -79,3 +79,12 @@ export function parseTimeInput(raw: string): { hours: number; minutes: number } 
 export const formatShortDateLatin = (iso: string): string => latinDigits(formatShortDate(iso));
 export const formatLongDateLatin = (date: Date): string => latinDigits(formatLongDate(date));
 export const formatTimeLatin = (iso: string): string => latinDigits(formatTime(iso));
+
+/**
+ * Wraps a left-to-right run ("95 kg", "72.5 × 8") in Unicode directional
+ * isolates so it stays intact inside an Arabic sentence ("(كان 95 kg)" was
+ * rendering as "(95 كان kg)"). Invisible in English.
+ */
+export function ltr(text: string): string {
+  return `⁦${text}⁩`;
+}

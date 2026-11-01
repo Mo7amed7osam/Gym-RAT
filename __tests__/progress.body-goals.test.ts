@@ -109,6 +109,8 @@ describe('goals', () => {
     expect(validateGoalInput({ kind: 'body_measurement', exerciseId: null, bodyMetric: null }, 0, null)).toEqual(['target', 'body_metric']);
     expect(validateGoalInput({ kind: 'bodyweight', exerciseId: null, bodyMetric: null }, 82, 82)).toEqual(['same_as_current']);
     expect(validateGoalInput({ kind: 'weekly_sessions', exerciseId: null, bodyMetric: null }, 4, 0)).toEqual([]);
+    expect(validateGoalInput({ kind: 'exercise_weight', exerciseId: 'bench', bodyMetric: null }, 130125, 110)).toEqual(['target']);
+    expect(validateGoalInput({ kind: 'weekly_sessions', exerciseId: null, bodyMetric: null }, 30, 0)).toEqual(['target']);
   });
 });
 

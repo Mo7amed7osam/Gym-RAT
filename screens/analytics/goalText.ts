@@ -1,5 +1,5 @@
 import type { GoalEvaluation } from '@/domain/analytics/goals';
-import { formatNumber } from '@/lib/analyticsFormat';
+import { formatNumber, ltr } from '@/lib/analyticsFormat';
 import { BODY_METRIC_UNITS, type BodyMetricKind, type Goal, type GoalKind } from '@/types/progress';
 import type { Exercise } from '@/types/workout';
 
@@ -8,9 +8,12 @@ type Translate = (key: string, options?: Record<string, unknown>) => string;
 /** "80 kg", "15 %", "4 workouts". */
 export function formatGoalValue(kind: GoalKind, bodyMetric: BodyMetricKind | null, value: number, t: Translate): string {
   if (kind === 'weekly_sessions') return t('progress.workoutsCount', { count: Math.round(value) });
-  const unit = kind === 'body_measurement' && bodyMetric ? BODY_METRIC_UNITS[bodyMetric] : 'kg';
-  const digits = kind === 'weekly_volume' ? 0 : 1;
-  return t(`progress.units.${unit === '%' ? 'percentValue' : unit === 'cm' ? 'cmValue' : 'kgValue'}`, { value: formatNumber(value, digits) });
+  // kg values are Latin text: isolate them so they keep their order inside Arabic sentences.
+  if (kind !== 'body_measurement' || !bodyMetric) {
+    return ltr(t('progress.units.kgValue', { value: formatNumber(value, kind === 'weekly_volume' ? 0 : 1) }));
+  }
+  const unit = BODY_METRIC_UNITS[bodyMetric];
+  return t(`progress.units.${unit === '%' ? 'percentValue' : unit === 'cm' ? 'cmValue' : 'kgValue'}`, { value: formatNumber(value) });
 }
 
 export function goalTitle(goal: Goal, t: Translate, exercises: ReadonlyMap<string, Exercise>): string {

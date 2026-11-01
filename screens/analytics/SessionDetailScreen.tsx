@@ -22,7 +22,7 @@ import {
 } from '@/domain/history/edit';
 import { endTimeMs } from '@/domain/session/reducer';
 import { useT } from '@/i18n';
-import { formatDayMonthYear, formatHoursMinutes, formatLongDateLatin, formatNumber, formatTimeLatin, parseTimeInput, toTimeInput } from '@/lib/analyticsFormat';
+import { formatDayMonthYear, formatHoursMinutes, formatLongDateLatin, formatNumber, formatTimeLatin, ltr, parseTimeInput, toTimeInput } from '@/lib/analyticsFormat';
 import { formatKg } from '@/lib/format';
 import { formatInputNumber, parseReps, parseWeight } from '@/lib/parseNumber';
 import { deleteHistorySession, saveHistorySession } from '@/store/historyActions';
@@ -125,6 +125,7 @@ export default function SessionDetailScreen() {
         <ScrollView
           contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.sm }]}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
         >
           <ScreenHeader
@@ -174,22 +175,13 @@ export default function SessionDetailScreen() {
                   </Text>
                   <Text style={styles.recordValue}>
                     {formatKg(record.value)}
-                    {record.previous !== null ? <Text style={styles.caption}> {t('progress.session.was', { value: formatKg(record.previous) })}</Text> : null}
+                    {record.previous !== null ? <Text style={styles.caption}> {t('progress.session.was', { value: ltr(formatKg(record.previous)) })}</Text> : null}
                   </Text>
                 </View>
               ))}
             </Card>
           ) : null}
 
-          {errors.length > 0 ? (
-            <View style={styles.errorBox} accessibilityLiveRegion="assertive">
-              {errors.map((message) => (
-                <Text key={message} style={styles.errorText}>
-                  {message}
-                </Text>
-              ))}
-            </View>
-          ) : null}
 
           {shown.exercises.map((exercise) => (
             <ExerciseBlock
@@ -223,6 +215,15 @@ export default function SessionDetailScreen() {
             </Card>
           ) : null}
 
+          {errors.length > 0 ? (
+            <View style={styles.errorBox} accessibilityLiveRegion="assertive">
+              {errors.map((message) => (
+                <Text key={message} style={styles.errorText}>
+                  {message}
+                </Text>
+              ))}
+            </View>
+          ) : null}
           {editing ? (
             <View style={styles.actions}>
               <Button label={t('progress.session.save')} icon={Check} onPress={save} />

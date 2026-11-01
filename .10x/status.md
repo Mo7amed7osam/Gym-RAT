@@ -54,4 +54,5 @@
 | A5 body + goals | Done (`73f05eb`) |
 | A6 Progress tab | Done (`42394fe`) |
 | A7 sub-screens | Done (`42394fe`) |
-| A8 verification | Jest 197/197, tsc 0, lint clean on the branch; superseded by `reviews/2026-11-02-integration-report.md` |
+| A8 verification | Done on the branch: Jest 223/223, 6 time zones, tsc 0, lint clean; simulator tap-through in Arabic RTL; QA + security reviews (`reviews/2026-11-02-phase4-*`) |
+| Integration readiness | Handoff `specs/2026-11-02-phase4-phase3-integration-handoff.md`; integrated on `integration/phase3-phase4` (`reviews/2026-11-02-integration-report.md`) |
