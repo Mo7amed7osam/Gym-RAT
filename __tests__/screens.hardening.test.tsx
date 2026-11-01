@@ -204,3 +204,15 @@ describe('SettingsScreen reset', () => {
     expect(selectActivePlan(state)?.nextDayIndex).toBe(0);
   });
 });
+
+describe('ExercisePickerModal', () => {
+  it('mounts hidden without re-render loops and lists the library when opened', async () => {
+    const { ExercisePickerModal } = require('@/components/ExercisePickerModal');
+    const onPick = jest.fn();
+    const { rerender } = await render(<ExercisePickerModal visible={false} title="Pick" onPick={onPick} onClose={() => {}} />);
+    rerender(<ExercisePickerModal visible title="Pick" excludeIds={['leg_press']} onPick={onPick} onClose={() => {}} />);
+    expect(screen.queryByText('Leg Press')).toBeNull();
+    await fireEvent.press(screen.getByText('Hack Squat'));
+    expect(onPick).toHaveBeenCalledWith('hack_squat');
+  });
+});

@@ -931,8 +931,11 @@ export const selectExercise =
   (state: WorkoutState): Exercise | undefined =>
     id ? state.exercises.find((exercise) => exercise.id === id) : undefined;
 
-/** Non-archived exercises for pickers and the Library, English name order. */
-export const selectLibrary = (state: WorkoutState): Exercise[] =>
+/**
+ * Non-archived exercises for pickers and the Library, English name order.
+ * Returns a new array: call it inside useMemo, never as a zustand selector.
+ */
+export const selectLibrary = (state: Pick<WorkoutState, 'exercises'>): Exercise[] =>
   state.exercises.filter((exercise) => !exercise.archived).sort((a, b) => a.name.en.localeCompare(b.name.en));
 
 /** Hook form of `selectExercise`; re-renders only when that exercise changes. */

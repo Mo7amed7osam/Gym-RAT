@@ -27,11 +27,13 @@ export function ExercisePickerModal({ visible, title, excludeIds = [], onPick, o
   const t = useT();
   const locale = useLocale();
   const insets = useSafeAreaInsets();
-  const library = useWorkoutStore(selectLibrary);
+  // Select the raw slice (stable reference); deriving a new array inside the selector would re-render forever.
+  const exercises = useWorkoutStore((state) => state.exercises);
   const [query, setQuery] = useState('');
 
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const library = selectLibrary({ exercises });
     return library
       .filter((exercise) => !excludeIds.includes(exercise.id))
       .filter(
@@ -41,7 +43,7 @@ export function ExercisePickerModal({ visible, title, excludeIds = [], onPick, o
           exercise.name.ar.includes(query.trim()) ||
           exercise.primaryMuscles.some((m) => MUSCLE_LABELS[m].en.toLowerCase().includes(q)),
       );
-  }, [library, excludeIds, query]);
+  }, [exercises, excludeIds, query]);
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
