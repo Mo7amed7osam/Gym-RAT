@@ -53,11 +53,10 @@ export const EXERCISE_IMAGES = {
 export type ExerciseImageKey = keyof typeof EXERCISE_IMAGES;
 
 /**
- * Stretching posters from the PDF (p.33 + p.35). The p.34 hip rehab sheet is in
- * stretches/hip_rehab.jpg but not wired to a routine yet, so it isn't bundled.
+ * Stretching poster from the PDF (p.35). The p.34 hip rehab sheet is in
+ * stretches/hip_rehab.jpg but not wired to a routine, so it isn't bundled.
  */
 export const STRETCH_POSTERS = {
-  static_cooldown: require('./stretches/static_cooldown.jpg'),
   pre_workout_stretches: require('./stretches/pre_workout_stretches.jpg'),
 } satisfies Record<string, ImageSourcePropType>;
 
@@ -108,7 +107,6 @@ const EXERCISE_IMAGE_SIZES: Record<ExerciseImageKey, readonly [number, number]> 
 };
 
 const STRETCH_POSTER_SIZES: Record<StretchPosterKey, readonly [number, number]> = {
-  static_cooldown: [678, 345],
   pre_workout_stretches: [848, 1200],
 };
 

@@ -147,7 +147,7 @@ export type DaySchedule = TrainingDay | CardioDay | RestDay;
 
 // ─── Warm-up / stretching ────────────────────────────────────────────────────
 
-export type StretchRoutineId = 'dynamic_warmup' | 'pre_workout_stretches' | 'static_cooldown';
+export type StretchRoutineId = 'dynamic_warmup' | 'pre_workout_stretches';
 
 export interface StretchMove {
   id: string;
@@ -234,7 +234,6 @@ export interface WorkoutSession {
   exercises: SessionExercise[];
   currentExerciseIndex: number;
   warmupCompletedIds: string[];
-  cooldownCompletedIds: string[];
   summary: SessionSummary | null;
 }
 
@@ -273,7 +272,6 @@ export interface WorkoutSettings {
   autoStartRestTimer: boolean;
   /** Prefill weights/reps from the previous session of the same exercise. */
   prefillFromHistory: boolean;
-  weightIncrementKg: number;
   /** Seconds remaining at which the timer enters its "warning" phase. */
   restWarningSeconds: number;
   hapticsEnabled: boolean;

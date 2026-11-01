@@ -29,12 +29,11 @@ import { countSets } from '@/lib/workoutMath';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import type { PersonalRecord, SessionExercise, WorkoutSession } from '@/types/workout';
 
-type Stage = 'warmup' | 'exercises' | 'cooldown';
+type Stage = 'warmup' | 'exercises';
 
 const STAGES: { id: Stage; label: string }[] = [
   { id: 'warmup', label: 'Warm-up' },
   { id: 'exercises', label: 'Workout' },
-  { id: 'cooldown', label: 'Cool-down' },
 ];
 
 export default function ActiveWorkoutScreen() {
@@ -86,7 +85,6 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
 
   const restKey = useWorkoutStore((state) => state.restTimer.context?.completedSetId ?? null);
   const toggleWarmupItem = useWorkoutStore((state) => state.toggleWarmupItem);
-  const toggleCooldownItem = useWorkoutStore((state) => state.toggleCooldownItem);
   const goToExercise = useWorkoutStore((state) => state.goToExercise);
   const setExerciseSkipped = useWorkoutStore((state) => state.setExerciseSkipped);
   const finishWorkout = useWorkoutStore((state) => state.finishWorkout);
@@ -110,8 +108,9 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
 
   const requestFinish = () => (completed < total ? setConfirm('finish') : finish());
 
+  // After the last exercise the workout goes straight to the summary (no cool-down stage).
   const advance = () => {
-    if (isLastExercise) setStage('cooldown');
+    if (isLastExercise) requestFinish();
     else goToExercise(index + 1);
   };
 
@@ -165,7 +164,6 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         >
           {stage === 'warmup' ? (
             <WarmupRoutine
-              variant="warmup"
               day={day}
               completedIds={session.warmupCompletedIds}
               onToggle={toggleWarmupItem}
@@ -236,10 +234,6 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
               </View>
             </>
           ) : null}
-
-          {stage === 'cooldown' ? (
-            <WarmupRoutine variant="cooldown" completedIds={session.cooldownCompletedIds} onToggle={toggleCooldownItem} />
-          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -247,7 +241,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         <RestTimerPill onExpand={() => setDismissedRestKey(null)} />
         {stage === 'warmup' ? (
           <Button
-            label={getRoutineProgress('warmup', session.warmupCompletedIds) >= 1 ? `Begin ${session.code}` : `Skip to ${session.code}`}
+            label={getRoutineProgress(session.warmupCompletedIds) >= 1 ? `Begin ${session.code}` : `Skip to ${session.code}`}
             onPress={() => setStage('exercises')}
           />
         ) : null}
@@ -264,14 +258,13 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
               <ChevronLeft size={22} color={colors.label} />
             </Pressable>
             <Button
-              label={isLastExercise ? 'Cool-down' : 'Next exercise'}
+              label={isLastExercise ? 'Finish workout' : 'Next exercise'}
               variant={current && isExerciseDone(current) ? 'primary' : 'tinted'}
               onPress={advance}
               style={styles.flex}
             />
           </View>
         ) : null}
-        {stage === 'cooldown' ? <Button label="Finish workout" onPress={requestFinish} /> : null}
       </View>
 
       <RestTimerModal visible={restSheetVisible} onMinimize={() => setDismissedRestKey(restKey)} />
@@ -353,7 +346,7 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
             <SummaryTile
               label="Duration"
               value={formatDuration(summary.durationSeconds)}
-              detail={`${session.warmupCompletedIds.length > 0 ? 'warm-up' : 'no warm-up'} · ${session.cooldownCompletedIds.length > 0 ? 'cool-down' : 'no cool-down'}`}
+              detail={session.warmupCompletedIds.length > 0 ? 'with warm-up' : 'no warm-up'}
             />
             <SummaryTile label="New PRs" value={String(summary.personalRecords.length)} detail="vs all history" positive={summary.personalRecords.length > 0} />
           </View>

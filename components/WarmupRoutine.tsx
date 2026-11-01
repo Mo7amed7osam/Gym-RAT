@@ -7,7 +7,7 @@ import { STRETCH_POSTERS, stretchPosterAspect } from '@/assets/exercises';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT, colors, radii, spacing, typography } from '@/constants/theme';
 import { getExercise } from '@/data/exercisesData';
-import { COACH_NOTES, STRETCH_ROUTINES, WARMUP_STAGES } from '@/data/warmupData';
+import { STRETCH_ROUTINES, WARMUP_STAGES } from '@/data/warmupData';
 import { hapticSelection, hapticWarning } from '@/lib/feedback';
 import { getPreviousPerformance, isCountedSet, roundTo } from '@/lib/workoutMath';
 import { formatRestTime } from '@/store/useRestTimerCountdown';
@@ -16,14 +16,11 @@ import type { StretchMove, StretchRoutine, TrainingDay, WarmupStage } from '@/ty
 
 // ─── Checklist ids & progress ────────────────────────────────────────────────
 
-export type RoutineVariant = 'warmup' | 'cooldown';
-
 export const stageItemId = (stage: WarmupStage['id']): string => `stage:${stage}`;
 export const moveItemId = (routine: StretchRoutine, move: StretchMove): string => `${routine.id}:${move.id}`;
 
 const DYNAMIC = STRETCH_ROUTINES.dynamic_warmup;
 const PRE_WORKOUT = STRETCH_ROUTINES.pre_workout_stretches;
-const COOLDOWN = STRETCH_ROUTINES.static_cooldown;
 
 function isStageDone(stage: WarmupStage, completed: ReadonlySet<string>): boolean {
   if (stage.routineId) {
@@ -33,19 +30,15 @@ function isStageDone(stage: WarmupStage, completed: ReadonlySet<string>): boolea
   return completed.has(stageItemId(stage.id));
 }
 
-/** 0 → 1. Warm-up counts the three PDF stages; cool-down counts stretches. */
-export function getRoutineProgress(variant: RoutineVariant, completedIds: readonly string[]): number {
+/** 0 → 1 across the three PDF warm-up stages. */
+export function getRoutineProgress(completedIds: readonly string[]): number {
   const completed = new Set(completedIds);
-  if (variant === 'warmup') {
-    return WARMUP_STAGES.filter((stage) => isStageDone(stage, completed)).length / WARMUP_STAGES.length;
-  }
-  return COOLDOWN.moves.filter((move) => completed.has(moveItemId(COOLDOWN, move))).length / COOLDOWN.moves.length;
+  return WARMUP_STAGES.filter((stage) => isStageDone(stage, completed)).length / WARMUP_STAGES.length;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 interface WarmupRoutineProps {
-  variant: RoutineVariant;
   /** Today's routine — used for the acclimation-set suggestion. */
   day?: TrainingDay;
   completedIds: readonly string[];
@@ -53,25 +46,22 @@ interface WarmupRoutineProps {
 }
 
 /**
- * Warm-up (3 PDF stages + dynamic stretches) or cool-down (static stretches),
- * each with a built-in hold timer. Stateless about completion: the screen
- * passes `completedIds` / `onToggle` (store session or local state).
+ * Warm-up: the 3 PDF stages + dynamic stretches, with a built-in hold timer.
+ * Stateless about completion: the screen passes `completedIds` / `onToggle`.
  */
-export function WarmupRoutine({ variant, day, completedIds, onToggle }: WarmupRoutineProps) {
+export function WarmupRoutine({ day, completedIds, onToggle }: WarmupRoutineProps) {
   const completed = new Set(completedIds);
-  const progress = getRoutineProgress(variant, completedIds);
+  const progress = getRoutineProgress(completedIds);
 
   return (
     <View style={styles.container}>
       <View style={styles.intro}>
         <View style={styles.introText}>
           <Text style={styles.title} accessibilityRole="header">
-            {variant === 'warmup' ? 'Warm-up' : 'Cool-down'}
+            Warm-up
           </Text>
           <Text style={styles.subtitle}>
-            {variant === 'warmup'
-              ? `Three stages${day ? ` before ${day.code}` : ''}: raise your heart rate, move every joint, then rehearse the first lift light.`
-              : COOLDOWN.description.en}
+            {`Three stages${day ? ` before ${day.code}` : ''}: raise your heart rate, move every joint, then rehearse the first lift light.`}
           </Text>
         </View>
         <ProgressRing size={64} strokeWidth={7} progress={progress} color={progress >= 1 ? colors.success : colors.tint}>
@@ -79,20 +69,7 @@ export function WarmupRoutine({ variant, day, completedIds, onToggle }: WarmupRo
         </ProgressRing>
       </View>
 
-      {variant === 'warmup' ? (
-        <WarmupStages day={day} completed={completed} onToggle={onToggle} />
-      ) : (
-        <>
-          <StretchSession routine={COOLDOWN} completed={completed} onToggle={onToggle} />
-          <View style={styles.notes}>
-            {COACH_NOTES.map((note) => (
-              <Text key={note.en} style={styles.note}>
-                • {note.en}
-              </Text>
-            ))}
-          </View>
-        </>
-      )}
+      <WarmupStages day={day} completed={completed} onToggle={onToggle} />
     </View>
   );
 }
@@ -170,7 +147,7 @@ function WarmupStages({
         ) : null}
       </View>
 
-      <Text style={styles.footnote}>Dynamic stretches help prevent injury. Save the static holds for the cool-down.</Text>
+      <Text style={styles.footnote}>Dynamic stretches help prevent injury. Keep static holds short before lifting.</Text>
     </>
   );
 }
@@ -616,14 +593,6 @@ const styles = StyleSheet.create({
   checkMarkOff: {
     borderWidth: 2,
     borderColor: colors.surfaceHigh,
-  },
-  notes: {
-    gap: spacing.xs,
-    paddingHorizontal: spacing.lg,
-  },
-  note: {
-    ...typography.subheadline,
-    color: colors.labelSecondary,
   },
   pressed: {
     opacity: 0.75,

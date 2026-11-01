@@ -141,7 +141,7 @@ const CARDIO_TUESDAY: CardioDay = {
       intensity: { en: 'Easy, steady pace', ar: 'سرعة هادية وثابتة' },
     },
   ],
-  recoveryRoutineIds: ['dynamic_warmup', 'static_cooldown'],
+  recoveryRoutineIds: ['dynamic_warmup'],
 };
 
 const UPPER_B: TrainingDay = {
@@ -242,13 +242,13 @@ export function getTrainingDays(): TrainingDay[] {
   );
 }
 
-/** Rough session length: ~45 s per working set plus prescribed rest, plus 15 min warm-up/cool-down. */
+/** Rough session length: ~45 s per working set plus prescribed rest, plus 10 min warm-up. */
 export function estimateDurationMinutes(day: TrainingDay): number {
   const WORK_SECONDS_PER_SET = 45;
-  const WARMUP_COOLDOWN_SECONDS = 15 * 60;
+  const WARMUP_SECONDS = 10 * 60;
   const seconds = day.exercises.reduce(
     (total, item) => total + item.sets * (WORK_SECONDS_PER_SET + item.rest.defaultSeconds),
-    WARMUP_COOLDOWN_SECONDS,
+    WARMUP_SECONDS,
   );
   return Math.round(seconds / 60);
 }

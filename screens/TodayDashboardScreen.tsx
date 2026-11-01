@@ -5,7 +5,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { VideoModal } from '@/components/VideoModal';
-import { WarmupRoutine } from '@/components/WarmupRoutine';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
@@ -361,10 +360,6 @@ function TrainingHero({
 }
 
 function CardioHero({ day }: { day: CardioDay }) {
-  const [completedIds, setCompletedIds] = useState<string[]>([]);
-  const toggle = (id: string) =>
-    setCompletedIds((ids) => (ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]));
-
   return (
     <>
       <View style={styles.hero}>
@@ -392,7 +387,6 @@ function CardioHero({ day }: { day: CardioDay }) {
           ))}
         </View>
       </View>
-      <WarmupRoutine variant="cooldown" completedIds={completedIds} onToggle={toggle} />
     </>
   );
 }

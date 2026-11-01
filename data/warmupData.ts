@@ -7,8 +7,7 @@ import type {
 
 /**
  * Warm-up, stretching and coach notes from the program PDF
- * (p.2–3 warm-up stages + dynamic routine, p.32–33 notes + static stretches,
- * p.35 pre-workout stretches).
+ * (p.2–3 warm-up stages + dynamic routine, p.32 coach notes, p.35 pre-workout stretches).
  */
 
 export const WARMUP_STAGES: readonly WarmupStage[] = [
@@ -169,80 +168,6 @@ export const STRETCH_ROUTINES: Record<StretchRoutineId, StretchRoutine> = {
     ],
   },
 
-  static_cooldown: {
-    id: 'static_cooldown',
-    title: { en: 'Static stretches', ar: 'Static Stretches' },
-    description: {
-      en: 'Hold each for 20 seconds after training to help recovery.',
-      ar: 'قم بعمل Static Stretches بعد نهاية التمرين حتى تساعدك على الاستشفاء من الإجهاد العضلي',
-    },
-    posterKey: 'static_cooldown',
-    moves: [
-      {
-        id: 'full_body',
-        name: { en: 'Full body stretch', ar: 'إطالة الجسم كامل' },
-        instruction: { en: 'Reach overhead as high as you can.', ar: 'مد إيديك لفوق على قد ما تقدر.' },
-        holdSeconds: 20,
-        bothSides: false,
-      },
-      {
-        id: 'side_body',
-        name: { en: 'Side body stretch', ar: 'إطالة الجنب' },
-        instruction: { en: 'Arm overhead, lean to the side.', ar: 'الإيد فوق الراس ومِيل للجنب.' },
-        holdSeconds: 20,
-        bothSides: true,
-      },
-      {
-        id: 'shoulder',
-        name: { en: 'Shoulder stretch', ar: 'إطالة الكتف' },
-        instruction: { en: 'Hand above elbow, pull arm in.', ar: 'الإيد فوق الكوع واسحب الدراع ناحيتك.' },
-        holdSeconds: 20,
-        bothSides: true,
-      },
-      {
-        id: 'tricep',
-        name: { en: 'Tricep stretch', ar: 'إطالة التراي' },
-        instruction: { en: 'Hand behind head, push the elbow down.', ar: 'الإيد ورا الراس وزق الكوع لتحت.' },
-        holdSeconds: 20,
-        bothSides: true,
-      },
-      {
-        id: 'bicep_forearm',
-        name: { en: 'Bicep / forearm stretch', ar: 'إطالة الباي والساعد' },
-        instruction: { en: 'Arm straight, pull the fingers back.', ar: 'الدراع مفرود واسحب الصوابع لورا.' },
-        holdSeconds: 20,
-        bothSides: true,
-      },
-      {
-        id: 'upper_chest_shoulder',
-        name: { en: 'Upper chest / shoulder', ar: 'أعلى الصدر والكتف' },
-        instruction: { en: 'Interlace hands behind you, lift and open.', ar: 'شبّك إيديك ورا ضهرك وارفعهم وافتح صدرك.' },
-        holdSeconds: 20,
-        bothSides: false,
-      },
-      {
-        id: 'quadricep',
-        name: { en: 'Quadricep stretch', ar: 'إطالة الرجل الأمامي' },
-        instruction: { en: 'Pull your heel to your glutes, knees together.', ar: 'اسحب الكعب ناحية الأرداف والركب جنب بعض.' },
-        holdSeconds: 20,
-        bothSides: true,
-      },
-      {
-        id: 'calf',
-        name: { en: 'Calf stretch', ar: 'إطالة السمانة' },
-        instruction: { en: 'Toes on a wall, lean in.', ar: 'صوابع رجلك على الحيطة واميل لقدام.' },
-        holdSeconds: 20,
-        bothSides: true,
-      },
-      {
-        id: 'hamstring',
-        name: { en: 'Hamstring stretch', ar: 'إطالة الرجل الخلفي' },
-        instruction: { en: 'Heel forward, hinge at the hips.', ar: 'الكعب لقدام وانحني من الحوض.' },
-        holdSeconds: 20,
-        bothSides: true,
-      },
-    ],
-  },
 };
 
 /** General program notes (PDF p.32). */

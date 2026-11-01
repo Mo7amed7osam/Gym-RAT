@@ -205,15 +205,12 @@ describe('navigation, checklists, selectors, migration', () => {
     store.toggleWarmupItem('b');
     store.toggleWarmupItem('a');
     expect(useWorkoutStore.getState().activeSession!.warmupCompletedIds).toEqual(['b']);
-    store.toggleCooldownItem('x');
-    expect(useWorkoutStore.getState().activeSession!.cooldownCompletedIds).toEqual(['x']);
   });
 
   it('navigation and checklist actions are no-ops without a session', () => {
     const store = useWorkoutStore.getState();
     store.goToExercise(3);
     store.toggleWarmupItem('a');
-    store.toggleCooldownItem('b');
     store.setExerciseSkipped('nope', true);
     expect(useWorkoutStore.getState().activeSession).toBeNull();
     expect(store.finishWorkout()).toBeNull();
@@ -259,16 +256,31 @@ describe('navigation, checklists, selectors, migration', () => {
     expect(useWorkoutStore.getState().history).toHaveLength(0);
   });
 
+  it('persist migration v3→v4 strips cool-down ids and the weight increment', () => {
+    const options = useWorkoutStore.persist.getOptions();
+    const migrated = options.migrate!(
+      {
+        activeSession: { id: 'a', warmupCompletedIds: ['x'], cooldownCompletedIds: ['y'] },
+        history: [{ id: 'h', cooldownCompletedIds: [] }],
+        settings: { ...DEFAULT_SETTINGS, weightIncrementKg: 2.5 },
+      } as never,
+      3,
+    ) as unknown as { activeSession: Record<string, unknown>; history: Record<string, unknown>[]; settings: Record<string, unknown> };
+    expect(migrated.activeSession).toEqual({ id: 'a', warmupCompletedIds: ['x'] });
+    expect(migrated.history[0]).toEqual({ id: 'h' });
+    expect(migrated.settings).toEqual(DEFAULT_SETTINGS);
+  });
+
   it('persist migration v2→v3 drops the old sync queue; merge ignores unknown keys and deep-merges settings', () => {
     const options = useWorkoutStore.persist.getOptions();
-    expect(options.version).toBe(3);
+    expect(options.version).toBe(4);
     const migrated = options.migrate!(
       { history: [{ id: 's1' }], syncQueue: [{ kind: 'upsert', sessionId: 's1', enqueuedAt: 1 }] } as never,
       2,
-    ) as Record<string, unknown>;
+    ) as unknown as Record<string, unknown>;
     expect(migrated).not.toHaveProperty('syncQueue');
     expect(migrated.history).toEqual([{ id: 's1' }]);
-    const untouched = options.migrate!({ history: [] } as never, 3) as Record<string, unknown>;
+    const untouched = options.migrate!({ history: [] } as never, 4) as unknown as Record<string, unknown>;
     expect(untouched).toEqual({ history: [] });
 
     const merged = options.merge!(

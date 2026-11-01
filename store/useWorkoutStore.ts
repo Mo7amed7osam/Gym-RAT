@@ -71,9 +71,8 @@ interface WorkoutActions {
   removeSet: (sessionExerciseId: string, setId: string) => void;
   toggleSetType: (sessionExerciseId: string, setId: string) => void;
 
-  // Warm-up / cool-down checklists
+  // Warm-up checklist
   toggleWarmupItem: (itemId: string) => void;
-  toggleCooldownItem: (itemId: string) => void;
 
   // Rest timer
   startRestTimer: (seconds: number, context?: RestTimerContext | null) => void;
@@ -105,7 +104,6 @@ export const IDLE_REST_TIMER: RestTimerState = {
 export const DEFAULT_SETTINGS: WorkoutSettings = {
   autoStartRestTimer: true,
   prefillFromHistory: true,
-  weightIncrementKg: 2.5,
   restWarningSeconds: 15,
   hapticsEnabled: true,
   restSoundEnabled: true,
@@ -178,7 +176,6 @@ function buildSession(day: TrainingDay, history: readonly WorkoutSession[], sett
     ),
     currentExerciseIndex: 0,
     warmupCompletedIds: [],
-    cooldownCompletedIds: [],
     summary: null,
   };
 }
@@ -419,18 +416,6 @@ export const useWorkoutStore = create<WorkoutStore>()(
               : {},
           ),
 
-        toggleCooldownItem: (itemId) =>
-          set((state) =>
-            state.activeSession
-              ? {
-                  activeSession: {
-                    ...state.activeSession,
-                    cooldownCompletedIds: toggleId(state.activeSession.cooldownCompletedIds, itemId),
-                  },
-                }
-              : {},
-          ),
-
         // ── Rest timer ───────────────────────────────────────────────────────
 
         startRestTimer: (seconds, context = null) => {
@@ -512,7 +497,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
     },
     {
       name: 'gym-rat/workout-store',
-      version: 3,
+      version: 4,
       storage: createBatchedStorage<PersistedWorkoutState>(),
       partialize: (state): PersistedWorkoutState => ({
         activeSession: state.activeSession,
@@ -534,11 +519,27 @@ export const useWorkoutStore = create<WorkoutStore>()(
         };
       },
       migrate: (persisted, version) => {
-        const state = persisted as PersistedWorkoutState & { syncQueue?: unknown };
+        let state = persisted as PersistedWorkoutState & { syncQueue?: unknown };
         // v3: the server sync queue was removed (the app is local-only).
         if (version < 3) {
           const { syncQueue: _dropped, ...rest } = state;
-          return rest;
+          state = rest;
+        }
+        // v4: post-workout cool-down and the fixed weight increment were removed.
+        if (version < 4) {
+          const stripSession = (session: WorkoutSession & { cooldownCompletedIds?: unknown }): WorkoutSession => {
+            const { cooldownCompletedIds: _ids, ...rest } = session;
+            return rest;
+          };
+          const { weightIncrementKg: _step, ...settings } = (state.settings ?? {}) as WorkoutSettings & {
+            weightIncrementKg?: unknown;
+          };
+          state = {
+            ...state,
+            activeSession: state.activeSession ? stripSession(state.activeSession) : state.activeSession,
+            history: (state.history ?? []).map(stripSession),
+            settings: settings as WorkoutSettings,
+          };
         }
         return state;
       },

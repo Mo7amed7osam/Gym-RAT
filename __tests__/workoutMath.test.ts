@@ -66,7 +66,6 @@ function session(startedAt: string, exercises: SessionExercise[], status: Workou
     exercises,
     currentExerciseIndex: 0,
     warmupCompletedIds: [],
-    cooldownCompletedIds: [],
     summary: null,
   };
 }

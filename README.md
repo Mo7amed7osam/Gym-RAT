@@ -340,7 +340,7 @@ The component doesn't store what's ticked. The screen passes `completedIds` and 
 - **Resume banner:** shown if a workout is in progress, with sets done/total, **Resume** and **Discard** (with confirm).
 - **Day card:**
   - **Training day:** focus and "Day n of 5", code, muscles in English and Arabic, and a progress ring (100% if done today, otherwise the live session's set progress). Tiles for exercises, sets and ~minutes, the last session for this day (date · volume · duration), and the main button: **Start Workout**, **Resume Workout**, **Resume <other day>** or **Train Again**.
-  - **Tuesday:** the cardio options, plus the static stretch routine with its hold timer.
+  - **Tuesday:** the cardio options.
   - **Friday:** the rest note and what's on next.
 - **Stat cards:** this week's volume with % vs last week, and training days done out of 5.
 - **Lists (training days):** the 3 warm-up stages, and every exercise with its Arabic name, sets × reps and best set. Tapping an exercise opens the form guide.
@@ -349,13 +349,12 @@ The component doesn't store what's ticked. The screen passes `completedIds` and 
 ### `screens/ActiveWorkoutScreen.tsx`
 
 - **Top bar:** minimise (the workout keeps going and can be resumed from Today), a running clock with "n/27 sets", and **Finish**.
-- **Stage switcher:** Warm-up / Workout / Cool-down. It opens on Warm-up unless sets are already logged.
+- **Stage switcher:** Warm-up / Workout. It opens on Warm-up unless sets are already logged.
 - **Warm-up:** `WarmupRoutine`, then **Begin Push A** (or **Skip to Push A**).
 - **Workout:**
   - Numbered exercise chips: orange for current, green with a tick when done, faded when skipped.
   - The `ExerciseCard`, an "Up next" row, **Skip exercise** and **Discard workout**.
-- **Cool-down:** `WarmupRoutine variant="cooldown"`, then **Finish Workout**.
-- **Bottom bar:** the pinned rest timer above ‹ Previous and **Next Exercise** (this becomes **Cool-down** on the last exercise, and turns solid orange once the current exercise is done).
+- **Bottom bar:** the pinned rest timer above ‹ Previous and **Next Exercise** (this becomes **Finish workout** on the last exercise, and turns solid orange once the current exercise is done).
 - **Rest sheet:** opens automatically for each newly logged set and stays closed once minimised, until the next set.
 - **Finishing:** if sets are still empty, a confirm says how many won't count.
 - **Summary:** a progress ring, "Push A complete", the date and time range, then tiles for **Volume** (with % vs the last time you did this day), **Sets**, **Duration** (and whether warm-up/cool-down were done) and **New PRs**. Each PR row shows its type, the new value and the old one. **Done** returns to Today.
