@@ -211,7 +211,7 @@ describe('schema v6 + legacy blob', () => {
       for (const step of MIGRATIONS.slice(0, 5)) step.up(driver);
       driver.exec('PRAGMA user_version = 5');
     });
-    expect(migrate(driver)).toEqual({ from: 5, to: SCHEMA_VERSION, applied: [6] });
+    expect(migrate(driver)).toEqual({ from: 5, to: SCHEMA_VERSION, applied: MIGRATIONS.filter((m) => m.version > 5).map((m) => m.version) });
     const repo = new WorkoutRepository(driver);
     useWorkoutStore.setState({ ...seedExercises(seedPlans(empty())) });
     const store = useWorkoutStore.getState();
@@ -231,7 +231,7 @@ describe('schema v6 + legacy blob', () => {
   });
 
   it('legacy blobs gain the new defaults', () => {
-    expect(PERSISTED_STATE_VERSION).toBe(6);
+    expect(PERSISTED_STATE_VERSION).toBe(7);
     const blob = {
       history: [
         {

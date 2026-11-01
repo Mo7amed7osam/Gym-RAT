@@ -343,7 +343,7 @@ describe('navigation, checklists, selectors, migration', () => {
   });
 
   it('migratePersistedState drops the sync queue (v2→v3), maps weekdays onto plan days (v4→v5) and is a no-op at the current version', () => {
-    expect(PERSISTED_STATE_VERSION).toBe(6);
+    expect(PERSISTED_STATE_VERSION).toBe(7);
     const migrated = migratePersistedState(
       { history: [{ id: 's1', routineId: 'pull_a', weekday: 'sunday', summary: { durationSeconds: 10 } }], syncQueue: [{ kind: 'upsert' }] },
       2,

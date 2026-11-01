@@ -185,7 +185,7 @@ describe('store: custom exercises', () => {
             prescription: { exerciseId: created.id, sets: 1, reps: { min: 10, max: 12 }, rest: { defaultSeconds: 60, minSeconds: 60, maxSeconds: 60 } },
             sets: [{ id: 'set-custom', setNumber: 1, type: 'working', kind: 'normal', rpe: null, rir: null, targetReps: { min: 10, max: 12 }, weightKg: 10, reps: 12, completed: true, completedAt: '2026-11-01T18:00:00.000Z' }],
             skipped: false,
-            notes: '', groupId: null, groupKind: null,
+            notes: '', groupId: null, groupKind: null, recommendation: null,
           },
         ],
       },

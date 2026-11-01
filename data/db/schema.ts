@@ -187,3 +187,8 @@ ALTER TABLE sets ADD COLUMN rir INTEGER;
 ALTER TABLE session_exercises ADD COLUMN group_id TEXT;
 ALTER TABLE session_exercises ADD COLUMN group_kind TEXT;
 `;
+
+/** v7: progressive-overload decision per session exercise (Phase 3, ADR-010). */
+export const SCHEMA_V7 = `
+ALTER TABLE session_exercises ADD COLUMN recommendation_json TEXT;
+`;

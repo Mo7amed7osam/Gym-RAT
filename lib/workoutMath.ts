@@ -1,3 +1,4 @@
+import { detectSessionRecords } from '@/domain/records';
 import { activeSeconds, totalSeconds } from '@/domain/session/reducer';
 import type {
   ExerciseSet,
@@ -5,6 +6,7 @@ import type {
   SessionExercise,
   SessionSummary,
   WeekStart,
+  WeightType,
   WorkoutSession,
 } from '@/types/workout';
 
@@ -171,6 +173,7 @@ export function buildSessionSummary(
   session: WorkoutSession,
   history: readonly WorkoutSession[],
   finishedAt: Date,
+  weightTypeOf: (exerciseId: string) => WeightType = () => 'total',
 ): SessionSummary {
   const { completed, total } = countSets(session);
   const stamped: WorkoutSession = session.finishedAt ? session : { ...session, finishedAt: finishedAt.toISOString() };
@@ -180,7 +183,8 @@ export function buildSessionSummary(
     totalSets: total,
     durationSeconds: totalSeconds(stamped, finishedAt.getTime()),
     activeSeconds: activeSeconds(stamped, finishedAt.getTime()),
-    personalRecords: detectPersonalRecords(session, history),
+    // Phase 3 record engine (ADR-010): one record per kind per exercise, against history without this session.
+    personalRecords: detectSessionRecords(session, history, weightTypeOf),
   };
 }
 

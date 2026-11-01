@@ -241,6 +241,8 @@ export interface SessionExercise {
   notes: string;
   groupId: string | null;
   groupKind: ExerciseGroupKind | null;
+  /** Phase 3: what the user did with the overload suggestion for this exercise, if anything. */
+  recommendation: RecommendationDecision | null;
 }
 
 export type SessionStatus = 'in_progress' | 'completed' | 'cancelled';
@@ -254,12 +256,30 @@ export interface PausedInterval {
   to: ISODateString | null;
 }
 
+/**
+ * Record kinds (spec §13). `estimated_1rm` is an estimate (Epley, ≤ 12 reps);
+ * `reps_at_weight` is the most reps at a given weight; `set_volume` is kg × reps of one set.
+ */
+export type PersonalRecordKind = 'top_weight' | 'estimated_1rm' | 'reps_at_weight' | 'set_volume';
+
 export interface PersonalRecord {
   exerciseId: string;
-  kind: 'top_weight' | 'estimated_1rm';
+  kind: PersonalRecordKind;
   value: number;
   previous: number | null;
   setId: string;
+  /** For `reps_at_weight`: the weight the reps were done at. */
+  weightKg?: number;
+}
+
+/** Outcome of a progressive-overload suggestion for one session exercise (persisted so it survives a kill). */
+export interface RecommendationDecision {
+  weightKg: number | null;
+  repsMin: number;
+  repsMax: number;
+  /** `accepted` applied the prefill; `edited` the user changed it; `dismissed` hid it for this session. */
+  decision: 'accepted' | 'edited' | 'dismissed';
+  decidedAt: ISODateString;
 }
 
 export interface SessionSummary {
@@ -375,4 +395,16 @@ export interface WorkoutSettings {
   warmupRestSeconds: number;
   /** Minutes without a logged set before the workout screen offers Resume / Finish / Keep open. */
   inactivityPromptMinutes: number;
+  /** Suggestion step for load increases (total / machine / barbell). Never used to round typed weights. */
+  progressionStepKg: number;
+  /** Suggestion step for per-hand (dumbbell) loads. */
+  progressionStepPerHandKg: number;
+  /** Show overload suggestions on the workout card. */
+  recommendationsEnabled: boolean;
+  /** Show the coach card on Today. */
+  coachEnabled: boolean;
+  /** Record kinds the user does not want celebrated or listed. */
+  hiddenRecordKinds: PersonalRecordKind[];
+  /** Coach insights the user dismissed: key → ISO date dismissed. */
+  dismissedInsights: Record<string, ISODateString>;
 }

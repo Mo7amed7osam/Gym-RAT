@@ -188,6 +188,12 @@ export const DEFAULT_SETTINGS: WorkoutSettings = {
   restSoundEnabled: true,
   warmupRestSeconds: 45,
   inactivityPromptMinutes: 20,
+  progressionStepKg: 2.5,
+  progressionStepPerHandKg: 1,
+  recommendationsEnabled: true,
+  coachEnabled: true,
+  hiddenRecordKinds: [],
+  dismissedInsights: {},
 };
 
 const MIN_REST_DURATION_MS = 5_000;
@@ -275,6 +281,7 @@ function buildSessionExercise(
     notes: '',
     groupId: null,
     groupKind: null,
+    recommendation: null,
   };
 }
 
@@ -518,7 +525,8 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
 
       const finishedAt = new Date();
       const stamped = reducer.finish(activeSession, finishedAt.toISOString());
-      const finished: WorkoutSession = { ...stamped, summary: buildSessionSummary(stamped, history, finishedAt) };
+      const weightTypeOf = (exerciseId: string) => get().exercises.find((item) => item.id === exerciseId)?.weightType ?? 'total';
+      const finished: WorkoutSession = { ...stamped, summary: buildSessionSummary(stamped, history, finishedAt, weightTypeOf) };
 
       let nextPlans = plans;
       const active = selectActivePlan(get());

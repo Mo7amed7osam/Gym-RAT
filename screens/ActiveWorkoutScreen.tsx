@@ -484,6 +484,8 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
 const PR_LABEL_KEY: Record<PersonalRecord['kind'], string> = {
   top_weight: 'workout.prTopWeight',
   estimated_1rm: 'workout.prEstimated1rm',
+  reps_at_weight: 'workout.prRepsAtWeight',
+  set_volume: 'workout.prSetVolume',
 };
 
 function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; onDone: () => void }) {

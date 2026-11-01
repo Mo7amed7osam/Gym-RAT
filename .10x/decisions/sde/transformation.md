@@ -38,3 +38,7 @@
 - Tech debt: RPE/RIR has no entry UI yet (store + schema only); superset grouping is "with the next exercise" only; inactivity timer polls every 30 s while the screen is mounted.
 
 - 2026-11-01 late: `substituteExercise` keeps `prescription.exerciseId` as the plan slot (snapshot); `saveTargetsToPlan` replaces that slot. Unused `workout.inactivityResume` strings removed.
+
+## Phase 3 — W1 PR engine (2026-11-02)
+- `domain/records`: records derived from history on read (ADR-010): top weight, e1RM (Epley, null above 12 reps), set volume, reps-at-weight, event trail oldest-first; weight-type rules (assisted → reps only, bodyweight → reps at 0 kg); first set is a baseline. `detectSetRecords` (in-workout toast, excludes the active session) and `detectSessionRecords` (summary, one per kind per exercise) replace `detectPersonalRecords`.
+- `PersonalRecordKind` gains `reps_at_weight` and `set_volume`; summaries stay shape-compatible. Schema v7 adds `session_exercises.recommendation_json`; legacy blob v7 defaults it. New settings: progression steps, recommendations/coach toggles, hidden record kinds, dismissed insights.

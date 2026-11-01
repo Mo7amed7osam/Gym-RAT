@@ -127,6 +127,7 @@ interface ExerciseRow {
   notes: string;
   group_id: string | null;
   group_kind: string | null;
+  recommendation_json: string | null;
 }
 
 interface SetRow {
@@ -423,8 +424,19 @@ export class WorkoutRepository {
     d.run('DELETE FROM session_exercises WHERE session_id = ?', [session.id]);
     session.exercises.forEach((exercise, position) => {
       d.run(
-        'INSERT INTO session_exercises (id, session_id, position, exercise_id, prescription_json, skipped, notes, group_id, group_kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [exercise.id, session.id, position, exercise.exerciseId, JSON.stringify(exercise.prescription), exercise.skipped, exercise.notes, exercise.groupId, exercise.groupKind],
+        'INSERT INTO session_exercises (id, session_id, position, exercise_id, prescription_json, skipped, notes, group_id, group_kind, recommendation_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          exercise.id,
+          session.id,
+          position,
+          exercise.exerciseId,
+          JSON.stringify(exercise.prescription),
+          exercise.skipped,
+          exercise.notes,
+          exercise.groupId,
+          exercise.groupKind,
+          exercise.recommendation ? JSON.stringify(exercise.recommendation) : null,
+        ],
       );
       for (const set of exercise.sets) {
         d.run(
@@ -555,6 +567,7 @@ export class WorkoutRepository {
         notes: row.notes,
         groupId: row.group_id ?? null,
         groupKind: (row.group_kind ?? null) as SessionExercise['groupKind'],
+        recommendation: row.recommendation_json ? (JSON.parse(row.recommendation_json) as SessionExercise['recommendation']) : null,
       });
       exercisesBySession.set(row.session_id, list);
     }

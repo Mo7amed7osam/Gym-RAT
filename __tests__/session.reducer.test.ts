@@ -13,7 +13,7 @@ function session(partial: Partial<WorkoutSession> = {}): WorkoutSession {
     prescription: { exerciseId: id, sets: 1, reps: { min: 10, max: 12 }, rest: { defaultSeconds: 90, minSeconds: 60, maxSeconds: 120 } },
     sets: [],
     skipped: false,
-    notes: '', groupId: null, groupKind: null,
+    notes: '', groupId: null, groupKind: null, recommendation: null,
   });
   return {
     id: 's',

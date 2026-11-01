@@ -91,6 +91,8 @@ export const ar: Dictionary = {
     discardMessage: 'سيتم حذف كل ما سُجِّل في هذه الجلسة.',
     prTopWeight: 'أعلى وزن',
     prEstimated1rm: 'تقدير 1RM',
+    prRepsAtWeight: 'تكرارات عند وزن',
+    prSetVolume: 'حجم المجموعة',
     complete: 'اكتمل %{code}',
     volume: 'الحجم',
     firstTime: 'أول تسجيل',

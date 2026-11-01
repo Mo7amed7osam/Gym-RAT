@@ -47,7 +47,7 @@ function exercise(exerciseId: string, sets: ExerciseSet[]): SessionExercise {
     },
     sets: sets.map((item, i) => ({ ...item, setNumber: i + 1 })),
     skipped: false,
-    notes: '', groupId: null, groupKind: null,
+    notes: '', groupId: null, groupKind: null, recommendation: null,
   };
 }
 
