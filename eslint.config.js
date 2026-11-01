@@ -12,6 +12,11 @@ module.exports = defineConfig([
     files: ['app/**/*.{ts,tsx}', 'screens/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}'],
     ignores: ['app/+html.tsx'],
     rules: {
+      // UI text comes from i18n dictionaries (ADR-005). Symbols and separators are allowed.
+      'react/jsx-no-literals': [
+        'error',
+        { noStrings: false, allowedStrings: ['·', '×', '%', '/', '–', '—', '+', '-', '(', ')', ':', ',', '•'], ignoreProps: true },
+      ],
       'no-restricted-syntax': [
         'error',
         {

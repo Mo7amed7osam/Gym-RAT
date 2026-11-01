@@ -10,6 +10,7 @@ import { getExercise } from '@/data/exercisesData';
 import { STRETCH_ROUTINES, WARMUP_STAGES } from '@/data/warmupData';
 import { hapticSelection, hapticWarning } from '@/lib/feedback';
 import { getPreviousPerformance, isCountedSet, roundTo } from '@/lib/workoutMath';
+import { useLocale, useT } from '@/i18n';
 import { formatRestTime } from '@/store/useRestTimerCountdown';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import type { StretchMove, StretchRoutine, WarmupStage } from '@/types/workout';
@@ -57,6 +58,7 @@ interface WarmupRoutineProps {
  * Stateless about completion: the screen passes `completedIds` / `onToggle`.
  */
 export function WarmupRoutine({ day, completedIds, onToggle }: WarmupRoutineProps) {
+  const t = useT();
   const styles = useStyles();
   const theme = useTheme();
   const completed = new Set(completedIds);
@@ -67,11 +69,9 @@ export function WarmupRoutine({ day, completedIds, onToggle }: WarmupRoutineProp
       <View style={styles.intro}>
         <View style={styles.introText}>
           <Text style={styles.title} accessibilityRole="header">
-            Warm-up
+            {t('warmup.title')}
           </Text>
-          <Text style={styles.subtitle}>
-            {`Three stages${day ? ` before ${day.code}` : ''}: raise your heart rate, move every joint, then rehearse the first lift light.`}
-          </Text>
+          <Text style={styles.subtitle}>{t('warmup.subtitle', { before: day ? t('warmup.beforeCode', { code: day.code }) : '' })}</Text>
         </View>
         <ProgressRing size={64} strokeWidth={7} progress={progress} color={progress >= 1 ? theme.colors.success : theme.colors.tint}>
           <Text style={styles.percent}>{Math.round(progress * 100)}%</Text>
@@ -92,6 +92,8 @@ function WarmupStages({
   completed: ReadonlySet<string>;
   onToggle: (itemId: string) => void;
 }) {
+  const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const [showPreWorkout, setShowPreWorkout] = useState(false);
@@ -104,8 +106,8 @@ function WarmupStages({
         const done = isStageDone(stage, completed);
         const detail =
           stage.id === 'acclimation_sets' && firstExercise
-            ? `${firstExercise.name.en}, 2 × 12–15${acclimationKg ? ` at ~${acclimationKg} kg` : ' light'}`
-            : stage.detail.en;
+            ? t('warmup.acclimation', { name: firstExercise.name.en, weight: acclimationKg ? t('warmup.acclimationAt', { kg: acclimationKg }) : t('warmup.acclimationLight') })
+            : stage.detail[locale];
 
         return (
           <View key={stage.id} style={styles.stageCard}>
@@ -118,13 +120,13 @@ function WarmupStages({
             >
               <CheckMark checked={done} />
               <View style={styles.flex}>
-                <Text style={styles.stageTitle}>
-                  {stage.order}. {stage.title.en}
-                </Text>
+                <Text style={styles.stageTitle}>{`${stage.order}. ${stage.title[locale]}`}</Text>
                 <Text style={styles.stageDetail}>{detail}</Text>
-                <Text style={styles.arabicSmall} accessibilityLanguage="ar">
-                  {stage.detail.ar}
-                </Text>
+                {locale === 'en' ? (
+                  <Text style={styles.arabicSmall} accessibilityLanguage="ar">
+                    {stage.detail.ar}
+                  </Text>
+                ) : null}
               </View>
             </Pressable>
 
@@ -143,8 +145,8 @@ function WarmupStages({
           style={styles.stageHeader}
         >
           <View style={styles.flex}>
-            <Text style={styles.stageTitle}>{PRE_WORKOUT.title.en} (optional)</Text>
-            <Text style={styles.stageDetail}>{PRE_WORKOUT.description.en}</Text>
+            <Text style={styles.stageTitle}>{t('warmup.optional', { title: PRE_WORKOUT.title[locale] })}</Text>
+            <Text style={styles.stageDetail}>{PRE_WORKOUT.description[locale]}</Text>
           </View>
           {showPreWorkout ? (
             <ChevronUp size={20} color={theme.colors.labelSecondary} />
@@ -157,7 +159,7 @@ function WarmupStages({
         ) : null}
       </View>
 
-      <Text style={styles.footnote}>Dynamic stretches help prevent injury. Keep static holds short before lifting.</Text>
+      <Text style={styles.footnote}>{t('warmup.footnote')}</Text>
     </>
   );
 }
@@ -185,6 +187,8 @@ interface StretchSessionProps {
 }
 
 function StretchSession({ routine, completed, onToggle, embedded = false }: StretchSessionProps) {
+  const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const hapticsEnabled = useWorkoutStore((state) => state.settings.hapticsEnabled);
@@ -202,7 +206,7 @@ function StretchSession({ routine, completed, onToggle, embedded = false }: Stre
             source={STRETCH_POSTERS[routine.posterKey]}
             style={styles.posterImage}
             resizeMode="contain"
-            accessibilityLabel={`${routine.title.en} reference poster`}
+            accessibilityLabel={t('warmup.posterA11y', { title: routine.title[locale] })}
             accessibilityIgnoresInvertColors
           />
         </View>
@@ -219,31 +223,30 @@ function StretchSession({ routine, completed, onToggle, embedded = false }: Stre
         </ProgressRing>
         <View style={styles.flex}>
           <Text style={styles.nowEyebrow}>
-            Stretch {timer.index + 1} of {routine.moves.length}
-            {current.bothSides ? `, side ${timer.side} of 2` : ''}
+            {`${t('warmup.stretchOf', { n: timer.index + 1, total: routine.moves.length })}${current.bothSides ? t('warmup.side', { side: timer.side }) : ''}`}
           </Text>
-          <Text style={styles.nowName}>{current.name.en}</Text>
-          <Text style={styles.nowInstruction}>{current.instruction.en}</Text>
+          <Text style={styles.nowName}>{current.name[locale]}</Text>
+          <Text style={styles.nowInstruction}>{current.instruction[locale]}</Text>
         </View>
       </View>
       <View style={styles.nowControls}>
         <Pressable
           onPress={timer.running ? timer.pause : timer.start}
           accessibilityRole="button"
-          accessibilityLabel={timer.running ? `Pause ${current.name.en}` : `Start ${current.name.en}`}
+          accessibilityLabel={timer.running ? t('warmup.pauseA11y', { name: current.name[locale] }) : t('warmup.startA11y', { name: current.name[locale] })}
           style={({ pressed }) => [styles.controlButton, styles.controlPrimary, pressed && styles.pressed]}
         >
           {timer.running ? <Pause size={18} color={theme.colors.onTint} fill={theme.colors.onTint} /> : <Play size={18} color={theme.colors.onTint} fill={theme.colors.onTint} />}
-          <Text style={styles.controlPrimaryText}>{timer.running ? 'Pause' : 'Start'}</Text>
+          <Text style={styles.controlPrimaryText}>{timer.running ? t('warmup.pause') : t('warmup.start')}</Text>
         </Pressable>
         <Pressable
           onPress={timer.next}
           accessibilityRole="button"
-          accessibilityLabel="Mark done and go to next stretch"
+          accessibilityLabel={t('warmup.doneNextA11y')}
           style={({ pressed }) => [styles.controlButton, styles.controlSecondary, pressed && styles.pressed]}
         >
           <SkipForward size={18} color={theme.colors.link} />
-          <Text style={styles.controlSecondaryText}>Done, next</Text>
+          <Text style={styles.controlSecondaryText}>{t('warmup.doneNext')}</Text>
         </Pressable>
       </View>
 
@@ -267,20 +270,21 @@ function StretchSession({ routine, completed, onToggle, embedded = false }: Stre
               <Pressable
                 onPress={() => timer.select(index)}
                 accessibilityRole="button"
-                accessibilityLabel={`Select ${move.name.en}`}
+                accessibilityLabel={t('warmup.selectA11y', { name: move.name[locale] })}
                 style={styles.moveBody}
               >
                 <View style={styles.flex}>
                   <Text style={[styles.moveName, isCurrent && styles.moveNameCurrent, done && styles.moveNameDone]}>
-                    {move.name.en}
+                    {move.name[locale]}
                   </Text>
-                  <Text style={styles.arabicSmall} accessibilityLanguage="ar">
-                    {move.name.ar}
-                  </Text>
+                  {locale === 'en' ? (
+                    <Text style={styles.arabicSmall} accessibilityLanguage="ar">
+                      {move.name.ar}
+                    </Text>
+                  ) : null}
                 </View>
                 <Text style={styles.moveHold}>
-                  {formatRestTime(move.holdSeconds)}
-                  {move.bothSides ? ' ×2' : ''}
+                  {`${formatRestTime(move.holdSeconds)}${move.bothSides ? t('warmup.times2') : ''}`}
                 </Text>
               </Pressable>
             </View>

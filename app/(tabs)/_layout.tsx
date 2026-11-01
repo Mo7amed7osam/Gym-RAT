@@ -1,10 +1,12 @@
 import { Tabs } from 'expo-router';
 import { ChartColumn, House } from 'lucide-react-native';
+import { useT } from '@/i18n';
 import { useTheme } from '@/theme';
 
 
 export default function TabLayout() {
   const theme = useTheme();
+  const t = useT();
   return (
     <Tabs
       screenOptions={{
@@ -22,14 +24,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Today',
+          title: t('tabs.today'),
           tabBarIcon: ({ color, size }) => <House color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
-          title: 'History',
+          title: t('tabs.history'),
           tabBarIcon: ({ color, size }) => <ChartColumn color={color} size={size} />,
         }}
       />

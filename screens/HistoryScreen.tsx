@@ -13,6 +13,7 @@ import { getExercise } from '@/data/exercisesData';
 import { isSessionForDay } from '@/data/plans';
 import { formatDuration, formatKg, formatKgCompact, formatShortDate, percentChange, startOfWeek } from '@/lib/format';
 import { formatSet, isCountedSet, sessionVolumeKg, weeklyVolumeKg } from '@/lib/workoutMath';
+import { useT } from '@/i18n';
 import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { WorkoutSession } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
@@ -30,6 +31,7 @@ interface VolumeRecord {
 const volumeOf = (session: WorkoutSession) => session.summary?.totalVolumeKg ?? sessionVolumeKg(session);
 
 export default function HistoryScreen() {
+  const t = useT();
   const styles = useStyles();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -71,7 +73,7 @@ export default function HistoryScreen() {
     <View style={styles.root}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.lg }]} showsVerticalScrollIndicator={false}>
         <Text style={styles.largeTitle} accessibilityRole="header">
-          History
+          {t('history.title')}
         </Text>
 
         {completed.length === 0 ? (
@@ -79,22 +81,18 @@ export default function HistoryScreen() {
             <View style={styles.emptyIcon}>
               <ChartColumn size={28} color={theme.colors.tint} />
             </View>
-            <Text style={styles.emptyTitle}>No workouts logged</Text>
-            <Text style={styles.secondary}>
-              Finish a session and it lands here: weekly volume, your best day per routine, every set you lifted and
-              the PRs you hit.
-            </Text>
-            <Button label="Go to today's workout" onPress={() => router.navigate('/')} style={styles.emptyButton} />
+            <Text style={styles.emptyTitle}>{t('history.emptyTitle')}</Text>
+            <Text style={styles.secondary}>{t('history.emptyBody')}</Text>
+            <Button label={t('history.goToToday')} onPress={() => router.navigate('/')} style={styles.emptyButton} />
           </View>
         ) : (
           <>
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Weekly volume</Text>
+                <Text style={styles.cardTitle}>{t('history.weeklyVolume')}</Text>
                 {weekChange !== null ? (
                   <Text style={[styles.change, { color: weekChange >= 0 ? theme.colors.success : theme.colors.labelSecondary }]}>
-                    {weekChange >= 0 ? '+' : ''}
-                    {weekChange}% vs last week
+                    {t('history.vsLastWeek', { delta: `${weekChange >= 0 ? '+' : ''}${weekChange}` })}
                   </Text>
                 ) : null}
               </View>
@@ -102,13 +100,13 @@ export default function HistoryScreen() {
             </View>
 
             <View style={styles.tiles}>
-              <Tile label="Sessions" value={String(completed.length)} />
-              <Tile label="All-time volume" value={formatKgCompact(completed.reduce((total, session) => total + volumeOf(session), 0))} />
-              <Tile label="PRs" value={String(totalPrs)} />
+              <Tile label={t('history.sessions')} value={String(completed.length)} />
+              <Tile label={t('history.allTimeVolume')} value={formatKgCompact(completed.reduce((total, session) => total + volumeOf(session), 0))} />
+              <Tile label={t('history.prs')} value={String(totalPrs)} />
             </View>
 
             <View style={styles.section}>
-              <SectionHeader title="Volume records" />
+              <SectionHeader title={t('history.volumeRecords')} />
               <View style={styles.group}>
                 {records.map((record, index) => (
                   <View key={record.dayId} style={[styles.recordRow, index < records.length - 1 && styles.divider]}>
@@ -116,17 +114,17 @@ export default function HistoryScreen() {
                     <View style={styles.flex}>
                       <Text style={styles.headline}>{record.code}</Text>
                       <Text style={styles.caption}>
-                        {record.session ? formatShortDate(record.session.startedAt) : 'Not logged yet'}
+                        {record.session ? formatShortDate(record.session.startedAt) : t('history.notLoggedYet')}
                       </Text>
                     </View>
-                    <Text style={styles.recordValue}>{record.session ? formatKg(record.volumeKg) : '—'}</Text>
+                    <Text style={styles.recordValue}>{record.session ? formatKg(record.volumeKg) : t('common.none')}</Text>
                   </View>
                 ))}
               </View>
             </View>
 
             <View style={styles.section}>
-              <SectionHeader title="Recent sessions" />
+              <SectionHeader title={t('history.recentSessions')} />
               <View style={styles.group}>
                 {completed.map((session, index) => (
                   <SessionRow
@@ -146,9 +144,9 @@ export default function HistoryScreen() {
 
       <ConfirmDialog
         visible={pendingDelete !== null}
-        title="Delete session?"
-        message={pendingDelete ? `${pendingDelete.code} on ${formatShortDate(pendingDelete.startedAt)} will be removed from history and records.` : ''}
-        confirmLabel="Delete"
+        title={t('history.deleteTitle')}
+        message={pendingDelete ? t('history.deleteMessage', { code: pendingDelete.code, date: formatShortDate(pendingDelete.startedAt) }) : ''}
+        confirmLabel={t('common.delete')}
         destructive
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {
@@ -173,6 +171,7 @@ function SessionRow({
   onToggle: () => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   const styles = useStyles();
   const theme = useTheme();
   const summary = session.summary;
@@ -186,7 +185,7 @@ function SessionRow({
         onLongPress={onDelete}
         accessibilityRole="button"
         accessibilityState={{ expanded }}
-        accessibilityHint="Long press to delete"
+        accessibilityHint={t('history.deleteHint')}
         style={({ pressed }) => [styles.sessionRow, pressed && styles.pressed]}
       >
         <Badge code={session.code} />
@@ -195,7 +194,7 @@ function SessionRow({
           <Text style={styles.caption}>{formatShortDate(session.startedAt)}</Text>
           {summary ? (
             <Text style={styles.caption}>
-              {formatDuration(summary.durationSeconds)}, {summary.completedSets} of {summary.totalSets} sets
+              {t('history.sessionMeta', { duration: formatDuration(summary.durationSeconds), completed: summary.completedSets, total: summary.totalSets })}
             </Text>
           ) : null}
         </View>
@@ -230,7 +229,7 @@ function SessionRow({
             })}
           <Pressable onPress={onDelete} accessibilityRole="button" style={styles.deleteButton}>
             <Trash size={16} color={theme.colors.destructive} />
-            <Text style={styles.deleteText}>Delete session</Text>
+            <Text style={styles.deleteText}>{t('history.deleteSession')}</Text>
           </Pressable>
         </View>
       ) : null}

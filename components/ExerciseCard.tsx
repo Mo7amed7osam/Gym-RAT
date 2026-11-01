@@ -10,20 +10,13 @@ import { HIT } from '@/constants/theme';
 import { MUSCLE_LABELS, getExercise } from '@/data/exercisesData';
 import { hapticSelection, hapticSetCompleted } from '@/lib/feedback';
 import { formatSet, getExerciseBests, getPreviousSetAt } from '@/lib/workoutMath';
+import { useLocale, useT } from '@/i18n';
 import { formatRestTime } from '@/store/useRestTimerCountdown';
 import { selectPreviousExercise, useWorkoutStore, type SetValues } from '@/store/useWorkoutStore';
 import type { Equipment, RestPeriod, SessionExercise } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
 
-const EQUIPMENT_LABELS: Record<Equipment, string> = {
-  barbell: 'Barbell',
-  ez_bar: 'EZ Bar',
-  dumbbell: 'Dumbbell',
-  cable: 'Cable',
-  machine: 'Machine',
-  bench: 'Bench',
-  bodyweight: 'Bodyweight',
-};
+const equipmentKey = (equipment: Equipment): string => `exercise.equipment.${equipment}`;
 
 function formatRest(rest: RestPeriod): string {
   return rest.minSeconds === rest.maxSeconds
@@ -40,6 +33,8 @@ interface ExerciseCardProps {
 }
 
 export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: ExerciseCardProps) {
+  const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const exercise = getExercise(sessionExercise.exerciseId);
@@ -80,9 +75,7 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>
-          Exercise {position} of {total}
-        </Text>
+        <Text style={styles.eyebrow}>{t('exercise.position', { n: position, total })}</Text>
         <Text style={styles.title} accessibilityRole="header">
           {name}
         </Text>
@@ -93,16 +86,16 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
         ) : null}
         <View style={styles.chips}>
           {muscles.map((muscle) => (
-            <Chip key={muscle} label={MUSCLE_LABELS[muscle].en} />
+            <Chip key={muscle} label={MUSCLE_LABELS[muscle][locale]} />
           ))}
-          {exercise?.equipment[0] ? <Chip label={EQUIPMENT_LABELS[exercise.equipment[0]]} tone="link" /> : null}
+          {exercise?.equipment[0] ? <Chip label={t(equipmentKey(exercise.equipment[0]))} tone="link" /> : null}
         </View>
       </View>
 
       <Pressable
         onPress={() => onOpenVideo(sessionExercise.exerciseId)}
         accessibilityRole="button"
-        accessibilityLabel={`Watch form tutorial for ${name}`}
+        accessibilityLabel={t('exercise.watchTutorial', { name })}
         style={({ pressed }) => [
           styles.thumbnail,
           imageSource && styles.thumbnailPhoto,
@@ -126,7 +119,7 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
         )}
         <View style={styles.playBadge}>
           <CirclePlay size={18} color={theme.colors.link} />
-          <Text style={styles.playText}>Form video</Text>
+          <Text style={styles.playText}>{t('exercise.formVideo')}</Text>
         </View>
       </Pressable>
 
@@ -141,17 +134,17 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
       ) : null}
 
       <View style={styles.stats}>
-        <Stat label="Target" value={`${prescription.sets} × ${formatRepRange(prescription.reps.min, prescription.reps.max)}`} />
-        <Stat label="Rest" value={formatRest(prescription.rest)} />
-        <Stat label="Best" value={bests.bestSet ? formatSet(bests.bestSet) : '—'} />
+        <Stat label={t('exercise.target')} value={`${prescription.sets} × ${formatRepRange(prescription.reps.min, prescription.reps.max)}`} />
+        <Stat label={t('exercise.rest')} value={formatRest(prescription.rest)} />
+        <Stat label={t('exercise.best')} value={bests.bestSet ? formatSet(bests.bestSet) : t('common.none')} />
       </View>
 
       <View style={styles.grid}>
         <View style={styles.gridHeader} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <Text style={[styles.columnLabel, { width: SET_GRID_COLUMNS.set }]}>Set</Text>
-          <Text style={[styles.columnLabel, styles.previousColumn]}>Previous</Text>
-          <Text style={[styles.columnLabel, styles.centered, { width: SET_GRID_COLUMNS.weight }]}>kg</Text>
-          <Text style={[styles.columnLabel, styles.centered, { width: SET_GRID_COLUMNS.reps }]}>Reps</Text>
+          <Text style={[styles.columnLabel, { width: SET_GRID_COLUMNS.set }]}>{t('exercise.columnSet')}</Text>
+          <Text style={[styles.columnLabel, styles.previousColumn]}>{t('exercise.columnPrevious')}</Text>
+          <Text style={[styles.columnLabel, styles.centered, { width: SET_GRID_COLUMNS.weight }]}>{t('exercise.columnKg')}</Text>
+          <Text style={[styles.columnLabel, styles.centered, { width: SET_GRID_COLUMNS.reps }]}>{t('exercise.columnReps')}</Text>
           <View style={{ width: SET_GRID_COLUMNS.check }} />
         </View>
 
@@ -175,17 +168,17 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
         <Pressable
           onPress={() => addSet(sessionExercise.id)}
           accessibilityRole="button"
-          accessibilityLabel="Add set"
+          accessibilityLabel={t('exercise.addSet')}
           style={({ pressed }) => [styles.footerButton, pressed && styles.pressed]}
         >
           <Plus size={18} color={theme.colors.link} strokeWidth={2.25} />
-          <Text style={styles.footerText}>Add set</Text>
+          <Text style={styles.footerText}>{t('exercise.addSet')}</Text>
         </Pressable>
         <Pressable
           onPress={() => firstIncompleteWorkingSet && handleToggleType(firstIncompleteWorkingSet.id)}
           disabled={!firstIncompleteWorkingSet}
           accessibilityRole="button"
-          accessibilityLabel="Mark next set as warm-up"
+          accessibilityLabel={t('exercise.markWarmupA11y')}
           accessibilityState={{ disabled: !firstIncompleteWorkingSet }}
           style={({ pressed }) => [
             styles.footerButton,
@@ -193,7 +186,7 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenVideo }: 
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.footerText}>Mark warm-up</Text>
+          <Text style={styles.footerText}>{t('exercise.markWarmup')}</Text>
         </Pressable>
       </View>
     </View>
@@ -205,9 +198,10 @@ function formatRepRange(min: number, max: number): string {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const t = useT();
   const styles = useStyles();
   return (
-    <View style={styles.stat} accessible accessibilityLabel={`${label} ${value}`}>
+    <View style={styles.stat} accessible accessibilityLabel={t('exercise.statA11y', { label, value })}>
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
         {value}

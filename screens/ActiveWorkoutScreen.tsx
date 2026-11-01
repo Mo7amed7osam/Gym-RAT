@@ -27,15 +27,16 @@ import { isSessionForDay } from '@/data/plans';
 import { formatDuration, formatElapsed, formatKg, formatLongDate, formatTime, percentChange } from '@/lib/format';
 import { countSets } from '@/lib/workoutMath';
 import { activeSeconds, isPaused } from '@/domain/session/reducer';
+import { useT } from '@/i18n';
 import { selectIsWorkoutPaused, selectNextDay, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { PersonalRecord, SessionExercise, WorkoutSession } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
 
 type Stage = 'warmup' | 'exercises';
 
-const STAGES: { id: Stage; label: string }[] = [
-  { id: 'warmup', label: 'Warm-up' },
-  { id: 'exercises', label: 'Workout' },
+const STAGES: { id: Stage; labelKey: string }[] = [
+  { id: 'warmup', labelKey: 'workout.stageWarmup' },
+  { id: 'exercises', labelKey: 'workout.stageWorkout' },
 ];
 
 export default function ActiveWorkoutScreen() {
@@ -63,6 +64,7 @@ function useNow(intervalMs: number): number {
 
 /** Ticks on its own so the rest of the runner doesn't re-render every second. Shows active time (pauses excluded). */
 function ElapsedLabel({ session, completed, total }: { session: WorkoutSession; completed: number; total: number }) {
+  const t = useT();
   const styles = useStyles();
   const now = useNow(1000);
   const seconds = activeSeconds(session, now);
@@ -70,10 +72,9 @@ function ElapsedLabel({ session, completed, total }: { session: WorkoutSession; 
   return (
     <Text
       style={[styles.topElapsed, paused && styles.topElapsedPaused]}
-      accessibilityLabel={`${paused ? 'Paused, ' : ''}${formatElapsed(seconds)} active, ${completed} of ${total} sets`}
+      accessibilityLabel={t('workout.elapsedA11y', { paused: paused ? `${t('workout.paused')}, ` : '', time: formatElapsed(seconds), completed, total })}
     >
-      {paused ? 'Paused · ' : ''}
-      {formatElapsed(seconds)}
+      {`${paused ? `${t('workout.paused')} · ` : ''}${formatElapsed(seconds)}`}
     </Text>
   );
 }
@@ -81,6 +82,7 @@ function ElapsedLabel({ session, completed, total }: { session: WorkoutSession; 
 const isExerciseDone = (exercise: SessionExercise) => exercise.sets.length > 0 && exercise.sets.every((set) => set.completed);
 
 function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFinished: (session: WorkoutSession) => void }) {
+  const t = useT();
   const styles = useStyles();
   const theme = useTheme();
   const router = useRouter();
@@ -134,7 +136,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         <Pressable
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
           accessibilityRole="button"
-          accessibilityLabel="Minimise workout"
+          accessibilityLabel={t('workout.minimise')}
           style={styles.iconButton}
         >
           <ChevronDown size={24} color={theme.colors.label} />
@@ -146,13 +148,13 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         <Pressable
           onPress={paused ? resumeWorkout : pauseWorkout}
           accessibilityRole="button"
-          accessibilityLabel={paused ? 'Resume workout' : 'Pause workout'}
+          accessibilityLabel={paused ? t('workout.resume') : t('workout.pause')}
           style={styles.iconButton}
         >
           {paused ? <Play size={22} color={theme.colors.tint} fill={theme.colors.tint} /> : <Pause size={22} color={theme.colors.label} fill={theme.colors.label} />}
         </Pressable>
         <Pressable onPress={requestFinish} accessibilityRole="button" style={styles.finishButton}>
-          <Text style={styles.finishText}>Finish</Text>
+          <Text style={styles.finishText}>{t('common.finish')}</Text>
         </Pressable>
       </View>
 
@@ -171,7 +173,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
               accessibilityState={{ selected }}
               style={[styles.segment, selected && styles.segmentSelected]}
             >
-              <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>{item.label}</Text>
+              <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>{t(item.labelKey)}</Text>
             </Pressable>
           );
         })}
@@ -204,7 +206,12 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                       onPress={() => goToExercise(i)}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Exercise ${i + 1}, ${getExercise(exercise.exerciseId)?.name.en ?? ''}${done ? ', done' : ''}${exercise.skipped ? ', skipped' : ''}`}
+                      accessibilityLabel={t('workout.exerciseA11y', {
+                        n: i + 1,
+                        name: getExercise(exercise.exerciseId)?.name.en ?? '',
+                        done: done ? t('workout.doneSuffix') : '',
+                        skipped: exercise.skipped ? t('workout.skippedSuffix') : '',
+                      })}
                       style={[styles.navChip, selected && styles.navChipSelected, exercise.skipped && styles.navChipSkipped]}
                     >
                       <ExerciseThumb exerciseId={exercise.exerciseId} size={44} />
@@ -230,7 +237,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                 <View style={styles.upNext}>
                   <ExerciseThumb exerciseId={next.exerciseId} size={48} />
                   <View style={styles.flex}>
-                    <Text style={styles.upNextLabel}>Up next</Text>
+                    <Text style={styles.upNextLabel}>{t('common.upNext')}</Text>
                     <Text style={styles.upNextName} numberOfLines={1}>
                       {getExercise(next.exerciseId)?.name.en}
                     </Text>
@@ -248,20 +255,20 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                   accessibilityRole="button"
                   style={styles.linkButton}
                 >
-                  <Text style={styles.linkText}>{current.skipped ? 'Unskip exercise' : 'Skip exercise'}</Text>
+                  <Text style={styles.linkText}>{current.skipped ? t('workout.unskipExercise') : t('workout.skipExercise')}</Text>
                 </Pressable>
                 {!isLastExercise && !isExerciseDone(current) ? (
                   <Pressable
                     onPress={() => deferExercise(current.id)}
                     accessibilityRole="button"
-                    accessibilityHint="Moves this exercise to the end of the workout"
+                    accessibilityHint={t('workout.doLaterHint')}
                     style={styles.linkButton}
                   >
-                    <Text style={styles.linkText}>Do later</Text>
+                    <Text style={styles.linkText}>{t('workout.doLater')}</Text>
                   </Pressable>
                 ) : null}
                 <Pressable onPress={() => setConfirm('discard')} accessibilityRole="button" style={styles.linkButton}>
-                  <Text style={[styles.linkText, { color: theme.colors.destructive }]}>Discard workout</Text>
+                  <Text style={[styles.linkText, { color: theme.colors.destructive }]}>{t('workout.discardWorkout')}</Text>
                 </Pressable>
               </View>
             </>
@@ -273,7 +280,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         <RestTimerPill onExpand={() => setDismissedRestKey(null)} />
         {stage === 'warmup' ? (
           <Button
-            label={getRoutineProgress(session.warmupCompletedIds) >= 1 ? `Begin ${session.code}` : `Skip to ${session.code}`}
+            label={getRoutineProgress(session.warmupCompletedIds) >= 1 ? t('workout.beginCode', { code: session.code }) : t('workout.skipToCode', { code: session.code })}
             onPress={() => setStage('exercises')}
           />
         ) : null}
@@ -283,14 +290,14 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
               onPress={() => goToExercise(index - 1)}
               disabled={index === 0}
               accessibilityRole="button"
-              accessibilityLabel="Previous exercise"
+              accessibilityLabel={t('workout.previousExercise')}
               accessibilityState={{ disabled: index === 0 }}
               style={[styles.prevButton, index === 0 && styles.disabled]}
             >
               <ChevronLeft size={22} color={theme.colors.label} />
             </Pressable>
             <Button
-              label={isLastExercise ? 'Finish workout' : 'Next exercise'}
+              label={isLastExercise ? t('workout.finishWorkout') : t('workout.nextExercise')}
               variant={current && isExerciseDone(current) ? 'primary' : 'tinted'}
               onPress={advance}
               style={styles.flex}
@@ -303,17 +310,17 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
       <VideoModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
       <ConfirmDialog
         visible={confirm === 'finish'}
-        title="Finish workout?"
-        message={`${total - completed} of ${total} sets aren't logged yet. They won't count toward volume.`}
-        confirmLabel="Finish"
+        title={t('workout.finishTitle')}
+        message={t('workout.finishMessage', { missing: total - completed, total })}
+        confirmLabel={t('common.finish')}
         onCancel={() => setConfirm(null)}
         onConfirm={finish}
       />
       <ConfirmDialog
         visible={confirm === 'discard'}
-        title="Discard workout?"
-        message="Everything logged in this session will be deleted."
-        confirmLabel="Discard"
+        title={t('workout.discardTitle')}
+        message={t('workout.discardMessage')}
+        confirmLabel={t('common.discard')}
         destructive
         onCancel={() => setConfirm(null)}
         onConfirm={() => {
@@ -328,12 +335,13 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
 
 // ─── Completion modal ────────────────────────────────────────────────────────
 
-const PR_LABEL: Record<PersonalRecord['kind'], string> = {
-  top_weight: 'Top weight',
-  estimated_1rm: 'Est. 1RM',
+const PR_LABEL_KEY: Record<PersonalRecord['kind'], string> = {
+  top_weight: 'workout.prTopWeight',
+  estimated_1rm: 'workout.prEstimated1rm',
 };
 
 function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; onDone: () => void }) {
+  const t = useT();
   const styles = useStyles();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -371,7 +379,7 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
               <Text style={styles.summaryPercent}>{Math.round(progress * 100)}%</Text>
             </ProgressRing>
             <Text style={styles.summaryTitle} accessibilityRole="header">
-              {session.code} complete
+              {t('workout.complete', { code: session.code })}
             </Text>
             <Text style={styles.summaryDate}>
               {formatLongDate(new Date(session.startedAt))} · {formatTime(session.startedAt)}
@@ -381,24 +389,24 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
 
           <View style={styles.summaryGrid}>
             <SummaryTile
-              label="Volume"
+              label={t('workout.volume')}
               value={formatKg(summary.totalVolumeKg)}
-              detail={change === null ? 'First time logged' : `${change >= 0 ? '+' : ''}${change}% vs last ${session.code}`}
+              detail={change === null ? t('workout.firstTime') : t('workout.vsLast', { delta: `${change >= 0 ? '+' : ''}${change}`, code: session.code })}
               positive={change !== null && change >= 0}
             />
-            <SummaryTile label="Sets" value={`${summary.completedSets} / ${summary.totalSets}`} detail={`${exercisesDone} exercises`} />
+            <SummaryTile label={t('workout.sets')} value={`${summary.completedSets} / ${summary.totalSets}`} detail={t('workout.exercisesDone', { count: exercisesDone })} />
             <SummaryTile
-              label="Duration"
+              label={t('workout.duration')}
               value={formatDuration(summary.durationSeconds)}
               detail={
                 summary.activeSeconds < summary.durationSeconds
-                  ? `${formatDuration(summary.activeSeconds)} active`
+                  ? t('workout.activeDetail', { time: formatDuration(summary.activeSeconds) })
                   : session.warmupCompletedIds.length > 0
-                    ? 'with warm-up'
-                    : 'no warm-up'
+                    ? t('workout.withWarmup')
+                    : t('workout.noWarmup')
               }
             />
-            <SummaryTile label="New PRs" value={String(summary.personalRecords.length)} detail="vs all history" positive={summary.personalRecords.length > 0} />
+            <SummaryTile label={t('workout.newPrs')} value={String(summary.personalRecords.length)} detail={t('workout.vsAllHistory')} positive={summary.personalRecords.length > 0} />
           </View>
 
           {summary.personalRecords.length > 0 ? (
@@ -415,11 +423,9 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
                     <Text style={styles.prName} numberOfLines={1}>
                       {getExercise(record.exerciseId)?.name.en}
                     </Text>
-                    <Text style={styles.prDetail}>
-                      {PR_LABEL[record.kind]} · was {record.previous ?? '—'} kg
-                    </Text>
+                    <Text style={styles.prDetail}>{t('workout.prWas', { kind: t(PR_LABEL_KEY[record.kind]), previous: record.previous ?? t('common.none') })}</Text>
                   </View>
-                  <Text style={styles.prValue}>{record.value} kg</Text>
+                  <Text style={styles.prValue}>{t('workout.prValue', { value: record.value })}</Text>
                 </View>
               ))}
             </View>
@@ -427,18 +433,18 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
 
           {nextDay ? (
             <View style={styles.nextUp}>
-              <Text style={styles.upNextLabel}>Up next in your rotation</Text>
+              <Text style={styles.upNextLabel}>{t('workout.nextInRotation')}</Text>
               <Text style={styles.upNextName}>{nextDay.code}</Text>
               {repeatable ? (
                 <Pressable onPress={() => setNextDay(thisDayIndex)} accessibilityRole="button" style={styles.linkButton}>
-                  <Text style={styles.linkText}>Repeat {session.code} next time instead</Text>
+                  <Text style={styles.linkText}>{t('workout.repeatInstead', { code: session.code })}</Text>
                 </Pressable>
               ) : null}
             </View>
           ) : null}
         </ScrollView>
         <View style={[styles.bottomBar, { paddingBottom: insets.bottom + theme.spacing.sm }]}>
-          <Button label="Done" onPress={onDone} />
+          <Button label={t('common.done')} onPress={onDone} />
         </View>
       </View>
     </Modal>

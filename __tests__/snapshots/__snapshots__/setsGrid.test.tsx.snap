@@ -25,10 +25,7 @@ exports[`ExerciseCard renders header, stat tiles, sets grid and footer for the f
         }
       }
     >
-      Exercise 
-      1
-       of 
-      9
+      Exercise 1 of 9
     </Text>
     <Text
       accessibilityRole="header"

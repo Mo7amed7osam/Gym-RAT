@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { HIT } from '@/constants/theme';
 import { MUSCLE_LABELS, getExercise } from '@/data/exercisesData';
+import { useLocale, useT } from '@/i18n';
 import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Exercise } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
@@ -48,6 +49,8 @@ function VideoSheetContent({
   onClose: () => void;
   bottomInset: number;
 }) {
+  const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const [openError, setOpenError] = useState<string | null>(null);
@@ -71,7 +74,7 @@ function VideoSheetContent({
         presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
       });
     } catch {
-      setOpenError("Couldn't open the in-app browser. Try the YouTube app instead.");
+      setOpenError(t('video.browserError'));
     }
   };
 
@@ -81,7 +84,7 @@ function VideoSheetContent({
       // Universal link: opens the YouTube app when installed, otherwise the browser.
       await Linking.openURL(exercise.videoUrl);
     } catch {
-      setOpenError("Couldn't open YouTube on this device.");
+      setOpenError(t('video.youtubeError'));
     }
   };
 
@@ -90,11 +93,11 @@ function VideoSheetContent({
   return (
     <View style={styles.root}>
       <View style={styles.toolbar}>
-        <Text style={styles.toolbarTitle}>Form guide</Text>
+        <Text style={styles.toolbarTitle}>{t('video.title')}</Text>
         <Pressable
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Close form guide"
+          accessibilityLabel={t('video.close')}
           hitSlop={8}
           style={styles.closeButton}
         >
@@ -106,7 +109,7 @@ function VideoSheetContent({
         <Pressable
           onPress={openInApp}
           accessibilityRole="button"
-          accessibilityLabel={`Play ${exercise.name.en} tutorial`}
+          accessibilityLabel={t('video.play', { name: exercise.name.en })}
           style={({ pressed }) => [
             styles.player,
             exercise.thumbnailKey ? styles.playerPhoto : styles.playerEmpty,
@@ -119,7 +122,7 @@ function VideoSheetContent({
           ) : (
             <>
               <CirclePlay size={64} color={theme.colors.label} strokeWidth={1.5} />
-              <Text style={styles.playerCaption}>Tutorials on YouTube</Text>
+              <Text style={styles.playerCaption}>{t('video.caption')}</Text>
             </>
           )}
         </Pressable>
@@ -135,17 +138,17 @@ function VideoSheetContent({
             {muscles.map((muscle, index) => (
               <Chip
                 key={muscle}
-                label={MUSCLE_LABELS[muscle].en}
+                label={MUSCLE_LABELS[muscle][locale]}
                 tone={index < exercise.primaryMuscles.length ? 'tint' : 'neutral'}
               />
             ))}
           </View>
-          {usedIn.length > 0 ? <Text style={styles.usedIn}>Programmed in {formatList(usedIn)}</Text> : null}
+          {usedIn.length > 0 ? <Text style={styles.usedIn}>{t('video.programmedIn', { days: formatList(usedIn, t('video.and')) })}</Text> : null}
         </View>
 
         <View style={styles.actions}>
-          <Button label="Watch tutorial" icon={CirclePlay} onPress={openInApp} />
-          <Button label="Open in YouTube" icon={ExternalLink} variant="secondary" onPress={openExternally} />
+          <Button label={t('video.watch')} icon={CirclePlay} onPress={openInApp} />
+          <Button label={t('video.openYoutube')} icon={ExternalLink} variant="secondary" onPress={openExternally} />
           {openError ? (
             <Text style={styles.error} accessibilityLiveRegion="polite">
               {openError}
@@ -154,7 +157,7 @@ function VideoSheetContent({
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Form cues</Text>
+          <Text style={styles.sectionLabel}>{t('video.cues')}</Text>
           <View style={styles.cues}>
             {exercise.formCues.map((cue, index) => (
               <View key={cue} style={[styles.cueRow, index < exercise.formCues.length - 1 && styles.cueDivider]}>
@@ -171,8 +174,8 @@ function VideoSheetContent({
   );
 }
 
-function formatList(items: readonly string[]): string {
-  return items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+function formatList(items: readonly string[], and: string): string {
+  return items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')}${and}${items[items.length - 1]}`;
 }
 
 const useStyles = createStyles((t) =>

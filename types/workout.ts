@@ -291,8 +291,12 @@ export interface AppearanceSettings {
   density: Density;
 }
 
+export type LanguageSetting = 'system' | 'en' | 'ar';
+
 export interface WorkoutSettings {
   appearance: AppearanceSettings;
+  /** UI language; `system` follows the device. Exercise names stay English with an Arabic subtitle. */
+  language: LanguageSetting;
   /** First day of the week for weekly stats; Saturday matches the original program. */
   weekStart: WeekStart;
   autoStartRestTimer: boolean;

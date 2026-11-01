@@ -1,6 +1,9 @@
 /** Display helpers shared by the screens. */
 
+import { getCurrentLocale, intlLocale } from '@/i18n';
+
 const kgFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const dateLocale = () => intlLocale(getCurrentLocale());
 
 export function formatKg(value: number): string {
   return `${kgFormatter.format(Math.round(value))} kg`;
@@ -31,17 +34,22 @@ export function formatElapsed(totalSeconds: number): string {
 
 /** "Saturday, 31 October" */
 export function formatLongDate(date: Date): string {
-  return date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  return date.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 /** "Sat 31 Oct" */
 export function formatShortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  return new Date(iso).toLocaleDateString(dateLocale(), { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 /** "6:12 PM" */
 export function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString(dateLocale(), { hour: 'numeric', minute: '2-digit' });
+}
+
+/** "Sat" style weekday label for a calendar strip. */
+export function formatWeekdayShort(date: Date): string {
+  return date.toLocaleDateString(dateLocale(), { weekday: 'short' });
 }
 
 /** Signed percentage change, or null when there's no baseline. */

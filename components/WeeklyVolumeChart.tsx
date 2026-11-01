@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { formatKg } from '@/lib/format';
 import { createStyles } from '@/theme';
 
@@ -22,6 +23,7 @@ const axisDate = (date: Date) => `${date.getDate()}/${date.getMonth() + 1}`;
  * The latest week is selected by default.
  */
 export function WeeklyVolumeChart({ volumes, weekStarts, height = 140 }: WeeklyVolumeChartProps) {
+  const t = useT();
   const styles = useStyles();
   const [selected, setSelected] = useState(volumes.length - 1);
   const max = Math.max(...volumes, 1);
@@ -31,9 +33,7 @@ export function WeeklyVolumeChart({ volumes, weekStarts, height = 140 }: WeeklyV
     <View>
       <View style={styles.readout} accessibilityLiveRegion="polite">
         <Text style={styles.readoutValue}>{formatKg(volumes[selectedIndex] ?? 0)}</Text>
-        <Text style={styles.readoutLabel}>
-          Week of {weekStarts[selectedIndex] ? shortDate(weekStarts[selectedIndex]) : '—'}
-        </Text>
+        <Text style={styles.readoutLabel}>{t('history.weekOf', { date: weekStarts[selectedIndex] ? shortDate(weekStarts[selectedIndex]) : t('common.none') })}</Text>
       </View>
 
       <View style={[styles.plot, { height }]}>
@@ -47,7 +47,7 @@ export function WeeklyVolumeChart({ volumes, weekStarts, height = 140 }: WeeklyV
               onPress={() => setSelected(index)}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
-              accessibilityLabel={`Week of ${weekStarts[index] ? shortDate(weekStarts[index]) : ''}: ${formatKg(volume)}`}
+              accessibilityLabel={t('history.weekA11y', { date: weekStarts[index] ? shortDate(weekStarts[index]) : '', volume: formatKg(volume) })}
               style={styles.column}
             >
               <View

@@ -15,18 +15,19 @@ import { getExercise } from '@/data/exercisesData';
 import { estimateDurationMinutes, getTotalSets, isSessionForDay } from '@/data/plans';
 import { PDF_PROGRAM_INFO } from '@/data/seeds/pdfProgram';
 import { COACH_NOTES, WARMUP_STAGES } from '@/data/warmupData';
-import { formatDuration, formatKg, formatLongDate, formatShortDate, percentChange, startOfWeek } from '@/lib/format';
+import { formatDuration, formatKg, formatLongDate, formatShortDate, formatWeekdayShort, percentChange, startOfWeek } from '@/lib/format';
 import { countSets, formatSet, getExerciseBests, weeklyVolumeKg } from '@/lib/workoutMath';
+import { useLocale, useT } from '@/i18n';
 import { selectActivePlan, selectNextDay, selectPreviewedDay, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Plan, PlanDay, WorkoutSession } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function TodayDashboardScreen() {
   const styles = useStyles();
   const theme = useTheme();
+  const t = useT();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [now] = useState(() => new Date());
@@ -72,24 +73,24 @@ export default function TodayDashboardScreen() {
           <View style={styles.flex}>
             <Text style={styles.eyebrow}>{formatLongDate(now)}</Text>
             <Text style={styles.largeTitle} accessibilityRole="header">
-              Today
+              {t('today.title')}
             </Text>
           </View>
           {!isNext && day ? (
             <Pressable
               onPress={() => previewDay(null)}
               accessibilityRole="button"
-              accessibilityLabel="Back to the next workout"
+              accessibilityLabel={t('today.backToNext')}
               style={styles.todayButton}
             >
               <RotateCcw size={16} color={theme.colors.link} />
-              <Text style={styles.todayButtonText}>Next up</Text>
+              <Text style={styles.todayButtonText}>{t('today.nextUp')}</Text>
             </Pressable>
           ) : null}
           <Pressable
             onPress={() => router.push('/settings')}
             accessibilityRole="button"
-            accessibilityLabel="Settings"
+            accessibilityLabel={t('common.settings')}
             style={styles.settingsButton}
           >
             <Settings size={20} color={theme.colors.labelSecondary} />
@@ -121,9 +122,9 @@ export default function TodayDashboardScreen() {
           />
         ) : (
           <View style={styles.hero}>
-            <Text style={styles.heroEyebrow}>No active plan</Text>
-            <Text style={styles.heroTitle}>Set up</Text>
-            <Text style={styles.secondary}>Choose a plan to start training. Plan setup arrives with onboarding.</Text>
+            <Text style={styles.heroEyebrow}>{t('today.noPlanEyebrow')}</Text>
+            <Text style={styles.heroTitle}>{t('today.noPlanTitle')}</Text>
+            <Text style={styles.secondary}>{t('today.noPlanBody')}</Text>
           </View>
         )}
 
@@ -131,18 +132,18 @@ export default function TodayDashboardScreen() {
 
         <View style={styles.stats}>
           <StatCard
-            label="This week"
+            label={t('today.thisWeek')}
             value={formatKg(thisWeekVolume)}
-            detail={volumeDelta === null ? 'Total volume' : `${volumeDelta >= 0 ? '+' : ''}${volumeDelta}% vs last week`}
+            detail={volumeDelta === null ? t('today.totalVolume') : t('today.vsLastWeek', { delta: `${volumeDelta >= 0 ? '+' : ''}${volumeDelta}` })}
             detailTone={volumeDelta !== null && volumeDelta >= 0 ? 'success' : 'neutral'}
           />
-          <StatCard label="Sessions" value={String(sessionsThisWeek)} detail="This week" />
+          <StatCard label={t('today.sessions')} value={String(sessionsThisWeek)} detail={t('today.thisWeek')} />
         </View>
 
         {day ? (
           <>
             <View style={styles.section}>
-              <SectionHeader title="Warm-up" />
+              <SectionHeader title={t('today.warmup')} />
               <View style={styles.group}>
                 {WARMUP_STAGES.map((stage, index) => (
                   <View key={stage.id} style={[styles.groupRow, index < WARMUP_STAGES.length - 1 && styles.divider]}>
@@ -150,10 +151,10 @@ export default function TodayDashboardScreen() {
                     <Text style={[styles.body, styles.flex]}>{stage.title.en}</Text>
                     <Text style={styles.secondary}>
                       {stage.durationMinutes
-                        ? `${stage.durationMinutes.min}–${stage.durationMinutes.max} min`
+                        ? t('today.stageMinutes', { min: stage.durationMinutes.min, max: stage.durationMinutes.max })
                         : stage.routineId
-                          ? '9 moves'
-                          : 'first lift'}
+                          ? t('today.stageMoves')
+                          : t('today.stageFirstLift')}
                     </Text>
                   </View>
                 ))}
@@ -161,14 +162,14 @@ export default function TodayDashboardScreen() {
             </View>
 
             <View style={styles.section}>
-              <SectionHeader title="Exercises" />
+              <SectionHeader title={t('today.exercises')} />
               <ExerciseList day={day} history={history} onOpen={setVideoExerciseId} />
             </View>
           </>
         ) : null}
 
         <View style={styles.coachNote}>
-          <Text style={styles.coachLabel}>Coach&apos;s note</Text>
+          <Text style={styles.coachLabel}>{t('today.coachNote')}</Text>
           <Text style={styles.coachText}>{COACH_NOTES[0].en}</Text>
         </View>
       </ScrollView>
@@ -176,9 +177,9 @@ export default function TodayDashboardScreen() {
       <VideoModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
       <ConfirmDialog
         visible={confirmDiscard}
-        title="Discard workout?"
-        message="Logged sets from this session will be lost."
-        confirmLabel="Discard"
+        title={t('today.discardTitle')}
+        message={t('today.discardMessage')}
+        confirmLabel={t('common.discard')}
         destructive
         onCancel={() => setConfirmDiscard(false)}
         onConfirm={() => {
@@ -205,6 +206,7 @@ function RotationStrip({
   onSelect: (index: number | null) => void;
 }) {
   const styles = useStyles();
+  const t = useT();
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rotation} accessibilityRole="tablist">
       {plan.days.map((day) => {
@@ -216,7 +218,7 @@ function RotationStrip({
             onPress={() => onSelect(isNext ? null : day.position)}
             accessibilityRole="tab"
             accessibilityState={{ selected: isSelected }}
-            accessibilityLabel={`${day.code}, day ${day.position + 1} of ${plan.days.length}${isNext ? ', next up' : ''}`}
+            accessibilityLabel={`${t('today.dayA11y', { code: day.code, n: day.position + 1, total: plan.days.length })}${isNext ? t('today.nextUpSuffix') : ''}`}
             style={[styles.rotationChip, isSelected && styles.rotationChipSelected]}
           >
             <Text style={[styles.rotationIndex, isSelected && styles.onTint, isNext && !isSelected && styles.todayNumber]}>
@@ -237,6 +239,7 @@ function RotationStrip({
 /** Seven days of the current week; a green dot marks days with a completed session (actual dates). */
 function WeekCalendar({ weekStart, now, history }: { weekStart: Date; now: Date; history: readonly WorkoutSession[] }) {
   const styles = useStyles();
+  const t = useT();
   const doneDays = useMemo(() => {
     const done = new Set<number>();
     for (const session of history) {
@@ -249,13 +252,13 @@ function WeekCalendar({ weekStart, now, history }: { weekStart: Date; now: Date;
   }, [history, weekStart]);
 
   return (
-    <View style={styles.weekStrip} accessible accessibilityLabel={`This week: ${doneDays.size} training days done`}>
+    <View style={styles.weekStrip} accessible accessibilityLabel={t('today.weekA11y', { count: doneDays.size })}>
       {Array.from({ length: 7 }, (_, index) => {
         const date = new Date(weekStart.getTime() + index * DAY_MS);
         const isToday = date.toDateString() === now.toDateString();
         return (
           <View key={index} style={[styles.weekDay, isToday && styles.weekDayToday]}>
-            <Text style={styles.weekDayLabel}>{WEEKDAY_SHORT[date.getDay()]}</Text>
+            <Text style={styles.weekDayLabel}>{formatWeekdayShort(date)}</Text>
             <Text style={[styles.weekDayNumber, isToday && styles.todayNumber]}>{date.getDate()}</Text>
             <View style={[styles.dot, doneDays.has(index) ? styles.dotDone : styles.dotRest]} />
           </View>
@@ -286,26 +289,26 @@ function DayHero({
 }) {
   const styles = useStyles();
   const theme = useTheme();
+  const t = useT();
   const isActiveDay = activeSession !== null && isSessionForDay(activeSession, plan, day);
   const sessionSets = isActiveDay && activeSession ? countSets(activeSession) : null;
   const progress = sessionSets && sessionSets.total > 0 ? sessionSets.completed / sessionSets.total : 0;
   const lastSession = history.find((session) => session.status === 'completed' && isSessionForDay(session, plan, day));
 
-  let ctaLabel = isNext ? 'Start workout' : `Start ${day.code} instead`;
-  if (isActiveDay) ctaLabel = 'Resume workout';
-  else if (activeSession) ctaLabel = `Resume ${activeSession.code}`;
+  let ctaLabel = isNext ? t('today.startWorkout') : t('today.startInstead', { code: day.code });
+  if (isActiveDay) ctaLabel = t('today.resumeWorkout');
+  else if (activeSession) ctaLabel = t('today.resumeCode', { code: activeSession.code });
 
   const preview = day.exercises.slice(0, 5);
   const hiddenCount = day.exercises.length - preview.length;
-  const focusLabel = day.focus ? `${PDF_PROGRAM_INFO.focusLabels[day.focus].en} day` : plan.name.en;
+  const locale = useLocale();
+  const focusLabel = day.focus ? t('today.focusDay', { focus: PDF_PROGRAM_INFO.focusLabels[day.focus][locale] }) : plan.name[locale];
 
   return (
     <View style={styles.hero}>
       <View style={styles.heroMeta}>
-        <Text style={styles.heroEyebrow}>{isNext ? 'Up next' : 'Preview'} · {focusLabel}</Text>
-        <Text style={styles.heroDay}>
-          Day {day.position + 1} of {plan.days.length}
-        </Text>
+        <Text style={styles.heroEyebrow}>{`${isNext ? t('common.upNext') : t('today.preview')} · ${focusLabel}`}</Text>
+        <Text style={styles.heroDay}>{t('today.dayOf', { n: day.position + 1, total: plan.days.length })}</Text>
       </View>
 
       <View style={styles.heroTop}>
@@ -337,17 +340,20 @@ function DayHero({
       </View>
 
       <View style={styles.figures}>
-        <Figure value={String(day.exercises.length)} label="exercises" />
+        <Figure value={String(day.exercises.length)} label={t('today.figExercises')} />
         <View style={styles.figureRule} />
-        <Figure value={String(getTotalSets(day))} label="sets" />
+        <Figure value={String(getTotalSets(day))} label={t('today.figSets')} />
         <View style={styles.figureRule} />
-        <Figure value={`~${estimateDurationMinutes(day)}`} label="minutes" />
+        <Figure value={`~${estimateDurationMinutes(day)}`} label={t('today.figMinutes')} />
       </View>
 
       {lastSession?.summary ? (
         <Text style={styles.lastSession}>
-          Last time {formatShortDate(lastSession.startedAt)}: {formatKg(lastSession.summary.totalVolumeKg)} in{' '}
-          {formatDuration(lastSession.summary.durationSeconds)}
+          {t('today.lastTime', {
+            date: formatShortDate(lastSession.startedAt),
+            volume: formatKg(lastSession.summary.totalVolumeKg),
+            duration: formatDuration(lastSession.summary.durationSeconds),
+          })}
         </Text>
       ) : null}
 
@@ -356,7 +362,7 @@ function DayHero({
         icon={Play}
         onPress={onStart}
         disabled={!canStart}
-        accessibilityHint={canStart ? undefined : 'Finish or discard the active workout first'}
+        accessibilityHint={canStart ? undefined : t('today.finishFirst')}
       />
     </View>
   );
@@ -374,17 +380,16 @@ function ResumeBanner({
   onDiscard: () => void;
 }) {
   const styles = useStyles();
+  const t = useT();
   const { completed, total } = countSets(session);
   return (
     <View style={styles.resume}>
       <View style={styles.flex}>
-        <Text style={styles.headline}>{session.code} in progress</Text>
-        <Text style={styles.secondaryNums}>
-          {completed} of {total} sets logged
-        </Text>
+        <Text style={styles.headline}>{t('today.inProgress', { code: session.code })}</Text>
+        <Text style={styles.secondaryNums}>{t('today.setsLogged', { completed, total })}</Text>
       </View>
-      <Button label="Discard" variant="destructive" onPress={onDiscard} style={styles.resumeButton} />
-      <Button label="Resume" variant="tinted" onPress={onResume} style={styles.resumeButton} />
+      <Button label={t('common.discard')} variant="destructive" onPress={onDiscard} style={styles.resumeButton} />
+      <Button label={t('common.resume')} variant="tinted" onPress={onResume} style={styles.resumeButton} />
     </View>
   );
 }
@@ -400,6 +405,7 @@ function ExerciseList({
 }) {
   const styles = useStyles();
   const theme = useTheme();
+  const t = useT();
   return (
     <View style={styles.group}>
       {day.exercises.map((item, index) => {
@@ -411,7 +417,7 @@ function ExerciseList({
             key={`${item.exerciseId}-${index}`}
             onPress={() => onOpen(item.exerciseId)}
             accessibilityRole="button"
-            accessibilityLabel={`${exercise?.name.en ?? item.exerciseId}, ${item.sets} sets of ${reps}. Open form guide`}
+            accessibilityLabel={t('today.exerciseA11y', { name: exercise?.name.en ?? item.exerciseId, sets: item.sets, reps })}
             style={({ pressed }) => [styles.exerciseRow, index < day.exercises.length - 1 && styles.divider, pressed && styles.pressed]}
           >
             <ExerciseThumb exerciseId={item.exerciseId} />
@@ -423,7 +429,7 @@ function ExerciseList({
                 <Text style={styles.secondaryNums}>
                   {item.sets} × {reps}
                 </Text>
-                {best ? <Text style={styles.best}>Best {formatSet(best)}</Text> : null}
+                {best ? <Text style={styles.best}>{t('today.best', { set: formatSet(best) })}</Text> : null}
               </View>
             </View>
             <ChevronRight size={18} color={theme.colors.labelTertiary} />

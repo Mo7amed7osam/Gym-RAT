@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { HIT } from '@/constants/theme';
+import { useT } from '@/i18n';
 import { formatInputNumber, parseReps, parseWeight } from '@/lib/parseNumber';
 import { formatSet } from '@/lib/workoutMath';
 import type { SetValues } from '@/store/useWorkoutStore';
@@ -39,6 +40,7 @@ export function SetRow({
   onToggleType,
   onRemove,
 }: SetRowProps) {
+  const t = useT();
   const styles = useStyles();
   const theme = useTheme();
   const [weightText, setWeightText] = useState(() => formatInputNumber(set.weightKg));
@@ -84,9 +86,9 @@ export function SetRow({
         onPress={onToggleType}
         onLongPress={onRemove}
         accessibilityRole="button"
-        accessibilityLabel={`Set ${set.setNumber}, ${isWarmup ? 'warm-up' : 'working'} set`}
-        accessibilityHint="Tap to switch warm-up or working set. Long press to remove."
-        accessibilityActions={[{ name: 'activate' }, { name: 'longpress', label: 'Remove set' }]}
+        accessibilityLabel={t('setRow.a11y', { n: set.setNumber, type: isWarmup ? t('setRow.warmup') : t('setRow.working') })}
+        accessibilityHint={t('setRow.hint')}
+        accessibilityActions={[{ name: 'activate' }, { name: 'longpress', label: t('setRow.remove') }]}
         onAccessibilityAction={(event) => (event.nativeEvent.actionName === 'longpress' ? onRemove() : onToggleType())}
         hitSlop={8}
         style={styles.setNumber}
@@ -94,8 +96,8 @@ export function SetRow({
         <Text style={[styles.setNumberText, isWarmup && styles.warmupText]}>{setLabel}</Text>
       </Pressable>
 
-      <Text style={styles.previous} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} accessibilityLabel={previous ? `Previous ${formatSet(previous)}` : 'No previous set'}>
-        {previous ? formatSet(previous) : '—'}
+      <Text style={styles.previous} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} accessibilityLabel={previous ? t('setRow.previousA11y', { set: formatSet(previous) }) : t('setRow.noPrevious')}>
+        {previous ? formatSet(previous) : t('common.none')}
       </Text>
 
       {set.completed ? (
@@ -109,13 +111,13 @@ export function SetRow({
             value={weightText}
             onChangeText={setWeightText}
             onEndEditing={() => onCommit({ weightKg: parseWeight(weightText) })}
-            placeholder={placeholderWeight !== null ? String(placeholderWeight) : 'kg'}
+            placeholder={placeholderWeight !== null ? String(placeholderWeight) : t('setRow.kgPlaceholder')}
             placeholderTextColor={theme.colors.labelTertiary}
             keyboardType="decimal-pad"
             returnKeyType="next"
             selectTextOnFocus
             maxLength={6}
-            accessibilityLabel={`Set ${set.setNumber} weight in kilograms`}
+            accessibilityLabel={t('setRow.weightA11y', { n: set.setNumber })}
             style={[styles.input, styles.weightColumn]}
           />
           <TextInput
@@ -128,7 +130,7 @@ export function SetRow({
             returnKeyType="done"
             selectTextOnFocus
             maxLength={3}
-            accessibilityLabel={`Set ${set.setNumber} reps, target ${set.targetReps.min} to ${set.targetReps.max}`}
+            accessibilityLabel={t('setRow.repsA11y', { n: set.setNumber, min: set.targetReps.min, max: set.targetReps.max })}
             style={[styles.input, styles.repsColumn]}
           />
         </>
@@ -138,7 +140,7 @@ export function SetRow({
         onPress={handleComplete}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: set.completed }}
-        accessibilityLabel={set.completed ? `Set ${set.setNumber} logged. Tap to undo` : `Log set ${set.setNumber}`}
+        accessibilityLabel={set.completed ? t('setRow.loggedA11y', { n: set.setNumber }) : t('setRow.logA11y', { n: set.setNumber })}
         style={({ pressed }) => [
           styles.check,
           set.completed ? styles.checkDone : isActive ? styles.checkActive : styles.checkIdle,

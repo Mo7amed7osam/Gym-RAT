@@ -1,15 +1,16 @@
 import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
+import { useT } from '@/i18n';
 import { createStyles } from '@/theme';
-
 
 export default function NotFoundScreen() {
   const styles = useStyles();
+  const t = useT();
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>This screen doesn&apos;t exist.</Text>
+      <Text style={styles.title}>{t('notFound.title')}</Text>
       <Link href="/" style={styles.link}>
-        Go to Today
+        {t('notFound.goHome')}
       </Link>
     </View>
   );

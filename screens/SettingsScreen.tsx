@@ -8,31 +8,43 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { HIT } from '@/constants/theme';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
-import { ACCENTS, ACCENT_IDS, THEME_MODE_LABELS, createStyles, useTheme } from '@/theme';
-import type { AppearanceSettings, Density, TextScale, ThemeMode, WorkoutSettings } from '@/types/workout';
+import { applyLayoutDirection, resolveLocale, useT } from '@/i18n';
+import { ACCENTS, ACCENT_IDS, createStyles, useTheme } from '@/theme';
+import type { AppearanceSettings, Density, LanguageSetting, TextScale, ThemeMode, WorkoutSettings } from '@/types/workout';
 
 type ToggleKey = 'autoStartRestTimer' | 'prefillFromHistory' | 'hapticsEnabled' | 'restSoundEnabled';
 
 const TOGGLES: { key: ToggleKey; title: string; detail: string }[] = [
-  { key: 'autoStartRestTimer', title: 'Start rest timer after each set', detail: 'Counts down the prescribed rest as soon as you tick a set.' },
-  { key: 'prefillFromHistory', title: 'Prefill from last session', detail: 'New workouts start with the weights and reps you logged last time.' },
-  { key: 'hapticsEnabled', title: 'Haptics', detail: 'Taps when a set is logged and when rest is over.' },
-  { key: 'restSoundEnabled', title: 'Rest-over sound', detail: 'Plays a chime when the rest timer reaches zero.' },
+  { key: 'autoStartRestTimer', title: 'settings.autoRestTitle', detail: 'settings.autoRestDetail' },
+  { key: 'prefillFromHistory', title: 'settings.prefillTitle', detail: 'settings.prefillDetail' },
+  { key: 'hapticsEnabled', title: 'settings.hapticsTitle', detail: 'settings.hapticsDetail' },
+  { key: 'restSoundEnabled', title: 'settings.soundTitle', detail: 'settings.soundDetail' },
 ];
 
 const WARNING_OPTIONS = [5, 10, 15, 30] as const;
-const MODES: ThemeMode[] = ['system', 'light', 'dark', 'trueBlack'];
+const MODES: { value: ThemeMode; label: string }[] = [
+  { value: 'system', label: 'settings.modeSystem' },
+  { value: 'light', label: 'settings.modeLight' },
+  { value: 'dark', label: 'settings.modeDark' },
+  { value: 'trueBlack', label: 'settings.modeTrueBlack' },
+];
 const TEXT_SCALES: { value: TextScale; label: string }[] = [
-  { value: 'default', label: 'Default' },
-  { value: 'large', label: 'Large' },
-  { value: 'xlarge', label: 'Larger' },
+  { value: 'default', label: 'settings.scaleDefault' },
+  { value: 'large', label: 'settings.scaleLarge' },
+  { value: 'xlarge', label: 'settings.scaleXlarge' },
 ];
 const DENSITIES: { value: Density; label: string }[] = [
-  { value: 'comfortable', label: 'Comfortable' },
-  { value: 'compact', label: 'Compact' },
+  { value: 'comfortable', label: 'settings.densityComfortable' },
+  { value: 'compact', label: 'settings.densityCompact' },
+];
+const LANGUAGES: { value: LanguageSetting; label: string }[] = [
+  { value: 'system', label: 'settings.langSystem' },
+  { value: 'en', label: 'settings.langEn' },
+  { value: 'ar', label: 'settings.langAr' },
 ];
 
 export default function SettingsScreen() {
+  const t = useT();
   const styles = useStyles();
   const theme = useTheme();
   const router = useRouter();
@@ -47,42 +59,65 @@ export default function SettingsScreen() {
   const set = (patch: Partial<WorkoutSettings>) => updateSettings(patch);
   const setAppearance = (patch: Partial<AppearanceSettings>) =>
     updateSettings({ appearance: { ...settings.appearance, ...patch } });
+  const setLanguage = (language: LanguageSetting) => {
+    updateSettings({ language });
+    applyLayoutDirection(resolveLocale(language));
+  };
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
   return (
     <View style={styles.root}>
       <View style={[styles.toolbar, { paddingTop: insets.top + theme.spacing.sm }]}>
         <Text style={styles.title} accessibilityRole="header">
-          Settings
+          {t('settings.title')}
         </Text>
-        <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="Close settings" hitSlop={8} style={styles.close}>
+        <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={t('settings.close')} hitSlop={8} style={styles.close}>
           <X size={20} color={theme.colors.labelSecondary} strokeWidth={2.5} />
         </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + theme.spacing.xxxl }]}>
         <View style={styles.section}>
-          <SectionHeader title="Appearance" />
+          <SectionHeader title={t('settings.appearance')} />
           <View style={[styles.group, styles.groupPadded]}>
-            <Text style={styles.rowTitle}>Theme</Text>
+            <Text style={styles.rowTitle}>{t('settings.language')}</Text>
             <View style={styles.chips} accessibilityRole="radiogroup">
-              {MODES.map((mode) => {
-                const selected = settings.appearance.mode === mode;
+              {LANGUAGES.map((option) => {
+                const selected = settings.language === option.value;
                 return (
                   <Pressable
-                    key={mode}
-                    onPress={() => setAppearance({ mode })}
+                    key={option.value}
+                    onPress={() => setLanguage(option.value)}
                     accessibilityRole="radio"
                     accessibilityState={{ selected }}
                     style={[styles.chip, selected && styles.chipSelected]}
                   >
-                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{THEME_MODE_LABELS[mode]}</Text>
+                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{t(option.label)}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={styles.rowDetail}>{t('settings.languageRestart')}</Text>
+
+            <Text style={styles.rowTitle}>{t('settings.theme')}</Text>
+            <View style={styles.chips} accessibilityRole="radiogroup">
+              {MODES.map((option) => {
+                const selected = settings.appearance.mode === option.value;
+                return (
+                  <Pressable
+                    key={option.value}
+                    onPress={() => setAppearance({ mode: option.value })}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    style={[styles.chip, selected && styles.chipSelected]}
+                  >
+                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{t(option.label)}</Text>
                   </Pressable>
                 );
               })}
             </View>
 
-            <Text style={styles.rowTitle}>Accent</Text>
+            <Text style={styles.rowTitle}>{t('settings.accent')}</Text>
             <View style={styles.swatches} accessibilityRole="radiogroup">
               {ACCENT_IDS.map((accent) => {
                 const selected = settings.appearance.accent === accent;
@@ -93,14 +128,14 @@ export default function SettingsScreen() {
                     onPress={() => setAppearance({ accent })}
                     accessibilityRole="radio"
                     accessibilityState={{ selected }}
-                    accessibilityLabel={`${ACCENTS[accent].label} accent`}
+                    accessibilityLabel={t('settings.accentA11y', { name: ACCENTS[accent].label })}
                     style={[styles.swatch, { backgroundColor: swatch }, selected && styles.swatchSelected]}
                   />
                 );
               })}
             </View>
 
-            <Text style={styles.rowTitle}>Text size</Text>
+            <Text style={styles.rowTitle}>{t('settings.textSize')}</Text>
             <View style={styles.chips} accessibilityRole="radiogroup">
               {TEXT_SCALES.map((option) => {
                 const selected = settings.appearance.textScale === option.value;
@@ -112,13 +147,13 @@ export default function SettingsScreen() {
                     accessibilityState={{ selected }}
                     style={[styles.chip, selected && styles.chipSelected]}
                   >
-                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{option.label}</Text>
+                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{t(option.label)}</Text>
                   </Pressable>
                 );
               })}
             </View>
 
-            <Text style={styles.rowTitle}>Density</Text>
+            <Text style={styles.rowTitle}>{t('settings.density')}</Text>
             <View style={styles.chips} accessibilityRole="radiogroup">
               {DENSITIES.map((option) => {
                 const selected = settings.appearance.density === option.value;
@@ -130,7 +165,7 @@ export default function SettingsScreen() {
                     accessibilityState={{ selected }}
                     style={[styles.chip, selected && styles.chipSelected]}
                   >
-                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{option.label}</Text>
+                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{t(option.label)}</Text>
                   </Pressable>
                 );
               })}
@@ -139,20 +174,20 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="During a workout" />
+          <SectionHeader title={t('settings.duringWorkout')} />
           <View style={styles.group}>
             {TOGGLES.map((toggle, index) => (
               <View key={toggle.key} style={[styles.row, index < TOGGLES.length - 1 && styles.divider]}>
                 <View style={styles.flex}>
-                  <Text style={styles.rowTitle}>{toggle.title}</Text>
-                  <Text style={styles.rowDetail}>{toggle.detail}</Text>
+                  <Text style={styles.rowTitle}>{t(toggle.title)}</Text>
+                  <Text style={styles.rowDetail}>{t(toggle.detail)}</Text>
                 </View>
                 <Switch
                   value={settings[toggle.key]}
                   onValueChange={(value) => set({ [toggle.key]: value })}
                   trackColor={{ true: theme.colors.tint, false: theme.colors.surfaceHigh }}
                   thumbColor={theme.colors.label}
-                  accessibilityLabel={toggle.title}
+                  accessibilityLabel={t(toggle.title)}
                 />
               </View>
             ))}
@@ -160,9 +195,9 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="Rest timer warning" />
+          <SectionHeader title={t('settings.restWarning')} />
           <View style={[styles.group, styles.groupPadded]}>
-            <Text style={styles.rowDetail}>The ring turns orange when this much rest is left.</Text>
+            <Text style={styles.rowDetail}>{t('settings.restWarningDetail')}</Text>
             <View style={styles.segmented} accessibilityRole="radiogroup">
               {WARNING_OPTIONS.map((seconds) => {
                 const selected = settings.restWarningSeconds === seconds;
@@ -172,11 +207,11 @@ export default function SettingsScreen() {
                     onPress={() => set({ restWarningSeconds: seconds })}
                     accessibilityRole="radio"
                     accessibilityState={{ selected }}
-                    accessibilityLabel={`${seconds} seconds`}
+                    accessibilityLabel={t('settings.seconds', { n: seconds })}
                     style={[styles.segment, selected && styles.segmentSelected]}
                   >
                     <Text style={[styles.segmentValue, selected && styles.segmentValueSelected]}>{seconds}</Text>
-                    <Text style={[styles.segmentUnit, selected && styles.segmentValueSelected]}>sec</Text>
+                    <Text style={[styles.segmentUnit, selected && styles.segmentValueSelected]}>{t('settings.sec')}</Text>
                   </Pressable>
                 );
               })}
@@ -185,10 +220,10 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="Your data" />
+          <SectionHeader title={t('settings.yourData')} />
           <View style={styles.group}>
             <View style={[styles.row, styles.divider]}>
-              <Text style={[styles.rowTitle, styles.flex]}>Logged sessions</Text>
+              <Text style={[styles.rowTitle, styles.flex]}>{t('settings.loggedSessions')}</Text>
               <Text style={styles.rowValue}>{sessionCount}</Text>
             </View>
             <Pressable
@@ -198,7 +233,7 @@ export default function SettingsScreen() {
               accessibilityState={{ disabled: sessionCount === 0 }}
               style={({ pressed }) => [styles.row, sessionCount === 0 && styles.disabled, pressed && styles.pressed]}
             >
-              <Text style={styles.destructive}>Delete all history</Text>
+              <Text style={styles.destructive}>{t('settings.deleteAll')}</Text>
             </Pressable>
           </View>
         </View>
@@ -206,9 +241,9 @@ export default function SettingsScreen() {
 
       <ConfirmDialog
         visible={confirmClear}
-        title="Delete all history?"
-        message={`All ${sessionCount} logged sessions, volume records and PRs will be removed from this phone.`}
-        confirmLabel="Delete all"
+        title={t('settings.deleteAllTitle')}
+        message={t('settings.deleteAllMessage', { count: sessionCount })}
+        confirmLabel={t('settings.deleteAllConfirm')}
         destructive
         onCancel={() => setConfirmClear(false)}
         onConfirm={() => {

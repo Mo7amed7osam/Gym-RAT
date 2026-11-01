@@ -3,12 +3,13 @@ import { BarlowCondensed_600SemiBold } from '@expo-google-fonts/barlow-condensed
 import { BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed/700Bold';
 import { BarlowCondensed_800ExtraBold } from '@expo-google-fonts/barlow-condensed/800ExtraBold';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavigationThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, LocaleProvider, Stack, ThemeProvider as NavigationThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import { isRtlLocale, setCurrentLocale, useLocale } from '@/i18n';
 import { useStoreHydrated } from '@/store/useStoreHydrated';
 import { ThemeProvider, useTheme } from '@/theme';
 
@@ -49,6 +50,8 @@ export default function RootLayout() {
 
 function ThemedNavigation() {
   const theme = useTheme();
+  const locale = useLocale();
+  setCurrentLocale(locale);
   const navigationBase = theme.scheme === 'dark' ? DarkTheme : DefaultTheme;
   const navigationTheme = {
     ...navigationBase,
@@ -62,13 +65,15 @@ function ThemedNavigation() {
     },
   };
   return (
-    <NavigationThemeProvider value={navigationTheme}>
-      <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="workout" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
-        <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
-      </Stack>
-    </NavigationThemeProvider>
+    <LocaleProvider direction={isRtlLocale(locale) ? 'rtl' : 'ltr'}>
+      <NavigationThemeProvider value={navigationTheme}>
+        <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="workout" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
+          <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+        </Stack>
+      </NavigationThemeProvider>
+    </LocaleProvider>
   );
 }

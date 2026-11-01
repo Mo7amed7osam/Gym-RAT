@@ -9,18 +9,19 @@ import { HIT } from '@/constants/theme';
 import { getExercise } from '@/data/exercisesData';
 import { hapticSelection, restCompleteFeedback } from '@/lib/feedback';
 import { formatSet, getPreviousSetAt } from '@/lib/workoutMath';
+import { useT } from '@/i18n';
 import { formatRestTime, useRestTimerCountdown, type RestTimerPhase } from '@/store/useRestTimerCountdown';
 import { selectPreviousExercise, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { ExerciseSet, SessionExercise } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
 
 const MAX_RING_SIZE = 248;
-const PHASE_LABEL: Record<RestTimerPhase, string> = {
-  idle: 'Rest',
-  paused: 'Paused',
-  running: 'Rest',
-  warning: 'Get ready',
-  overtime: 'Overtime',
+const PHASE_KEY: Record<RestTimerPhase, string> = {
+  idle: 'rest.rest',
+  paused: 'rest.paused',
+  running: 'rest.rest',
+  warning: 'rest.getReady',
+  overtime: 'rest.overtime',
 };
 
 /** Exercise + sets referenced by the current rest timer context. */
@@ -47,6 +48,7 @@ interface RestTimerModalProps {
  * "rest finished" haptic + chime even while minimised.
  */
 export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
+  const t = useT();
   const styles = useStyles();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -67,7 +69,7 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
   const { exercise, completed, next } = useRestContext();
   const previousExercise = useWorkoutStore(selectPreviousExercise(exercise?.exerciseId ?? ''));
 
-  const exerciseName = exercise ? getExercise(exercise.exerciseId)?.name.en ?? exercise.exerciseId : 'Rest';
+  const exerciseName = exercise ? getExercise(exercise.exerciseId)?.name.en ?? exercise.exerciseId : t('rest.rest');
   const ringColor = theme.restPhaseColors[countdown.phase];
   const isPaused = countdown.phase === 'paused';
   // Ring drains as rest runs out; full red once in overtime.
@@ -89,9 +91,9 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
       onRequestClose={onMinimize}
     >
       <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onMinimize} accessibilityLabel="Minimise rest timer" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onMinimize} accessibilityLabel={t('rest.minimise')} />
         <View style={[styles.sheet, { paddingBottom: insets.bottom + theme.spacing.lg }]}>
-          <Pressable onPress={onMinimize} accessibilityRole="button" accessibilityLabel="Minimise rest timer" style={styles.grabberArea}>
+          <Pressable onPress={onMinimize} accessibilityRole="button" accessibilityLabel={t('rest.minimise')} style={styles.grabberArea}>
             <View style={styles.grabber} />
           </Pressable>
 
@@ -100,9 +102,7 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
               {exerciseName}
             </Text>
             {completed ? (
-              <Text style={styles.subtitle}>
-                Set {completed.setNumber} logged: {formatSet(completed)}
-              </Text>
+              <Text style={styles.subtitle}>{t('rest.setLogged', { n: completed.setNumber, set: formatSet(completed) })}</Text>
             ) : null}
           </View>
 
@@ -110,57 +110,61 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
             style={styles.ringWrap}
             accessible
             accessibilityRole="timer"
-            accessibilityLabel={`${PHASE_LABEL[countdown.phase]}, ${formatRestTime(countdown.remainingSeconds)} remaining`}
+            accessibilityLabel={t('rest.remainingA11y', { phase: t(PHASE_KEY[countdown.phase]), time: formatRestTime(countdown.remainingSeconds) })}
           >
             <ProgressRing size={ringSize} strokeWidth={14} progress={ringProgress} color={ringColor}>
-              <Text style={[styles.phase, { color: ringColor }]}>{PHASE_LABEL[countdown.phase]}</Text>
+              <Text style={[styles.phase, { color: ringColor }]}>{t(PHASE_KEY[countdown.phase])}</Text>
               <Text style={[styles.time, countdown.phase === 'overtime' && { color: theme.colors.destructive }]}>
                 {formatRestTime(countdown.remainingSeconds)}
               </Text>
-              <Text style={styles.ofTotal}>of {formatRestTime(Math.round(countdown.durationMs / 1000))}</Text>
+              <Text style={styles.ofTotal}>{t('rest.ofTotal', { time: formatRestTime(Math.round(countdown.durationMs / 1000)) })}</Text>
             </ProgressRing>
           </View>
 
           <View style={styles.controls}>
-            <RoundControl label="−15 s" accessibilityLabel="Subtract 15 seconds" onPress={() => adjust(-15)} />
+            <RoundControl label={t('rest.minus15')} accessibilityLabel={t('rest.subtract15')} onPress={() => adjust(-15)} />
             <Pressable
               onPress={isPaused ? resumeRestTimer : pauseRestTimer}
               accessibilityRole="button"
-              accessibilityLabel={isPaused ? 'Resume rest timer' : 'Pause rest timer'}
+              accessibilityLabel={isPaused ? t('rest.resume') : t('rest.pause')}
               style={({ pressed }) => [styles.playPause, pressed && styles.pressed]}
             >
               {isPaused ? <Play size={26} color={theme.colors.label} fill={theme.colors.label} /> : <Pause size={26} color={theme.colors.label} fill={theme.colors.label} />}
             </Pressable>
-            <RoundControl label="+30 s" accessibilityLabel="Add 30 seconds" onPress={() => adjust(30)} />
+            <RoundControl label={t('rest.plus30')} accessibilityLabel={t('rest.add30')} onPress={() => adjust(30)} />
           </View>
 
           <View style={styles.quickAdjust}>
-            <Pressable onPress={() => adjust(-30)} accessibilityRole="button" accessibilityLabel="Subtract 30 seconds" style={styles.quickChip}>
-              <Text style={styles.quickChipText}>−30 s</Text>
+            <Pressable onPress={() => adjust(-30)} accessibilityRole="button" accessibilityLabel={t('rest.subtract30')} style={styles.quickChip}>
+              <Text style={styles.quickChipText}>{t('rest.minus30')}</Text>
             </Pressable>
-            <Pressable onPress={() => adjust(15)} accessibilityRole="button" accessibilityLabel="Add 15 seconds" style={styles.quickChip}>
-              <Text style={styles.quickChipText}>+15 s</Text>
+            <Pressable onPress={() => adjust(15)} accessibilityRole="button" accessibilityLabel={t('rest.add15')} style={styles.quickChip}>
+              <Text style={styles.quickChipText}>{t('rest.plus15')}</Text>
             </Pressable>
           </View>
 
           {next ? (
             <View style={styles.upNext} accessible>
-              <Text style={styles.upNextLabel}>Up next</Text>
+              <Text style={styles.upNextLabel}>{t('rest.upNext')}</Text>
               <View style={styles.upNextBody}>
                 <Text style={styles.upNextValue}>
-                  Set {next.setNumber}: {next.weightKg ?? '—'} kg × {next.targetReps.min === next.targetReps.max ? next.targetReps.min : `${next.targetReps.min}–${next.targetReps.max}`}
+                  {t('rest.nextSet', {
+                    n: next.setNumber,
+                    weight: next.weightKg ?? t('common.none'),
+                    reps: next.targetReps.min === next.targetReps.max ? next.targetReps.min : `${next.targetReps.min}–${next.targetReps.max}`,
+                  })}
                 </Text>
-                {nextPrevious ? <Text style={styles.upNextLast}>last: {formatSet(nextPrevious)}</Text> : null}
+                {nextPrevious ? <Text style={styles.upNextLast}>{t('rest.last', { set: formatSet(nextPrevious) })}</Text> : null}
               </View>
             </View>
           ) : (
             <View style={styles.upNext}>
-              <Text style={styles.upNextLabel}>Up next</Text>
-              <Text style={styles.upNextValue}>Next exercise</Text>
+              <Text style={styles.upNextLabel}>{t('rest.upNext')}</Text>
+              <Text style={styles.upNextValue}>{t('rest.nextExercise')}</Text>
             </View>
           )}
 
-          <Button label="Skip rest" onPress={skipRestTimer} variant="primary" />
+          <Button label={t('rest.skip')} onPress={skipRestTimer} variant="primary" />
         </View>
       </View>
     </Modal>
@@ -187,6 +191,7 @@ interface RestTimerPillProps {
 
 /** Sticky mini timer shown while the sheet is minimised. Renders nothing when idle. */
 export function RestTimerPill({ onExpand }: RestTimerPillProps) {
+  const t = useT();
   const styles = useStyles();
   const theme = useTheme();
   const countdown = useRestTimerCountdown();
@@ -198,13 +203,12 @@ export function RestTimerPill({ onExpand }: RestTimerPillProps) {
     <Pressable
       onPress={onExpand}
       accessibilityRole="button"
-      accessibilityLabel={`Rest timer ${formatRestTime(countdown.remainingSeconds)}. Tap to expand`}
+      accessibilityLabel={t('rest.pillA11y', { time: formatRestTime(countdown.remainingSeconds) })}
       style={({ pressed }) => [styles.pill, pressed && styles.pressed]}
     >
       <View style={[styles.pillDot, { backgroundColor: color }]} />
       <Text style={styles.pillLabel} numberOfLines={1}>
-        {countdown.phase === 'paused' ? 'Paused' : 'Rest'}
-        {next ? `, set ${next.setNumber} next` : ''}
+        {`${countdown.phase === 'paused' ? t('rest.paused') : t('rest.rest')}${next ? t('rest.pillNext', { n: next.setNumber }) : ''}`}
       </Text>
       <Text style={[styles.pillTime, { color }]}>{formatRestTime(countdown.remainingSeconds)}</Text>
     </Pressable>
