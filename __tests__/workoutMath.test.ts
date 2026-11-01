@@ -54,18 +54,23 @@ function exercise(exerciseId: string, sets: ExerciseSet[]): SessionExercise {
 function session(startedAt: string, exercises: SessionExercise[], status: WorkoutSession['status'] = 'completed'): WorkoutSession {
   return {
     id: id(),
-    schemaVersion: 1,
-    routineId: 'push_a',
-    weekday: 'saturday',
+    schemaVersion: 2,
+    kind: 'plan',
+    planId: 'plan',
+    planDayId: 'plan:push_a',
     title: { en: 'Push', ar: 'دفع' },
     code: 'Push A',
     focus: 'strength',
     status,
     startedAt,
     finishedAt: null,
+    endedAtOverride: null,
+    pausedIntervals: [],
     exercises,
+    deferredIds: [],
     currentExerciseIndex: 0,
     warmupCompletedIds: [],
+    notes: '',
     summary: null,
   };
 }
@@ -164,6 +169,7 @@ describe('personal records', () => {
     const today = session('2026-10-31T18:00:00.000Z', [exercise('bench', [logged(65, 10), set({})])]);
     const summary = buildSessionSummary(today, [prior], new Date('2026-10-31T19:02:30.000Z'));
     expect(summary.durationSeconds).toBe(62 * 60 + 30);
+    expect(summary.activeSeconds).toBe(62 * 60 + 30);
     expect(summary.completedSets).toBe(1);
     expect(summary.totalSets).toBe(2);
     expect(summary.totalVolumeKg).toBe(650);
@@ -183,7 +189,7 @@ describe('weeklyVolumeKg', () => {
 
   it('prefers the stored summary volume when present', () => {
     const now = new Date(2026, 10, 4);
-    const s = { ...session(new Date(2026, 10, 1).toISOString(), [exercise('a', [logged(1, 1)])]), summary: { totalVolumeKg: 42, completedSets: 1, totalSets: 1, durationSeconds: 1, personalRecords: [] } };
+    const s = { ...session(new Date(2026, 10, 1).toISOString(), [exercise('a', [logged(1, 1)])]), summary: { totalVolumeKg: 42, completedSets: 1, totalSets: 1, durationSeconds: 1, activeSeconds: 1, personalRecords: [] } };
     expect(weeklyVolumeKg([s], 1, now)).toEqual([42]);
   });
 });

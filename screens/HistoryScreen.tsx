@@ -10,17 +10,18 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
 import { getExercise } from '@/data/exercisesData';
-import { ROUTINES } from '@/data/scheduleData';
-import { formatDuration, formatKg, formatKgCompact, formatShortDate, percentChange, startOfProgramWeek } from '@/lib/format';
+import { isSessionForDay } from '@/data/plans';
+import { formatDuration, formatKg, formatKgCompact, formatShortDate, percentChange, startOfWeek } from '@/lib/format';
 import { formatSet, isCountedSet, sessionVolumeKg, weeklyVolumeKg } from '@/lib/workoutMath';
-import { useWorkoutStore } from '@/store/useWorkoutStore';
-import type { RoutineId, WorkoutSession } from '@/types/workout';
+import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
+import type { WorkoutSession } from '@/types/workout';
 
 const CHART_WEEKS = 8;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 interface VolumeRecord {
-  routineId: RoutineId;
+  dayId: string;
+  code: string;
   session: WorkoutSession | null;
   volumeKg: number;
 }
@@ -35,27 +36,30 @@ export default function HistoryScreen() {
   const [pendingDelete, setPendingDelete] = useState<WorkoutSession | null>(null);
 
   const history = useWorkoutStore((state) => state.history);
+  const weekStart = useWorkoutStore((state) => state.settings.weekStart);
+  const activePlan = useWorkoutStore(selectActivePlan);
   const deleteSession = useWorkoutStore((state) => state.deleteSession);
 
   const completed = useMemo(() => history.filter((session) => session.status === 'completed'), [history]);
 
-  const volumes = useMemo(() => weeklyVolumeKg(completed, CHART_WEEKS, now), [completed, now]);
+  const volumes = useMemo(() => weeklyVolumeKg(completed, CHART_WEEKS, now, weekStart), [completed, now, weekStart]);
   const weekStarts = useMemo(() => {
-    const current = startOfProgramWeek(now).getTime();
+    const current = startOfWeek(now, weekStart).getTime();
     return Array.from({ length: CHART_WEEKS }, (_, i) => new Date(current - (CHART_WEEKS - 1 - i) * 7 * DAY_MS));
-  }, [now]);
+  }, [now, weekStart]);
   const weekChange = percentChange(volumes[CHART_WEEKS - 1], volumes[CHART_WEEKS - 2]);
 
+  // Best session per day of the active plan.
   const records = useMemo<VolumeRecord[]>(
     () =>
-      (Object.keys(ROUTINES) as RoutineId[]).map((routineId) => {
+      (activePlan?.days ?? []).map((day) => {
         let best: WorkoutSession | null = null;
         for (const session of completed) {
-          if (session.routineId === routineId && (!best || volumeOf(session) > volumeOf(best))) best = session;
+          if (isSessionForDay(session, activePlan!, day) && (!best || volumeOf(session) > volumeOf(best))) best = session;
         }
-        return { routineId, session: best, volumeKg: best ? volumeOf(best) : 0 };
+        return { dayId: day.id, code: day.code, session: best, volumeKg: best ? volumeOf(best) : 0 };
       }),
-    [completed],
+    [activePlan, completed],
   );
 
   const totalPrs = completed.reduce((total, session) => total + (session.summary?.personalRecords.length ?? 0), 0);
@@ -104,10 +108,10 @@ export default function HistoryScreen() {
               <SectionHeader title="Volume records" />
               <View style={styles.group}>
                 {records.map((record, index) => (
-                  <View key={record.routineId} style={[styles.recordRow, index < records.length - 1 && styles.divider]}>
-                    <Badge routineId={record.routineId} />
+                  <View key={record.dayId} style={[styles.recordRow, index < records.length - 1 && styles.divider]}>
+                    <Badge code={record.code} />
                     <View style={styles.flex}>
-                      <Text style={styles.headline}>{ROUTINES[record.routineId].code}</Text>
+                      <Text style={styles.headline}>{record.code}</Text>
                       <Text style={styles.caption}>
                         {record.session ? formatShortDate(record.session.startedAt) : 'Not logged yet'}
                       </Text>
@@ -180,7 +184,7 @@ function SessionRow({
         accessibilityHint="Long press to delete"
         style={({ pressed }) => [styles.sessionRow, pressed && styles.pressed]}
       >
-        <Badge routineId={session.routineId} />
+        <Badge code={session.code} />
         <View style={styles.flex}>
           <Text style={styles.headline}>{session.code}</Text>
           <Text style={styles.caption}>{formatShortDate(session.startedAt)}</Text>
@@ -229,18 +233,20 @@ function SessionRow({
   );
 }
 
-const BADGES: Record<RoutineId, string> = {
-  push_a: 'PSH',
-  pull_a: 'PUL',
-  leg_a: 'LEG',
-  upper_b: 'UPR',
-  lower_b: 'LWR',
-};
+/** "Push A" → "PSH A", "Full Body B" → "FB B", "Legs" → "LEG". */
+function badgeFor(code: string): string {
+  const words = code.trim().split(/\s+/);
+  const suffix = words.length > 1 && /^[A-Z0-9]$/i.test(words[words.length - 1]) ? ` ${words.pop()!.toUpperCase()}` : '';
+  const head = words.length > 1 ? words.map((w) => w[0]).join('') : words[0].replace(/[aeiou]/gi, '').slice(0, 3) || words[0].slice(0, 3);
+  return `${head.toUpperCase()}${suffix}`;
+}
 
-function Badge({ routineId }: { routineId: RoutineId }) {
+function Badge({ code }: { code: string }) {
   return (
     <View style={styles.badge} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Text style={styles.badgeText}>{BADGES[routineId]}</Text>
+      <Text style={styles.badgeText} numberOfLines={1} adjustsFontSizeToFit>
+        {badgeFor(code)}
+      </Text>
     </View>
   );
 }

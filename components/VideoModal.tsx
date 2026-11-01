@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
 import { MUSCLE_LABELS, getExercise } from '@/data/exercisesData';
-import { ROUTINES } from '@/data/scheduleData';
+import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Exercise } from '@/types/workout';
 
 interface VideoModalProps {
@@ -49,12 +49,13 @@ function VideoSheetContent({
 }) {
   const [openError, setOpenError] = useState<string | null>(null);
 
+  const activePlan = useWorkoutStore(selectActivePlan);
   const usedIn = useMemo(
     () =>
-      Object.values(ROUTINES)
-        .filter((routine) => routine.exercises.some((item) => item.exerciseId === exercise.id))
-        .map((routine) => routine.code),
-    [exercise.id],
+      (activePlan?.days ?? [])
+        .filter((day) => day.exercises.some((item) => item.exerciseId === exercise.id))
+        .map((day) => day.code),
+    [activePlan, exercise.id],
   );
 
   const openInApp = async () => {

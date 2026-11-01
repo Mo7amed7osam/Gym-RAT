@@ -1,5 +1,5 @@
 import type { Driver } from './driver';
-import { REQUIRED_TABLES, SCHEMA_V1 } from './schema';
+import { REQUIRED_TABLES, SCHEMA_V1, SCHEMA_V2 } from './schema';
 
 interface MigrationStep {
   version: number;
@@ -7,7 +7,10 @@ interface MigrationStep {
 }
 
 /** Append-only. Each step runs inside one transaction with the user_version bump. */
-export const MIGRATIONS: readonly MigrationStep[] = [{ version: 1, up: (driver) => driver.exec(SCHEMA_V1) }];
+export const MIGRATIONS: readonly MigrationStep[] = [
+  { version: 1, up: (driver) => driver.exec(SCHEMA_V1) },
+  { version: 2, up: (driver) => driver.exec(SCHEMA_V2) },
+];
 
 export const SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;
 
@@ -39,13 +42,22 @@ export function migrate(driver: Driver, options: MigrateOptions = {}): MigrateRe
 
   if (from > 0) options.backup?.(from);
 
+  // Table rebuilds (DROP + RENAME) would cascade-delete child rows with foreign
+  // keys enforced; the pragma is a no-op inside a transaction, so toggle it here.
+  driver.exec('PRAGMA foreign_keys = OFF');
   const applied: number[] = [];
-  for (const step of pending) {
-    driver.transaction(() => {
-      step.up(driver);
-      driver.exec(`PRAGMA user_version = ${step.version}`);
-    });
-    applied.push(step.version);
+  try {
+    for (const step of pending) {
+      driver.transaction(() => {
+        step.up(driver);
+        const violations = driver.all('PRAGMA foreign_key_check');
+        if (violations.length > 0) throw new Error(`Migration ${step.version} left ${violations.length} foreign key violation(s)`);
+        driver.exec(`PRAGMA user_version = ${step.version}`);
+      });
+      applied.push(step.version);
+    }
+  } finally {
+    driver.exec('PRAGMA foreign_keys = ON');
   }
 
   verifySchema(driver);

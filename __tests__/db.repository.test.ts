@@ -2,6 +2,7 @@ import { createNodeDriver } from '@/data/db/driver.node';
 import { migrate } from '@/data/db/migrations';
 import { WorkoutRepository } from '@/data/db/repository';
 import { KV } from '@/data/db/schema';
+import { seedPlans } from '@/data/db/seed';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, useWorkoutStore } from '@/store/useWorkoutStore';
 
 const defaults = { restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS };
@@ -12,16 +13,17 @@ function freshRepo() {
   return { driver, repo: new WorkoutRepository(driver) };
 }
 
+const empty = () => ({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
+
 function resetStore() {
-  useWorkoutStore.setState({
-    selectedWeekday: null,
-    persistenceError: null,
-    activeSession: null,
-    history: [],
-    restTimer: IDLE_REST_TIMER,
-    settings: DEFAULT_SETTINGS,
-  });
+  useWorkoutStore.setState({ previewDayIndex: null, persistenceError: null, ...empty() });
 }
+
+const start = (dayIndex?: number) => {
+  const result = useWorkoutStore.getState().startWorkout(dayIndex === undefined ? {} : { dayIndex });
+  if (!result.ok) throw new Error(`expected session, got ${result.reason}`);
+  return result.session;
+};
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -37,10 +39,12 @@ describe('WorkoutRepository with the store attached', () => {
   it('round-trips a full workout lifecycle through SQLite', () => {
     const { repo } = freshRepo();
     attachPersistence({ persist: (prev, next) => repo.persistDiff(prev, next) });
+    useWorkoutStore.setState(seedPlans(empty())); // plans are written too
+    expect(repo.counts().plans).toBe(3);
+    expect(repo.loadAll(defaults).plans).toEqual(useWorkoutStore.getState().plans);
 
     const store = useWorkoutStore.getState();
-    const started = store.startWorkout('saturday');
-    if (!started.ok) throw new Error('expected session');
+    const started = { ok: true as const, session: start(0) };
     const ex = started.session.exercises[0];
     store.completeSet(ex.id, ex.sets[0].id, { weightKg: 60, reps: 12 });
     store.addSet(ex.id);
@@ -57,22 +61,25 @@ describe('WorkoutRepository with the store attached', () => {
     expect(mid.restTimer).toEqual(useWorkoutStore.getState().restTimer);
     expect(mid.settings).toEqual(useWorkoutStore.getState().settings);
 
-    const finished = store.finishWorkout()!;
+    const finished = store.finishWorkout('repeat')!;
     const after = repo.loadAll(defaults);
     expect(after.activeSession).toBeNull();
     expect(after.history).toEqual([finished]);
     expect(after.history[0].summary?.totalVolumeKg).toBe(720);
+    // Rotation pointer change is persisted with the plan.
+    store.setNextDay(2);
+    expect(repo.loadAll(defaults).plans.find((plan) => plan.kind === 'active')?.nextDayIndex).toBe(2);
+    store.setNextDay(0);
 
     // A second workout with prefill, then discard: the discarded session leaves no rows.
-    const second = store.startWorkout('saturday');
-    if (!second.ok) throw new Error('expected session');
+    const second = { ok: true as const, session: start(0) };
     expect(second.session.exercises[0].sets[0].weightKg).toBe(60);
     store.cancelWorkout();
     expect(repo.counts().sessions).toBe(1);
 
     // Delete history → rows gone.
     store.deleteSession(finished.id);
-    expect(repo.counts()).toEqual({ sessions: 0, exercises: 0, sets: 0 });
+    expect(repo.counts()).toEqual({ sessions: 0, exercises: 0, sets: 0, plans: 3 });
 
     // A fresh store hydrated from the DB equals the current store.
     const reloaded = repo.loadAll(defaults);
@@ -82,10 +89,11 @@ describe('WorkoutRepository with the store attached', () => {
   it('persists history edits by id and leaves untouched sessions alone', () => {
     const { repo } = freshRepo();
     attachPersistence({ persist: (prev, next) => repo.persistDiff(prev, next) });
+    useWorkoutStore.setState(seedPlans(empty()));
     const store = useWorkoutStore.getState();
-    for (const day of ['saturday', 'sunday'] as const) {
-      const r = store.startWorkout(day);
-      if (!r.ok) throw new Error('expected session');
+    for (const dayIndex of [0, 1]) {
+      start(dayIndex);
+      expect(useWorkoutStore.getState().persistenceError).toBeNull();
       store.finishWorkout();
       jest.advanceTimersByTime(60_000); // distinct startedAt so load order matches insertion order
     }
@@ -101,7 +109,7 @@ describe('WorkoutRepository with the store attached', () => {
 describe('WorkoutRepository primitives', () => {
   it('persistDiff is a no-op when nothing persisted changed', () => {
     const { driver, repo } = freshRepo();
-    const state = { activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS };
+    const state = empty();
     const spy = jest.spyOn(driver, 'transaction');
     repo.persistDiff(state, state);
     expect(spy).not.toHaveBeenCalled();
@@ -109,27 +117,18 @@ describe('WorkoutRepository primitives', () => {
 
   it('loadAll falls back to defaults and merges stored settings over them', () => {
     const { repo } = freshRepo();
-    expect(repo.loadAll(defaults)).toEqual({ activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS });
+    expect(repo.loadAll(defaults)).toEqual(empty());
     repo.writeKv(KV.settings, { hapticsEnabled: false });
     expect(repo.loadAll(defaults).settings).toEqual({ ...DEFAULT_SETTINGS, hapticsEnabled: false });
   });
 
   it('a throwing write rolls the whole transaction back', () => {
     const { driver, repo } = freshRepo();
-    const store = useWorkoutStore.getState();
-    const r = store.startWorkout('saturday');
-    if (!r.ok) throw new Error('expected session');
-    const session = r.session;
+    useWorkoutStore.setState(seedPlans(empty()));
+    const session = start(0);
     const broken = { ...session, exercises: [{ ...session.exercises[0], sets: [{ ...session.exercises[0].sets[0], type: 'bogus' as never }] }] };
-    expect(() =>
-      repo.persistDiff({ activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS }, {
-        activeSession: broken,
-        history: [],
-        restTimer: IDLE_REST_TIMER,
-        settings: DEFAULT_SETTINGS,
-      }),
-    ).toThrow();
-    expect(repo.counts()).toEqual({ sessions: 0, exercises: 0, sets: 0 });
+    expect(() => repo.persistDiff(empty(), { ...empty(), activeSession: broken })).toThrow();
+    expect(repo.counts()).toEqual({ sessions: 0, exercises: 0, sets: 0, plans: 0 });
     expect(driver.get('SELECT 1 AS ok')).toEqual({ ok: 1 }); // connection still usable
   });
 });

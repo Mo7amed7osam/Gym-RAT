@@ -78,13 +78,15 @@ describe('importFromAsyncStorage', () => {
 
     const result = await importFromAsyncStorage(repo, storage, defaults, now);
     expect(result).toEqual({ status: 'imported', sessions: 2, renamedTo: `${LEGACY_STORAGE_KEY}.imported-2026-10-31` });
-    expect(repo.counts()).toEqual({ sessions: 2, exercises: 2, sets: 4 });
+    expect(repo.counts()).toEqual({ sessions: 2, exercises: 2, sets: 4, plans: 0 });
 
     const loaded = repo.loadAll(defaults);
     expect(loaded.activeSession?.id).toBe('active');
+    expect(loaded.activeSession).toMatchObject({ kind: 'plan', planId: 'pdf_ppl_ul_v5', planDayId: 'pdf_ppl_ul_v5:push_a', schemaVersion: 2 });
+    expect(loaded.history[0].summary).toMatchObject({ durationSeconds: 3600, activeSeconds: 3600 });
     expect(loaded.activeSession).not.toHaveProperty('cooldownCompletedIds');
     expect(loaded.history[0].id).toBe('h1');
-    expect(loaded.settings).toEqual({ ...DEFAULT_SETTINGS, hapticsEnabled: false });
+    expect(loaded.settings).toEqual({ ...DEFAULT_SETTINGS, hapticsEnabled: false, weekStart: 'saturday' });
     expect(loaded.restTimer.durationMs).toBe(90_000);
 
     expect(storage.map.has(LEGACY_STORAGE_KEY)).toBe(false);

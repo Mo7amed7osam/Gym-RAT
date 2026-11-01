@@ -12,23 +12,16 @@ import { ProgressRing } from '@/components/ui/ProgressRing';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
 import { getExercise } from '@/data/exercisesData';
-import {
-  PROGRAM_INFO,
-  WEEKDAYS,
-  WEEKLY_SCHEDULE,
-  estimateDurationMinutes,
-  getTotalSets,
-  getTrainingDays,
-  weekdayFromDate,
-} from '@/data/scheduleData';
+import { estimateDurationMinutes, getTotalSets, isSessionForDay } from '@/data/plans';
+import { PDF_PROGRAM_INFO } from '@/data/seeds/pdfProgram';
 import { COACH_NOTES, WARMUP_STAGES } from '@/data/warmupData';
-import { formatDuration, formatKg, formatLongDate, formatShortDate, isSameDay, percentChange, startOfProgramWeek } from '@/lib/format';
+import { formatDuration, formatKg, formatLongDate, formatShortDate, percentChange, startOfWeek } from '@/lib/format';
 import { countSets, formatSet, getExerciseBests, weeklyVolumeKg } from '@/lib/workoutMath';
-import { useWorkoutStore } from '@/store/useWorkoutStore';
-import type { CardioDay, RestDay, TrainingDay, Weekday, WorkoutSession } from '@/types/workout';
+import { selectActivePlan, selectNextDay, selectPreviewedDay, useWorkoutStore } from '@/store/useWorkoutStore';
+import type { Plan, PlanDay, WorkoutSession } from '@/types/workout';
 
-const TRAINING_DAYS = getTrainingDays();
 const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function TodayDashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -37,33 +30,23 @@ export default function TodayDashboardScreen() {
   const [videoExerciseId, setVideoExerciseId] = useState<string | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
-  const selectedWeekday = useWorkoutStore((state) => state.selectedWeekday);
   const history = useWorkoutStore((state) => state.history);
   const activeSession = useWorkoutStore((state) => state.activeSession);
-  const selectWeekday = useWorkoutStore((state) => state.selectWeekday);
+  const weekStart = useWorkoutStore((state) => state.settings.weekStart);
+  const plan = useWorkoutStore(selectActivePlan);
+  const nextDay = useWorkoutStore(selectNextDay);
+  const day = useWorkoutStore(selectPreviewedDay);
+  const previewDay = useWorkoutStore((state) => state.previewDay);
   const startWorkout = useWorkoutStore((state) => state.startWorkout);
   const cancelWorkout = useWorkoutStore((state) => state.cancelWorkout);
 
-  const todayWeekday = weekdayFromDate(now);
-  const weekday = selectedWeekday ?? todayWeekday;
-  const isToday = weekday === todayWeekday;
-  const day = WEEKLY_SCHEDULE[weekday];
-  const weekStart = useMemo(() => startOfProgramWeek(now), [now]);
+  const weekStartDate = useMemo(() => startOfWeek(now, weekStart), [now, weekStart]);
+  const isNext = day !== null && day.id === nextDay?.id;
 
-  const doneThisWeek = useMemo(() => {
-    const done = new Set<Weekday>();
-    for (const session of history) {
-      if (session.status === 'completed' && Date.parse(session.startedAt) >= weekStart.getTime()) {
-        done.add(weekdayFromDate(new Date(session.startedAt)));
-      }
-    }
-    return done;
-  }, [history, weekStart]);
-
-  const [lastWeekVolume, thisWeekVolume] = useMemo(() => weeklyVolumeKg(history, 2, now), [history, now]);
+  const [lastWeekVolume, thisWeekVolume] = useMemo(() => weeklyVolumeKg(history, 2, now, weekStart), [history, now, weekStart]);
   const volumeDelta = percentChange(thisWeekVolume, lastWeekVolume);
   const sessionsThisWeek = history.filter(
-    (session) => session.status === 'completed' && Date.parse(session.startedAt) >= weekStart.getTime(),
+    (session) => session.status === 'completed' && Date.parse(session.startedAt) >= weekStartDate.getTime(),
   ).length;
 
   const handleStart = () => {
@@ -71,11 +54,10 @@ export default function TodayDashboardScreen() {
       router.push('/workout');
       return;
     }
-    const result = startWorkout(weekday);
+    if (!day) return;
+    const result = startWorkout({ dayIndex: day.position });
     if (result.ok) router.push('/workout');
   };
-
-  const selectDay = (next: Weekday) => selectWeekday(next === todayWeekday ? null : next);
 
   return (
     <View style={styles.root}>
@@ -85,22 +67,20 @@ export default function TodayDashboardScreen() {
       >
         <View style={styles.header}>
           <View style={styles.flex}>
-            <Text style={styles.eyebrow}>
-              {formatLongDate(isToday ? now : new Date(weekStart.getTime() + day.dayIndex * DAY_MS))}
-            </Text>
+            <Text style={styles.eyebrow}>{formatLongDate(now)}</Text>
             <Text style={styles.largeTitle} accessibilityRole="header">
-              {isToday ? 'Today' : day.weekdayName.en}
+              Today
             </Text>
           </View>
-          {!isToday ? (
+          {!isNext && day ? (
             <Pressable
-              onPress={() => selectWeekday(null)}
+              onPress={() => previewDay(null)}
               accessibilityRole="button"
-              accessibilityLabel="Back to today"
+              accessibilityLabel="Back to the next workout"
               style={styles.todayButton}
             >
               <RotateCcw size={16} color={colors.link} />
-              <Text style={styles.todayButtonText}>Today</Text>
+              <Text style={styles.todayButtonText}>Next up</Text>
             </Pressable>
           ) : null}
           <Pressable
@@ -113,16 +93,12 @@ export default function TodayDashboardScreen() {
           </Pressable>
         </View>
 
-        <WeekStrip
-          weekStart={weekStart}
-          selected={weekday}
-          today={todayWeekday}
-          done={doneThisWeek}
-          onSelect={selectDay}
-        />
+        {plan ? (
+          <RotationStrip plan={plan} selectedDayId={day?.id ?? null} nextDayId={nextDay?.id ?? null} onSelect={previewDay} />
+        ) : null}
 
-        {/* The hero's own CTA already resumes when it shows the active routine. */}
-        {activeSession && !(day.kind === 'training' && day.routineId === activeSession.routineId) ? (
+        {/* The hero's own CTA already resumes when it shows the active session's day. */}
+        {activeSession && !(plan && day && isSessionForDay(activeSession, plan, day)) ? (
           <ResumeBanner
             session={activeSession}
             onResume={() => router.push('/workout')}
@@ -130,20 +106,25 @@ export default function TodayDashboardScreen() {
           />
         ) : null}
 
-        {day.kind === 'training' ? (
-          <TrainingHero
+        {plan && day ? (
+          <DayHero
+            plan={plan}
             day={day}
+            isNext={isNext}
             history={history}
             activeSession={activeSession}
-            now={now}
-            canStart={isToday || !activeSession}
+            canStart={activeSession === null || isSessionForDay(activeSession, plan, day)}
             onStart={handleStart}
           />
-        ) : day.kind === 'cardio' ? (
-          <CardioHero day={day} />
         ) : (
-          <RestHero day={day} />
+          <View style={styles.hero}>
+            <Text style={styles.heroEyebrow}>No active plan</Text>
+            <Text style={styles.heroTitle}>Set up</Text>
+            <Text style={styles.secondary}>Choose a plan to start training. Plan setup arrives with onboarding.</Text>
+          </View>
         )}
+
+        <WeekCalendar weekStart={weekStartDate} now={now} history={history} />
 
         <View style={styles.stats}>
           <StatCard
@@ -152,14 +133,10 @@ export default function TodayDashboardScreen() {
             detail={volumeDelta === null ? 'Total volume' : `${volumeDelta >= 0 ? '+' : ''}${volumeDelta}% vs last week`}
             detailTone={volumeDelta !== null && volumeDelta >= 0 ? 'success' : 'neutral'}
           />
-          <StatCard
-            label="Sessions"
-            value={`${sessionsThisWeek} / ${TRAINING_DAYS.length}`}
-            detail="Training days done"
-          />
+          <StatCard label="Sessions" value={String(sessionsThisWeek)} detail="This week" />
         </View>
 
-        {day.kind === 'training' ? (
+        {day ? (
           <>
             <View style={styles.section}>
               <SectionHeader title="Warm-up" />
@@ -210,98 +187,117 @@ export default function TodayDashboardScreen() {
   );
 }
 
-// ─── Week strip ──────────────────────────────────────────────────────────────
+// ─── Rotation strip ──────────────────────────────────────────────────────────
 
-function WeekStrip({
-  weekStart,
-  selected,
-  today,
-  done,
+/** The plan's days in rotation order. The next one is highlighted; tap any to preview it. */
+function RotationStrip({
+  plan,
+  selectedDayId,
+  nextDayId,
   onSelect,
 }: {
-  weekStart: Date;
-  selected: Weekday;
-  today: Weekday;
-  done: ReadonlySet<Weekday>;
-  onSelect: (weekday: Weekday) => void;
+  plan: Plan;
+  selectedDayId: string | null;
+  nextDayId: string | null;
+  onSelect: (index: number | null) => void;
 }) {
   return (
-    <View style={styles.weekStrip} accessibilityRole="tablist">
-      {WEEKDAYS.map((weekday, index) => {
-        const schedule = WEEKLY_SCHEDULE[weekday];
-        const date = new Date(weekStart.getTime() + index * DAY_MS);
-        const isSelected = weekday === selected;
-        const dotStyle = done.has(weekday)
-          ? styles.dotDone
-          : schedule.kind === 'cardio'
-            ? styles.dotCardio
-            : schedule.kind === 'rest'
-              ? styles.dotRest
-              : styles.dotTraining;
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rotation} accessibilityRole="tablist">
+      {plan.days.map((day) => {
+        const isSelected = day.id === selectedDayId;
+        const isNext = day.id === nextDayId;
         return (
           <Pressable
-            key={weekday}
-            onPress={() => onSelect(weekday)}
+            key={day.id}
+            onPress={() => onSelect(isNext ? null : day.position)}
             accessibilityRole="tab"
             accessibilityState={{ selected: isSelected }}
-            accessibilityLabel={`${schedule.weekdayName.en}, ${schedule.kind === 'training' ? schedule.code : schedule.title.en}${done.has(weekday) ? ', done' : ''}${weekday === today ? ', today' : ''}`}
-            style={[styles.weekDay, isSelected && styles.weekDaySelected]}
+            accessibilityLabel={`${day.code}, day ${day.position + 1} of ${plan.days.length}${isNext ? ', next up' : ''}`}
+            style={[styles.rotationChip, isSelected && styles.rotationChipSelected]}
           >
-            <Text style={[styles.weekDayLabel, isSelected && styles.onTint]}>
-              {schedule.weekdayName.en.slice(0, 3)}
+            <Text style={[styles.rotationIndex, isSelected && styles.onTint, isNext && !isSelected && styles.todayNumber]}>
+              {day.position + 1}
             </Text>
-            <Text style={[styles.weekDayNumber, isSelected && styles.onTint, weekday === today && !isSelected && styles.todayNumber]}>
-              {date.getDate()}
+            <Text style={[styles.rotationCode, isSelected && styles.onTint]} numberOfLines={1}>
+              {day.code}
             </Text>
-            <View style={[styles.dot, dotStyle, isSelected && styles.dotOnTint]} />
           </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+// ─── Week calendar ───────────────────────────────────────────────────────────
+
+/** Seven days of the current week; a green dot marks days with a completed session (actual dates). */
+function WeekCalendar({ weekStart, now, history }: { weekStart: Date; now: Date; history: readonly WorkoutSession[] }) {
+  const doneDays = useMemo(() => {
+    const done = new Set<number>();
+    for (const session of history) {
+      if (session.status !== 'completed') continue;
+      const started = new Date(session.startedAt);
+      const dayOffset = Math.floor((started.getTime() - weekStart.getTime()) / DAY_MS);
+      if (dayOffset >= 0 && dayOffset < 7) done.add(dayOffset);
+    }
+    return done;
+  }, [history, weekStart]);
+
+  return (
+    <View style={styles.weekStrip} accessible accessibilityLabel={`This week: ${doneDays.size} training days done`}>
+      {Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(weekStart.getTime() + index * DAY_MS);
+        const isToday = date.toDateString() === now.toDateString();
+        return (
+          <View key={index} style={[styles.weekDay, isToday && styles.weekDayToday]}>
+            <Text style={styles.weekDayLabel}>{WEEKDAY_SHORT[date.getDay()]}</Text>
+            <Text style={[styles.weekDayNumber, isToday && styles.todayNumber]}>{date.getDate()}</Text>
+            <View style={[styles.dot, doneDays.has(index) ? styles.dotDone : styles.dotRest]} />
+          </View>
         );
       })}
     </View>
   );
 }
 
-// ─── Hero cards ──────────────────────────────────────────────────────────────
+// ─── Hero ────────────────────────────────────────────────────────────────────
 
-function TrainingHero({
+function DayHero({
+  plan,
   day,
+  isNext,
   history,
   activeSession,
-  now,
   canStart,
   onStart,
 }: {
-  day: TrainingDay;
+  plan: Plan;
+  day: PlanDay;
+  isNext: boolean;
   history: readonly WorkoutSession[];
   activeSession: WorkoutSession | null;
-  now: Date;
   canStart: boolean;
   onStart: () => void;
 }) {
-  const dayNumber = TRAINING_DAYS.findIndex((item) => item.routineId === day.routineId) + 1;
-  const completedToday = history.some(
-    (session) => session.routineId === day.routineId && session.status === 'completed' && isSameDay(new Date(session.startedAt), now),
-  );
-  const isActiveRoutine = activeSession?.routineId === day.routineId;
-  const sessionSets = isActiveRoutine && activeSession ? countSets(activeSession) : null;
-  const progress = completedToday ? 1 : sessionSets && sessionSets.total > 0 ? sessionSets.completed / sessionSets.total : 0;
-  const lastSession = history.find((session) => session.routineId === day.routineId && session.status === 'completed');
+  const isActiveDay = activeSession !== null && isSessionForDay(activeSession, plan, day);
+  const sessionSets = isActiveDay && activeSession ? countSets(activeSession) : null;
+  const progress = sessionSets && sessionSets.total > 0 ? sessionSets.completed / sessionSets.total : 0;
+  const lastSession = history.find((session) => session.status === 'completed' && isSessionForDay(session, plan, day));
 
-  let ctaLabel = 'Start workout';
-  if (isActiveRoutine) ctaLabel = 'Resume workout';
+  let ctaLabel = isNext ? 'Start workout' : `Start ${day.code} instead`;
+  if (isActiveDay) ctaLabel = 'Resume workout';
   else if (activeSession) ctaLabel = `Resume ${activeSession.code}`;
-  else if (completedToday) ctaLabel = 'Train again';
 
-  const showRing = completedToday || isActiveRoutine;
   const preview = day.exercises.slice(0, 5);
   const hiddenCount = day.exercises.length - preview.length;
+  const focusLabel = day.focus ? `${PDF_PROGRAM_INFO.focusLabels[day.focus].en} day` : plan.name.en;
 
   return (
     <View style={styles.hero}>
       <View style={styles.heroMeta}>
-        <Text style={styles.heroEyebrow}>{PROGRAM_INFO.focusLabels[day.focus].en} day</Text>
+        <Text style={styles.heroEyebrow}>{isNext ? 'Up next' : 'Preview'} · {focusLabel}</Text>
         <Text style={styles.heroDay}>
-          Day {dayNumber} of {TRAINING_DAYS.length}
+          Day {day.position + 1} of {plan.days.length}
         </Text>
       </View>
 
@@ -315,8 +311,8 @@ function TrainingHero({
             {day.muscleSummary.ar}
           </Text>
         </View>
-        {showRing ? (
-          <ProgressRing size={76} strokeWidth={8} progress={progress} color={completedToday ? colors.success : colors.tint}>
+        {isActiveDay ? (
+          <ProgressRing size={76} strokeWidth={8} progress={progress} color={colors.tint}>
             <Text style={styles.ringText}>{Math.round(progress * 100)}%</Text>
           </ProgressRing>
         ) : null}
@@ -359,57 +355,6 @@ function TrainingHero({
   );
 }
 
-function CardioHero({ day }: { day: CardioDay }) {
-  return (
-    <>
-      <View style={styles.hero}>
-        <View style={styles.heroText}>
-          <Text style={[styles.heroEyebrow, { color: colors.link }]}>Cardio · Recovery</Text>
-          <Text style={styles.heroTitle}>{day.title.en}</Text>
-          <Text style={styles.arabic} accessibilityLanguage="ar">
-            {day.title.ar}
-          </Text>
-          <Text style={styles.secondary}>
-            {day.durationMinutes.min}–{day.durationMinutes.max} min easy · pick one
-          </Text>
-        </View>
-        <View style={styles.groupInset}>
-          {day.activities.map((activity, index) => (
-            <View key={activity.id} style={[styles.groupRow, index < day.activities.length - 1 && styles.divider]}>
-              <View style={styles.flex}>
-                <Text style={styles.body}>{activity.name.en}</Text>
-                <Text style={styles.secondary}>{activity.intensity.en}</Text>
-              </View>
-              <Text style={styles.secondary}>
-                {activity.durationMinutes.min}–{activity.durationMinutes.max}′
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
-    </>
-  );
-}
-
-function RestHero({ day }: { day: RestDay }) {
-  const next = WEEKLY_SCHEDULE[WEEKDAYS[(day.dayIndex + 1) % WEEKDAYS.length]];
-  return (
-    <View style={styles.hero}>
-      <View style={styles.heroText}>
-        <Text style={[styles.heroEyebrow, { color: colors.labelSecondary }]}>Rest</Text>
-        <Text style={styles.heroTitle}>{day.title.en}</Text>
-        <Text style={styles.arabic} accessibilityLanguage="ar">
-          {day.note.ar}
-        </Text>
-        <Text style={styles.secondary}>{day.note.en}</Text>
-      </View>
-      <Text style={styles.lastSession}>
-        Next: {next.weekdayName.en} · {next.kind === 'training' ? next.code : next.title.en}
-      </Text>
-    </View>
-  );
-}
-
 // ─── Pieces ──────────────────────────────────────────────────────────────────
 
 function ResumeBanner({
@@ -441,7 +386,7 @@ function ExerciseList({
   history,
   onOpen,
 }: {
-  day: TrainingDay;
+  day: PlanDay;
   history: readonly WorkoutSession[];
   onOpen: (exerciseId: string) => void;
 }) {
@@ -453,7 +398,7 @@ function ExerciseList({
         const reps = item.reps.min === item.reps.max ? item.reps.min : `${item.reps.min}–${item.reps.max}`;
         return (
           <Pressable
-            key={item.exerciseId}
+            key={`${item.exerciseId}-${index}`}
             onPress={() => onOpen(item.exerciseId)}
             accessibilityRole="button"
             accessibilityLabel={`${exercise?.name.en ?? item.exerciseId}, ${item.sets} sets of ${reps}. Open form guide`}
@@ -561,6 +506,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.link,
   },
+  rotation: {
+    gap: spacing.sm,
+    paddingVertical: 2,
+  },
+  rotationChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: HIT,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface,
+  },
+  rotationChipSelected: {
+    backgroundColor: colors.tint,
+  },
+  rotationIndex: {
+    fontFamily: fonts.display,
+    fontSize: 20,
+    lineHeight: 22,
+    color: colors.labelSecondary,
+    fontVariant: ['tabular-nums'],
+  },
+  rotationCode: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.label,
+  },
   weekStrip: {
     flexDirection: 'row',
     gap: 6,
@@ -574,8 +547,9 @@ const styles = StyleSheet.create({
     borderRadius: radii.tile,
     backgroundColor: colors.surface,
   },
-  weekDaySelected: {
-    backgroundColor: colors.tint,
+  weekDayToday: {
+    borderWidth: 1,
+    borderColor: colors.tint,
   },
   weekDayLabel: {
     fontSize: 12,
@@ -600,22 +574,12 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: radii.pill,
   },
-  dotTraining: {
-    backgroundColor: colors.surfaceHigh,
-  },
-  dotCardio: {
-    backgroundColor: colors.link,
-  },
   dotRest: {
     borderWidth: 1,
     borderColor: colors.surfaceHigh,
   },
   dotDone: {
     backgroundColor: colors.success,
-  },
-  dotOnTint: {
-    backgroundColor: colors.onTint,
-    borderColor: colors.onTint,
   },
   resume: {
     flexDirection: 'row',
@@ -702,11 +666,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.edge,
-    overflow: 'hidden',
-  },
-  groupInset: {
-    borderRadius: radii.tile,
-    backgroundColor: colors.surfaceRaised,
     overflow: 'hidden',
   },
   groupRow: {

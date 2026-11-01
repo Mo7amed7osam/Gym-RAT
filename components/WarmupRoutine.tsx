@@ -12,7 +12,7 @@ import { hapticSelection, hapticWarning } from '@/lib/feedback';
 import { getPreviousPerformance, isCountedSet, roundTo } from '@/lib/workoutMath';
 import { formatRestTime } from '@/store/useRestTimerCountdown';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
-import type { StretchMove, StretchRoutine, TrainingDay, WarmupStage } from '@/types/workout';
+import type { StretchMove, StretchRoutine, WarmupStage } from '@/types/workout';
 
 // ─── Checklist ids & progress ────────────────────────────────────────────────
 
@@ -38,9 +38,15 @@ export function getRoutineProgress(completedIds: readonly string[]): number {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
+/** What the warm-up needs to know about today's workout. */
+export interface WarmupDayInfo {
+  code: string;
+  /** First lift of the day, for the acclimation-set suggestion. */
+  firstExerciseId?: string;
+}
+
 interface WarmupRoutineProps {
-  /** Today's routine — used for the acclimation-set suggestion. */
-  day?: TrainingDay;
+  day?: WarmupDayInfo;
   completedIds: readonly string[];
   onToggle: (itemId: string) => void;
 }
@@ -79,14 +85,13 @@ function WarmupStages({
   completed,
   onToggle,
 }: {
-  day?: TrainingDay;
+  day?: WarmupDayInfo;
   completed: ReadonlySet<string>;
   onToggle: (itemId: string) => void;
 }) {
   const [showPreWorkout, setShowPreWorkout] = useState(false);
-  const firstLift = day?.exercises[0];
-  const firstExercise = firstLift ? getExercise(firstLift.exerciseId) : undefined;
-  const acclimationKg = useAcclimationWeight(firstLift?.exerciseId);
+  const firstExercise = day?.firstExerciseId ? getExercise(day.firstExerciseId) : undefined;
+  const acclimationKg = useAcclimationWeight(day?.firstExerciseId);
 
   return (
     <>

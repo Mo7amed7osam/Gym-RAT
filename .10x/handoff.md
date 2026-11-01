@@ -7,15 +7,16 @@
 ## Gates still open
 - D5 (Apple credentials) before M3 device tests; D3 before M7; D4 before M4 completes.
 
-## Next task: M4 — plan/rotation + session reducer (ADR-003)
-1. Branch `phase1/m4-rotation`. Schema v2 adds `plans`, `plan_days`, `plan_exercises`; `sessions` gains `plan_id`, `plan_day_id`, `kind`, `paused_intervals_json`, `exercise_order_json`, `deferred_ids_json`, `ended_at_override`, `notes`. First real migration → the backup hook becomes testable (add the test).
-2. `domain/session/reducer.ts` pure; keep every existing store action name/signature so `ExerciseCard`/`SetRow` stay diff-free; add `pauseWorkout`, `resumeWorkout`, `deferExercise`, `reorderExercises`, `finishAndAdvance`/`finishAndRepeat`.
-3. Seed: PDF program as `kind='reference'` (stable day ids `pdf_v5:push_a` …), placeholder Starter clearly named `Full Body Starter (draft, pending D4)`.
-4. Importer mapping: legacy `routineId` → `pdf_v5:<routineId>` day id.
-5. Rewrite `TodayDashboardScreen` around `plans.next_day_index`; week strip → calendar of actual sessions; `HistoryScreen` badges keyed by day code; week-start setting (default Saturday).
-6. Gates + state + merge.
+## Next task: M5 — theme system (ADR-005)
+1. Branch `phase1/m5-theme`. Before touching stylesheets: RNTL snapshot of `SetRow` and `ExerciseCard` (store mocked) in the current dark theme.
+2. `theme/`: tokens seeded from `constants/theme.ts`; `ThemeProvider` (mode light/dark/system/trueBlack, accent, textScale, density) persisted in settings; `useTheme`, `useStyles(fn)` memoized per theme id.
+3. Migrate every `StyleSheet.create` referencing `colors` (~15 files) to `useStyles`; `app.json` `userInterfaceStyle: "automatic"`; appearance section in Settings.
+4. Lint rule: no colour literals in components/screens.
+5. Gates: snapshots identical in dark; four modes switch at runtime.
 
-## Done: M3, M2, M1, M0
+## Done: M4, M3, M2, M1, M0
+- M4: rotation model, reducer, Today rewrite. See `decisions/sde`, `decisions/dba`.
+, M2, M1, M0
 - M3: SQLite write-through persistence, importer, boot. See `decisions/sde`, `decisions/dba`.
 
 1. Baseline already committed (`chore: baseline import`). Add Jest via `npx expo install jest-expo jest @types/jest`, config `jest.config.js` with preset `jest-expo`.

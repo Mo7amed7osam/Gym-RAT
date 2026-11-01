@@ -1,5 +1,5 @@
 import { Redirect, useRouter } from 'expo-router';
-import { Check, ChevronDown, ChevronLeft, Star } from 'lucide-react-native';
+import { Check, ChevronDown, ChevronLeft, Pause, Play, Star } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -23,10 +23,11 @@ import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT, colors, fonts, radii, spacing, typography } from '@/constants/theme';
 import { getExercise } from '@/data/exercisesData';
-import { ROUTINES } from '@/data/scheduleData';
+import { isSessionForDay } from '@/data/plans';
 import { formatDuration, formatElapsed, formatKg, formatLongDate, formatTime, percentChange } from '@/lib/format';
 import { countSets } from '@/lib/workoutMath';
-import { useWorkoutStore } from '@/store/useWorkoutStore';
+import { activeSeconds, isPaused } from '@/domain/session/reducer';
+import { selectIsWorkoutPaused, selectNextDay, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { PersonalRecord, SessionExercise, WorkoutSession } from '@/types/workout';
 
 type Stage = 'warmup' | 'exercises';
@@ -59,13 +60,18 @@ function useNow(intervalMs: number): number {
   return now;
 }
 
-/** Ticks on its own so the rest of the runner doesn't re-render every second. */
-function ElapsedLabel({ startedAt, completed, total }: { startedAt: string; completed: number; total: number }) {
+/** Ticks on its own so the rest of the runner doesn't re-render every second. Shows active time (pauses excluded). */
+function ElapsedLabel({ session, completed, total }: { session: WorkoutSession; completed: number; total: number }) {
   const now = useNow(1000);
-  const elapsedSeconds = (now - Date.parse(startedAt)) / 1000;
+  const seconds = activeSeconds(session, now);
+  const paused = isPaused(session);
   return (
-    <Text style={styles.topElapsed} accessibilityLabel={`${formatElapsed(elapsedSeconds)} elapsed, ${completed} of ${total} sets`}>
-      {formatElapsed(elapsedSeconds)}
+    <Text
+      style={[styles.topElapsed, paused && styles.topElapsedPaused]}
+      accessibilityLabel={`${paused ? 'Paused, ' : ''}${formatElapsed(seconds)} active, ${completed} of ${total} sets`}
+    >
+      {paused ? 'Paused · ' : ''}
+      {formatElapsed(seconds)}
     </Text>
   );
 }
@@ -87,10 +93,14 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
   const toggleWarmupItem = useWorkoutStore((state) => state.toggleWarmupItem);
   const goToExercise = useWorkoutStore((state) => state.goToExercise);
   const setExerciseSkipped = useWorkoutStore((state) => state.setExerciseSkipped);
+  const deferExercise = useWorkoutStore((state) => state.deferExercise);
   const finishWorkout = useWorkoutStore((state) => state.finishWorkout);
   const cancelWorkout = useWorkoutStore((state) => state.cancelWorkout);
+  const pauseWorkout = useWorkoutStore((state) => state.pauseWorkout);
+  const resumeWorkout = useWorkoutStore((state) => state.resumeWorkout);
+  const paused = useWorkoutStore(selectIsWorkoutPaused);
 
-  const day = ROUTINES[session.routineId];
+  const day = { code: session.code, firstExerciseId: session.exercises[0]?.exerciseId };
   const index = session.currentExerciseIndex;
   const current = session.exercises[index];
   const next = session.exercises[index + 1];
@@ -127,8 +137,16 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         </Pressable>
         <View style={styles.topTitle}>
           <Text style={styles.topCode}>{session.code}</Text>
-          <ElapsedLabel startedAt={session.startedAt} completed={completed} total={total} />
+          <ElapsedLabel session={session} completed={completed} total={total} />
         </View>
+        <Pressable
+          onPress={paused ? resumeWorkout : pauseWorkout}
+          accessibilityRole="button"
+          accessibilityLabel={paused ? 'Resume workout' : 'Pause workout'}
+          style={styles.iconButton}
+        >
+          {paused ? <Play size={22} color={colors.tint} fill={colors.tint} /> : <Pause size={22} color={colors.label} fill={colors.label} />}
+        </Pressable>
         <Pressable onPress={requestFinish} accessibilityRole="button" style={styles.finishButton}>
           <Text style={styles.finishText}>Finish</Text>
         </Pressable>
@@ -228,6 +246,16 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                 >
                   <Text style={styles.linkText}>{current.skipped ? 'Unskip exercise' : 'Skip exercise'}</Text>
                 </Pressable>
+                {!isLastExercise && !isExerciseDone(current) ? (
+                  <Pressable
+                    onPress={() => deferExercise(current.id)}
+                    accessibilityRole="button"
+                    accessibilityHint="Moves this exercise to the end of the workout"
+                    style={styles.linkButton}
+                  >
+                    <Text style={styles.linkText}>Do later</Text>
+                  </Pressable>
+                ) : null}
                 <Pressable onPress={() => setConfirm('discard')} accessibilityRole="button" style={styles.linkButton}>
                   <Text style={[styles.linkText, { color: colors.destructive }]}>Discard workout</Text>
                 </Pressable>
@@ -304,14 +332,24 @@ const PR_LABEL: Record<PersonalRecord['kind'], string> = {
 function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; onDone: () => void }) {
   const insets = useSafeAreaInsets();
   const history = useWorkoutStore((state) => state.history);
+  const nextDay = useWorkoutStore(selectNextDay);
+  const setNextDay = useWorkoutStore((state) => state.setNextDay);
+  const activePlan = useWorkoutStore((state) => state.plans.find((plan) => plan.kind === 'active') ?? null);
   const summary = session.summary;
 
+  const thisDay = activePlan?.days.find((day) => isSessionForDay(session, activePlan, day)) ?? null;
+  const thisDayIndex = thisDay?.position ?? -1;
   const previousVolume = useMemo(
     () =>
-      history.find((item) => item.id !== session.id && item.routineId === session.routineId && item.status === 'completed')
-        ?.summary?.totalVolumeKg ?? 0,
-    [history, session.id, session.routineId],
+      history.find(
+        (item) =>
+          item.id !== session.id &&
+          item.status === 'completed' &&
+          (activePlan && thisDay ? isSessionForDay(item, activePlan, thisDay) : item.planDayId === session.planDayId),
+      )?.summary?.totalVolumeKg ?? 0,
+    [history, session.id, session.planDayId, activePlan, thisDay],
   );
+  const repeatable = session.kind === 'plan' && thisDayIndex !== -1 && nextDay?.id !== session.planDayId;
 
   if (!summary) return null;
   const change = percentChange(summary.totalVolumeKg, previousVolume);
@@ -346,7 +384,13 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
             <SummaryTile
               label="Duration"
               value={formatDuration(summary.durationSeconds)}
-              detail={session.warmupCompletedIds.length > 0 ? 'with warm-up' : 'no warm-up'}
+              detail={
+                summary.activeSeconds < summary.durationSeconds
+                  ? `${formatDuration(summary.activeSeconds)} active`
+                  : session.warmupCompletedIds.length > 0
+                    ? 'with warm-up'
+                    : 'no warm-up'
+              }
             />
             <SummaryTile label="New PRs" value={String(summary.personalRecords.length)} detail="vs all history" positive={summary.personalRecords.length > 0} />
           </View>
@@ -372,6 +416,18 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
                   <Text style={styles.prValue}>{record.value} kg</Text>
                 </View>
               ))}
+            </View>
+          ) : null}
+
+          {nextDay ? (
+            <View style={styles.nextUp}>
+              <Text style={styles.upNextLabel}>Up next in your rotation</Text>
+              <Text style={styles.upNextName}>{nextDay.code}</Text>
+              {repeatable ? (
+                <Pressable onPress={() => setNextDay(thisDayIndex)} accessibilityRole="button" style={styles.linkButton}>
+                  <Text style={styles.linkText}>Repeat {session.code} next time instead</Text>
+                </Pressable>
+              ) : null}
             </View>
           ) : null}
         </ScrollView>
@@ -432,6 +488,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.labelSecondary,
     fontVariant: ['tabular-nums'],
+  },
+  topElapsedPaused: {
+    color: colors.tint,
+  },
+  nextUp: {
+    padding: spacing.lg,
+    borderRadius: radii.sheet,
+    backgroundColor: colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.edge,
+    gap: 2,
   },
   finishButton: {
     minHeight: HIT,

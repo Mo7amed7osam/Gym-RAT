@@ -2,7 +2,7 @@
  * Core domain model for Gym RAT.
  *
  * Two layers:
- *  - Program (static, shipped with the app): Exercise dictionary + weekly DaySchedule.
+ *  - Program: Exercise dictionary + Plan → PlanDay → ExercisePrescription (rotation, not weekdays).
  *  - Log (user data, persisted): WorkoutSession → SessionExercise → ExerciseSet.
  *
  * Everything in the log layer uses string UUIDs and ISO-8601 timestamps so it maps
@@ -21,15 +21,8 @@ export interface LocalizedText {
 /** ISO-8601 timestamp, e.g. "2026-10-31T18:12:00.000Z". */
 export type ISODateString = string;
 
-/** Program week starts on Saturday (as in the PDF). */
-export type Weekday =
-  | 'saturday'
-  | 'sunday'
-  | 'monday'
-  | 'tuesday'
-  | 'wednesday'
-  | 'thursday'
-  | 'friday';
+/** First day of the week for weekly stats and the calendar strip. */
+export type WeekStart = 'saturday' | 'sunday' | 'monday';
 
 export type MuscleGroup =
   | 'chest'
@@ -103,47 +96,44 @@ export interface ExercisePrescription {
 
 export type TrainingFocus = 'strength' | 'hypertrophy';
 
-export type RoutineId = 'push_a' | 'pull_a' | 'leg_a' | 'upper_b' | 'lower_b';
-
-interface DayScheduleBase {
-  weekday: Weekday;
-  /** 0 = Saturday … 6 = Friday. */
-  dayIndex: number;
-  weekdayName: LocalizedText;
-  title: LocalizedText;
-}
-
-export interface TrainingDay extends DayScheduleBase {
-  kind: 'training';
-  routineId: RoutineId;
+/**
+ * One workout inside a plan. Plans rotate through their days in order; the
+ * next day is tracked by `Plan.nextDayIndex`, never by the calendar.
+ */
+export interface PlanDay {
+  id: string;
+  /** 0-based position in the rotation. */
+  position: number;
   /** Short label used in UI, e.g. "Push A". */
   code: string;
-  focus: TrainingFocus;
+  title: LocalizedText;
   muscleSummary: LocalizedText;
+  focus: TrainingFocus | null;
   exercises: ExercisePrescription[];
 }
 
-export interface CardioActivity {
+/**
+ * `active`: the single plan the rotation follows (at most one).
+ * `template`: bundled or user-made plan the user can start extra sessions from or adopt.
+ * `reference`: immutable record of an original program (e.g. the PDF); browse-only.
+ */
+export type PlanKind = 'active' | 'template' | 'reference';
+
+export interface Plan {
   id: string;
+  kind: PlanKind;
   name: LocalizedText;
-  durationMinutes: RepRange;
-  intensity: LocalizedText;
+  description: LocalizedText | null;
+  /** Template or reference this plan was copied from, if any. */
+  sourcePlanId: string | null;
+  /** Locked plans cannot be edited (bundled templates and references). */
+  locked: boolean;
+  /** Index into `days` of the next workout in the rotation. */
+  nextDayIndex: number;
+  days: PlanDay[];
+  createdAt: ISODateString;
+  updatedAt: ISODateString;
 }
-
-export interface CardioDay extends DayScheduleBase {
-  kind: 'cardio';
-  durationMinutes: RepRange;
-  activities: CardioActivity[];
-  /** Ids of stretch routines (see warmupData) suggested for dynamic recovery. */
-  recoveryRoutineIds: StretchRoutineId[];
-}
-
-export interface RestDay extends DayScheduleBase {
-  kind: 'rest';
-  note: LocalizedText;
-}
-
-export type DaySchedule = TrainingDay | CardioDay | RestDay;
 
 // ─── Warm-up / stretching ────────────────────────────────────────────────────
 
@@ -204,6 +194,15 @@ export interface SessionExercise {
 
 export type SessionStatus = 'in_progress' | 'completed' | 'cancelled';
 
+/** `plan` sessions move the rotation on "finish and advance"; the others never do. */
+export type SessionKind = 'plan' | 'template' | 'extra';
+
+/** A pause; `to` is null while the pause is still open. */
+export interface PausedInterval {
+  from: ISODateString;
+  to: ISODateString | null;
+}
+
 export interface PersonalRecord {
   exerciseId: string;
   kind: 'top_weight' | 'estimated_1rm';
@@ -216,24 +215,36 @@ export interface SessionSummary {
   totalVolumeKg: number;
   completedSets: number;
   totalSets: number;
+  /** Wall-clock seconds from start to end (including pauses). */
   durationSeconds: number;
+  /** Seconds excluding paused time. Rest periods count as active. */
+  activeSeconds: number;
   personalRecords: PersonalRecord[];
 }
 
 export interface WorkoutSession {
   id: string;
-  schemaVersion: 1;
-  routineId: RoutineId;
-  weekday: Weekday;
+  schemaVersion: 2;
+  kind: SessionKind;
+  /** Plan and day the session was started from; null for ad-hoc extra sessions. */
+  planId: string | null;
+  planDayId: string | null;
   title: LocalizedText;
+  /** Day code snapshot, e.g. "Push A". */
   code: string;
-  focus: TrainingFocus;
+  focus: TrainingFocus | null;
   status: SessionStatus;
   startedAt: ISODateString;
   finishedAt: ISODateString | null;
+  /** User-corrected end time; overrides `finishedAt` for duration when set. */
+  endedAtOverride: ISODateString | null;
+  pausedIntervals: PausedInterval[];
+  /** Order is the working order; "do later" moves an exercise to the end and lists it here. */
   exercises: SessionExercise[];
+  deferredIds: string[];
   currentExerciseIndex: number;
   warmupCompletedIds: string[];
+  notes: string;
   summary: SessionSummary | null;
 }
 
@@ -269,6 +280,8 @@ export interface RestTimerState {
 // ─── Settings ────────────────────────────────────────────────────────────────
 
 export interface WorkoutSettings {
+  /** First day of the week for weekly stats; Saturday matches the original program. */
+  weekStart: WeekStart;
   autoStartRestTimer: boolean;
   /** Prefill weights/reps from the previous session of the same exercise. */
   prefillFromHistory: boolean;

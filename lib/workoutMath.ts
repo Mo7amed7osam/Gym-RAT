@@ -1,8 +1,10 @@
+import { activeSeconds, totalSeconds } from '@/domain/session/reducer';
 import type {
   ExerciseSet,
   PersonalRecord,
   SessionExercise,
   SessionSummary,
+  WeekStart,
   WorkoutSession,
 } from '@/types/workout';
 
@@ -164,27 +166,37 @@ export function detectPersonalRecords(
   return records;
 }
 
+/** Summary for a session whose `finishedAt` (and optional override) is already set. */
 export function buildSessionSummary(
   session: WorkoutSession,
   history: readonly WorkoutSession[],
   finishedAt: Date,
 ): SessionSummary {
   const { completed, total } = countSets(session);
+  const stamped: WorkoutSession = session.finishedAt ? session : { ...session, finishedAt: finishedAt.toISOString() };
   return {
     totalVolumeKg: sessionVolumeKg(session),
     completedSets: completed,
     totalSets: total,
-    durationSeconds: Math.max(0, Math.round((finishedAt.getTime() - Date.parse(session.startedAt)) / 1000)),
+    durationSeconds: totalSeconds(stamped, finishedAt.getTime()),
+    activeSeconds: activeSeconds(stamped, finishedAt.getTime()),
     personalRecords: detectPersonalRecords(session, history),
   };
 }
 
-/** Volume per program week (weeks start Saturday) for the last `weeks` weeks, oldest first. */
-export function weeklyVolumeKg(history: readonly WorkoutSession[], weeks: number, now: Date): number[] {
+const WEEK_START_DAY: Record<WeekStart, number> = { sunday: 0, monday: 1, saturday: 6 };
+
+/** Local midnight of the first day of the week containing `date`. */
+export function startOfWeek(date: Date, weekStart: WeekStart): Date {
+  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  start.setDate(start.getDate() - ((start.getDay() - WEEK_START_DAY[weekStart] + 7) % 7));
+  return start;
+}
+
+/** Volume per week for the last `weeks` weeks, oldest first. */
+export function weeklyVolumeKg(history: readonly WorkoutSession[], weeks: number, now: Date, weekStart: WeekStart = 'saturday'): number[] {
   const DAY_MS = 24 * 60 * 60 * 1000;
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const daysSinceSaturday = (startOfToday.getDay() + 1) % 7;
-  const currentWeekStart = startOfToday.getTime() - daysSinceSaturday * DAY_MS;
+  const currentWeekStart = startOfWeek(now, weekStart).getTime();
 
   const buckets: number[] = new Array<number>(weeks).fill(0);
   for (const session of history) {

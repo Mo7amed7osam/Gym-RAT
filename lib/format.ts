@@ -54,9 +54,4 @@ export function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-/** Start of the program week (Saturday 00:00) containing `date`. */
-export function startOfProgramWeek(date: Date): Date {
-  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  start.setDate(start.getDate() - ((start.getDay() + 1) % 7));
-  return start;
-}
+export { startOfWeek } from '@/lib/workoutMath';

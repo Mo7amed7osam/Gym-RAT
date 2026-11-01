@@ -10,6 +10,7 @@ import { importFromAsyncStorage } from './importer';
 import { SCHEMA_VERSION, getUserVersion, migrate } from './migrations';
 import { WorkoutRepository } from './repository';
 import { BACKUP_DATABASE_NAME, DATABASE_NAME } from './schema';
+import { seedPlans } from './seed';
 
 /**
  * Opens the database, migrates it, imports legacy AsyncStorage data once,
@@ -65,7 +66,13 @@ async function boot(): Promise<void> {
     if (imported.status === 'failed') console.error('[db] legacy import failed; starting empty', imported.error);
     else if (imported.status === 'imported') console.log(`[db] imported ${imported.sessions} legacy sessions`);
 
-    useWorkoutStore.getState().hydrate(repo.loadAll(defaults));
+    const loaded = repo.loadAll(defaults);
+    const seeded = seedPlans(loaded);
+    if (seeded !== loaded) {
+      repo.persistDiff(loaded, seeded);
+      console.log('[db] seeded bundled plans');
+    }
+    useWorkoutStore.getState().hydrate(seeded);
     attachPersistence({ persist: (prev, next) => repo.persistDiff(prev, next) });
 
     AppState.addEventListener('change', (state) => {

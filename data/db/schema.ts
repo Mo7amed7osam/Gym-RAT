@@ -59,7 +59,79 @@ CREATE TABLE IF NOT EXISTS kv (
 );
 `;
 
-export const REQUIRED_TABLES = ['sessions', 'session_exercises', 'sets', 'kv'] as const;
+/** v2: plans + rotation; sessions reference plan days instead of weekdays. */
+export const SCHEMA_V2 = `
+CREATE TABLE IF NOT EXISTS plans (
+  id TEXT PRIMARY KEY NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('active', 'template', 'reference')),
+  name_json TEXT NOT NULL,
+  description_json TEXT,
+  source_plan_id TEXT,
+  locked INTEGER NOT NULL DEFAULT 0,
+  next_day_index INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS plan_days (
+  id TEXT PRIMARY KEY NOT NULL,
+  plan_id TEXT NOT NULL REFERENCES plans (id) ON DELETE CASCADE,
+  position INTEGER NOT NULL,
+  code TEXT NOT NULL,
+  title_json TEXT NOT NULL,
+  muscle_summary_json TEXT NOT NULL,
+  focus TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_plan_days_plan ON plan_days (plan_id, position);
+CREATE TABLE IF NOT EXISTS plan_exercises (
+  id TEXT PRIMARY KEY NOT NULL,
+  plan_day_id TEXT NOT NULL REFERENCES plan_days (id) ON DELETE CASCADE,
+  position INTEGER NOT NULL,
+  exercise_id TEXT NOT NULL,
+  sets INTEGER NOT NULL,
+  rep_min INTEGER NOT NULL,
+  rep_max INTEGER NOT NULL,
+  rest_default INTEGER NOT NULL,
+  rest_min INTEGER NOT NULL,
+  rest_max INTEGER NOT NULL,
+  note_json TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_plan_exercises_day ON plan_exercises (plan_day_id, position);
+
+-- sessions: rebuild (focus becomes nullable; weekday/routine_id replaced by plan references).
+CREATE TABLE sessions_v2 (
+  id TEXT PRIMARY KEY NOT NULL,
+  schema_version INTEGER NOT NULL DEFAULT 2,
+  kind TEXT NOT NULL DEFAULT 'plan' CHECK (kind IN ('plan', 'template', 'extra')),
+  plan_id TEXT,
+  plan_day_id TEXT,
+  title_json TEXT NOT NULL,
+  code TEXT NOT NULL,
+  focus TEXT,
+  status TEXT NOT NULL CHECK (status IN ('in_progress', 'completed', 'cancelled')),
+  started_at TEXT NOT NULL,
+  finished_at TEXT,
+  ended_at_override TEXT,
+  paused_intervals_json TEXT NOT NULL DEFAULT '[]',
+  deferred_ids_json TEXT NOT NULL DEFAULT '[]',
+  current_exercise_index INTEGER NOT NULL DEFAULT 0,
+  warmup_completed_json TEXT NOT NULL DEFAULT '[]',
+  notes TEXT NOT NULL DEFAULT '',
+  summary_json TEXT,
+  updated_at TEXT NOT NULL
+);
+INSERT INTO sessions_v2 (id, schema_version, kind, plan_id, plan_day_id, title_json, code, focus, status, started_at, finished_at,
+  current_exercise_index, warmup_completed_json, summary_json, updated_at)
+SELECT id, 2, 'plan', 'pdf_ppl_ul_v5', 'pdf_ppl_ul_v5:' || routine_id, title_json, code, NULLIF(focus, ''), status, started_at, finished_at,
+  current_exercise_index, warmup_completed_json, summary_json, updated_at
+FROM sessions;
+DROP TABLE sessions;
+ALTER TABLE sessions_v2 RENAME TO sessions;
+CREATE INDEX IF NOT EXISTS idx_sessions_started_at ON sessions (started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions (status);
+CREATE INDEX IF NOT EXISTS idx_sessions_plan_day ON sessions (plan_day_id);
+`;
+
+export const REQUIRED_TABLES = ['sessions', 'session_exercises', 'sets', 'kv', 'plans', 'plan_days', 'plan_exercises'] as const;
 
 /** Keys inside the `kv` table. */
 export const KV = {

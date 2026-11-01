@@ -5,7 +5,7 @@ import {
   formatKgCompact,
   isSameDay,
   percentChange,
-  startOfProgramWeek,
+  startOfWeek,
 } from '@/lib/format';
 
 describe('format helpers', () => {
@@ -35,12 +35,14 @@ describe('format helpers', () => {
     expect(isSameDay(new Date(2026, 9, 31), new Date(2026, 10, 1))).toBe(false);
   });
 
-  it('finds the Saturday that starts the program week', () => {
-    // 2026-11-04 is a Wednesday → week starts Saturday 2026-10-31.
-    const start = startOfProgramWeek(new Date(2026, 10, 4, 15));
-    expect(start.getDay()).toBe(6);
-    expect(start.getDate()).toBe(31);
-    expect(start.getHours()).toBe(0);
+  it('finds the start of the week for each supported week start', () => {
+    // 2026-11-04 is a Wednesday.
+    const wednesday = new Date(2026, 10, 4, 15);
+    expect(startOfWeek(wednesday, 'saturday').getDate()).toBe(31);
+    expect(startOfWeek(wednesday, 'sunday').getDate()).toBe(1);
+    expect(startOfWeek(wednesday, 'monday').getDate()).toBe(2);
+    expect(startOfWeek(wednesday, 'saturday').getHours()).toBe(0);
+    expect(startOfWeek(new Date(2026, 9, 31, 1), 'saturday').getDate()).toBe(31);
   });
 });
 

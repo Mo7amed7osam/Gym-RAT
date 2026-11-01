@@ -1,16 +1,21 @@
 import { PERSISTED_STATE_VERSION, migratePersistedState } from '@/store/migratePersistedState';
-import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, getRestRemainingMs, useWorkoutStore } from '@/store/useWorkoutStore';
+import { seedPlans } from '@/data/db/seed';
+import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, getRestRemainingMs, selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { RestTimerState } from '@/types/workout';
 
+/** Fresh install state: bundled plans seeded, Starter active. */
 const resetStore = () =>
   useWorkoutStore.setState({
-    selectedWeekday: null,
+    previewDayIndex: null,
     persistenceError: null,
-    activeSession: null,
-    history: [],
-    restTimer: IDLE_REST_TIMER,
-    settings: DEFAULT_SETTINGS,
+    ...seedPlans({ plans: [], activeSession: null, history: [], restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS }),
   });
+
+const start = (dayIndex?: number) => {
+  const result = useWorkoutStore.getState().startWorkout(dayIndex === undefined ? {} : { dayIndex });
+  if (!result.ok) throw new Error(`expected session, got ${result.reason}`);
+  return result.session;
+};
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -34,16 +39,90 @@ describe('getRestRemainingMs', () => {
 });
 
 describe('session lifecycle', () => {
-  it('refuses to start on a non-training day and when a session exists', () => {
-    expect(useWorkoutStore.getState().startWorkout('friday')).toEqual({ ok: false, reason: 'not_training_day' });
-    expect(useWorkoutStore.getState().startWorkout('saturday').ok).toBe(true);
-    expect(useWorkoutStore.getState().startWorkout('sunday')).toEqual({ ok: false, reason: 'session_in_progress' });
+  it('refuses to start without an active plan, with an unknown plan, or when a session exists', () => {
+    useWorkoutStore.setState({ plans: [] });
+    expect(useWorkoutStore.getState().startWorkout()).toEqual({ ok: false, reason: 'no_active_plan' });
+    resetStore();
+    expect(useWorkoutStore.getState().startWorkout({ planId: 'nope' })).toEqual({ ok: false, reason: 'unknown_plan' });
+    expect(useWorkoutStore.getState().startWorkout().ok).toBe(true);
+    expect(useWorkoutStore.getState().startWorkout()).toEqual({ ok: false, reason: 'session_in_progress' });
+  });
+
+  it('starts the rotation\'s next day by default and advances or repeats on finish', () => {
+    const plan = selectActivePlan(useWorkoutStore.getState())!;
+    expect(plan.nextDayIndex).toBe(0);
+    const first = start();
+    expect(first.planDayId).toBe(plan.days[0].id);
+    expect(first.kind).toBe('plan');
+    useWorkoutStore.getState().finishWorkout('advance');
+    expect(selectActivePlan(useWorkoutStore.getState())!.nextDayIndex).toBe(1);
+
+    const second = useWorkoutStore.getState().startWorkout();
+    if (!second.ok) throw new Error('expected session');
+    expect(second.session.planDayId).toBe(plan.days[1].id);
+    useWorkoutStore.getState().finishWorkout('repeat');
+    expect(selectActivePlan(useWorkoutStore.getState())!.nextDayIndex).toBe(1);
+
+    // Rotation wraps and never depends on the calendar.
+    useWorkoutStore.getState().setNextDay(plan.days.length - 1);
+    start();
+    useWorkoutStore.getState().finishWorkout();
+    expect(selectActivePlan(useWorkoutStore.getState())!.nextDayIndex).toBe(0);
+  });
+
+  it('template sessions never move the rotation; adopting a plan replaces the active one', () => {
+    const before = selectActivePlan(useWorkoutStore.getState())!;
+    const result = useWorkoutStore.getState().startWorkout({ planId: 'pdf_ppl_ul_v5', dayIndex: 2 });
+    if (!result.ok) throw new Error('expected session');
+    expect(result.session.kind).toBe('template');
+    expect(result.session.code).toBe('Leg A');
+    useWorkoutStore.getState().finishWorkout('advance');
+    expect(selectActivePlan(useWorkoutStore.getState())!.nextDayIndex).toBe(before.nextDayIndex);
+
+    const adopted = useWorkoutStore.getState().adoptPlan('pdf_ppl_ul_v5')!;
+    const plans = useWorkoutStore.getState().plans;
+    expect(plans.filter((plan) => plan.kind === 'active')).toEqual([adopted]);
+    expect(adopted.sourcePlanId).toBe('pdf_ppl_ul_v5');
+    expect(adopted.locked).toBe(false);
+    expect(adopted.days.map((day) => day.code)).toEqual(['Push A', 'Pull A', 'Leg A', 'Upper B', 'Lower B']);
+    expect(plans.find((plan) => plan.id === 'pdf_ppl_ul_v5')?.kind).toBe('reference');
+  });
+
+  it('pause excludes time from active seconds and finish closes an open pause', () => {
+    const session = start();
+    jest.advanceTimersByTime(60_000);
+    useWorkoutStore.getState().pauseWorkout();
+    jest.advanceTimersByTime(30_000);
+    useWorkoutStore.getState().pauseWorkout(); // idempotent
+    expect(useWorkoutStore.getState().activeSession!.pausedIntervals).toHaveLength(1);
+    useWorkoutStore.getState().resumeWorkout();
+    jest.advanceTimersByTime(10_000);
+    useWorkoutStore.getState().pauseWorkout();
+    jest.advanceTimersByTime(5_000);
+    const finished = useWorkoutStore.getState().finishWorkout()!;
+    expect(finished.id).toBe(session.id);
+    expect(finished.pausedIntervals.every((interval) => interval.to !== null)).toBe(true);
+    expect(finished.summary?.durationSeconds).toBe(105);
+    expect(finished.summary?.activeSeconds).toBe(70);
+  });
+
+  it('do later moves the exercise to the end and keeps the pointer in place', () => {
+    const session = start();
+    const [first, second] = session.exercises;
+    useWorkoutStore.getState().deferExercise(first.id);
+    const after = useWorkoutStore.getState().activeSession!;
+    expect(after.exercises[0].id).toBe(second.id);
+    expect(after.exercises[after.exercises.length - 1].id).toBe(first.id);
+    expect(after.deferredIds).toEqual([first.id]);
+    expect(after.currentExerciseIndex).toBe(0);
+    useWorkoutStore.getState().reorderExercise(first.id, 0);
+    expect(useWorkoutStore.getState().activeSession!.exercises[0].id).toBe(first.id);
+    expect(useWorkoutStore.getState().activeSession!.deferredIds).toEqual([]);
   });
 
   it('builds sets from the prescription and prefills from history on the next session', () => {
     const store = useWorkoutStore.getState();
-    const first = store.startWorkout('saturday');
-    if (!first.ok) throw new Error('expected session');
+    const first = { ok: true as const, session: start(0) };
     const bench = first.session.exercises[0];
     expect(bench.sets).toHaveLength(bench.prescription.sets);
     expect(bench.sets[0].weightKg).toBeNull();
@@ -55,15 +134,13 @@ describe('session lifecycle', () => {
     expect(useWorkoutStore.getState().history).toHaveLength(1);
     expect(useWorkoutStore.getState().activeSession).toBeNull();
 
-    const second = useWorkoutStore.getState().startWorkout('saturday');
-    if (!second.ok) throw new Error('expected session');
+    const second = { session: start(0) };
     expect(second.session.exercises[0].sets[0]).toMatchObject({ weightKg: 60, reps: 12, completed: false });
   });
 
   it('cancelling discards the session and the rest timer', () => {
     const store = useWorkoutStore.getState();
-    const result = store.startWorkout('saturday');
-    if (!result.ok) throw new Error('expected session');
+    const result = { ok: true as const, session: start(0) };
     const ex = result.session.exercises[0];
     store.completeSet(ex.id, ex.sets[0].id, { weightKg: 60, reps: 12 });
     expect(useWorkoutStore.getState().restTimer.status).toBe('running');
@@ -76,8 +153,7 @@ describe('session lifecycle', () => {
 describe('set logging', () => {
   it('fills missing inputs, carries values to the next set and starts rest with the prescribed default', () => {
     const store = useWorkoutStore.getState();
-    const result = store.startWorkout('saturday');
-    if (!result.ok) throw new Error('expected session');
+    const result = { ok: true as const, session: start(0) };
     const ex = result.session.exercises[0];
 
     store.completeSet(ex.id, ex.sets[0].id, {});
@@ -93,8 +169,7 @@ describe('set logging', () => {
 
   it('does not start rest after the very last set of the workout', () => {
     const store = useWorkoutStore.getState();
-    const result = store.startWorkout('saturday');
-    if (!result.ok) throw new Error('expected session');
+    const result = { ok: true as const, session: start(0) };
     for (const ex of result.session.exercises) {
       for (const s of ex.sets) store.completeSet(ex.id, s.id, { weightKg: 10, reps: 10 });
     }
@@ -103,8 +178,7 @@ describe('set logging', () => {
 
   it('uncompleting the set that started rest clears the timer; add/remove/toggle work', () => {
     const store = useWorkoutStore.getState();
-    const result = store.startWorkout('saturday');
-    if (!result.ok) throw new Error('expected session');
+    const result = { ok: true as const, session: start(0) };
     const ex = result.session.exercises[0];
     store.completeSet(ex.id, ex.sets[0].id, { weightKg: 60, reps: 12 });
     store.uncompleteSet(ex.id, ex.sets[0].id);
@@ -125,8 +199,7 @@ describe('set logging', () => {
 
   it('rejects negative or non-finite numbers', () => {
     const store = useWorkoutStore.getState();
-    const result = store.startWorkout('saturday');
-    if (!result.ok) throw new Error('expected session');
+    const result = { ok: true as const, session: start(0) };
     const ex = result.session.exercises[0];
     store.updateSet(ex.id, ex.sets[0].id, { weightKg: -5, reps: Number.NaN });
     expect(useWorkoutStore.getState().activeSession!.exercises[0].sets[0]).toMatchObject({ weightKg: null, reps: null });
@@ -171,8 +244,7 @@ describe('rest timer actions', () => {
 describe('history & settings', () => {
   it('deletes sessions and merges settings', () => {
     const store = useWorkoutStore.getState();
-    const result = store.startWorkout('saturday');
-    if (!result.ok) throw new Error('expected session');
+    const result = { ok: true as const, session: start(0) };
     const finished = store.finishWorkout()!;
     store.deleteSession(finished.id);
     expect(useWorkoutStore.getState().history).toHaveLength(0);
@@ -184,8 +256,7 @@ describe('history & settings', () => {
 describe('navigation, checklists, selectors, migration', () => {
   it('clamps exercise navigation and toggles checklist ids', () => {
     const store = useWorkoutStore.getState();
-    const result = store.startWorkout('saturday');
-    if (!result.ok) throw new Error('expected session');
+    const result = { ok: true as const, session: start(0) };
     const last = result.session.exercises.length - 1;
 
     store.goToPreviousExercise();
@@ -218,40 +289,37 @@ describe('navigation, checklists, selectors, migration', () => {
     expect(store.finishWorkout()).toBeNull();
   });
 
-  it('selectors follow the selected weekday and expose the current exercise', () => {
-    const { selectActiveWeekday, selectActiveDaySchedule, selectCurrentSessionExercise, selectIsWorkoutActive, selectPreviousExercise, getRoutineHistory } =
+  it('selectors expose the previewed day, the current exercise and previous performance', () => {
+    const { selectPreviewedDay, selectNextDay, selectCurrentSessionExercise, selectIsWorkoutActive, selectPreviousExercise, getDayHistory } =
       jest.requireActual<typeof import('@/store/useWorkoutStore')>('@/store/useWorkoutStore');
     const store = useWorkoutStore.getState();
+    const plan = selectActivePlan(useWorkoutStore.getState())!;
     expect(selectIsWorkoutActive(useWorkoutStore.getState())).toBe(false);
     expect(selectCurrentSessionExercise(useWorkoutStore.getState())).toBeNull();
+    expect(selectPreviewedDay(useWorkoutStore.getState())?.id).toBe(plan.days[0].id);
 
-    store.selectWeekday('monday');
-    expect(selectActiveWeekday(useWorkoutStore.getState())).toBe('monday');
-    expect(selectActiveDaySchedule(useWorkoutStore.getState()).weekday).toBe('monday');
-    store.selectWeekday(null);
-    // 2026-10-31 is a Saturday.
-    expect(selectActiveWeekday(useWorkoutStore.getState(), new Date('2026-10-31T12:00:00.000Z'))).toBe('saturday');
+    store.previewDay(2);
+    expect(selectPreviewedDay(useWorkoutStore.getState())?.id).toBe(plan.days[2].id);
+    expect(selectNextDay(useWorkoutStore.getState())?.id).toBe(plan.days[0].id);
+    store.previewDay(null);
 
-    const result = store.startWorkout('saturday');
-    if (!result.ok) throw new Error('expected session');
+    const session = start();
     expect(selectIsWorkoutActive(useWorkoutStore.getState())).toBe(true);
-    expect(selectCurrentSessionExercise(useWorkoutStore.getState())?.id).toBe(result.session.exercises[0].id);
-    const ex = result.session.exercises[0];
+    expect(selectCurrentSessionExercise(useWorkoutStore.getState())?.id).toBe(session.exercises[0].id);
+    const ex = session.exercises[0];
     store.completeSet(ex.id, ex.sets[0].id, { weightKg: 50, reps: 10 });
     store.finishWorkout();
     expect(selectPreviousExercise(ex.exerciseId)(useWorkoutStore.getState())?.exerciseId).toBe(ex.exerciseId);
     expect(selectPreviousExercise('nope')(useWorkoutStore.getState())).toBeNull();
-    expect(getRoutineHistory(useWorkoutStore.getState(), 'push_a')).toHaveLength(1);
-    expect(getRoutineHistory(useWorkoutStore.getState(), 'pull_a')).toHaveLength(0);
+    expect(getDayHistory(useWorkoutStore.getState(), plan.days[0].id)).toHaveLength(1);
+    expect(getDayHistory(useWorkoutStore.getState(), plan.days[1].id)).toHaveLength(0);
   });
 
   it('clearHistory empties history', () => {
     const store = useWorkoutStore.getState();
-    const a = store.startWorkout('saturday');
-    if (!a.ok) throw new Error('expected session');
+    const a = { ok: true as const, session: start(0) };
     store.finishWorkout();
-    const b = store.startWorkout('sunday');
-    if (!b.ok) throw new Error('expected session');
+    const b = { ok: true as const, session: start(1) };
     store.finishWorkout();
     expect(useWorkoutStore.getState().history).toHaveLength(2);
     store.clearHistory();
@@ -267,17 +335,33 @@ describe('navigation, checklists, selectors, migration', () => {
       },
       3,
     ) as { activeSession: Record<string, unknown>; history: Record<string, unknown>[]; settings: Record<string, unknown> };
-    expect(migrated.activeSession).toEqual({ id: 'a', warmupCompletedIds: ['x'] });
-    expect(migrated.history[0]).toEqual({ id: 'h' });
-    expect(migrated.settings).toEqual(DEFAULT_SETTINGS);
+    expect(migrated.activeSession).toMatchObject({ id: 'a', warmupCompletedIds: ['x'] });
+    expect(migrated.activeSession).not.toHaveProperty('cooldownCompletedIds');
+    expect(migrated.history[0]).toMatchObject({ id: 'h' });
+    expect(migrated.history[0]).not.toHaveProperty('cooldownCompletedIds');
+    expect(migrated.settings).toEqual({ ...DEFAULT_SETTINGS });
   });
 
-  it('migratePersistedState drops the sync queue (v2→v3) and is a no-op at the current version', () => {
-    expect(PERSISTED_STATE_VERSION).toBe(4);
-    const migrated = migratePersistedState({ history: [{ id: 's1' }], syncQueue: [{ kind: 'upsert' }] }, 2);
+  it('migratePersistedState drops the sync queue (v2→v3), maps weekdays onto plan days (v4→v5) and is a no-op at the current version', () => {
+    expect(PERSISTED_STATE_VERSION).toBe(5);
+    const migrated = migratePersistedState(
+      { history: [{ id: 's1', routineId: 'pull_a', weekday: 'sunday', summary: { durationSeconds: 10 } }], syncQueue: [{ kind: 'upsert' }] },
+      2,
+    ) as { history: Record<string, unknown>[] };
     expect(migrated).not.toHaveProperty('syncQueue');
-    expect(migrated.history).toEqual([{ id: 's1' }]);
-    expect(migratePersistedState({ history: [] }, 4)).toEqual({ history: [] });
+    expect(migrated.history[0]).toMatchObject({
+      id: 's1',
+      schemaVersion: 2,
+      kind: 'plan',
+      planId: 'pdf_ppl_ul_v5',
+      planDayId: 'pdf_ppl_ul_v5:pull_a',
+      pausedIntervals: [],
+      deferredIds: [],
+      notes: '',
+      summary: { durationSeconds: 10, activeSeconds: 10 },
+    });
+    expect(migrated.history[0]).not.toHaveProperty('weekday');
+    expect(migratePersistedState({ history: [] }, 5)).toEqual({ history: [] });
   });
 });
 
@@ -294,10 +378,9 @@ describe('write-through persistence', () => {
       },
     });
     const store = useWorkoutStore.getState();
-    store.selectWeekday('monday'); // not persisted → no call
+    store.previewDay(1); // not persisted → no call
     expect(calls).toHaveLength(0);
-    const result = store.startWorkout('saturday');
-    if (!result.ok) throw new Error('expected session');
+    const result = { ok: true as const, session: start(0) };
     store.finishWorkout();
     expect(calls.length).toBeGreaterThanOrEqual(2);
     expect(calls[calls.length - 1]).toEqual({ prevHistory: 0, nextHistory: 1 });
@@ -310,7 +393,7 @@ describe('write-through persistence', () => {
       },
     });
     const store = useWorkoutStore.getState();
-    const result = store.startWorkout('saturday');
+    const result = store.startWorkout();
     expect(result.ok).toBe(true);
     expect(useWorkoutStore.getState().activeSession).toBeNull();
     expect(useWorkoutStore.getState().persistenceError).toBe('disk full');
@@ -322,6 +405,7 @@ describe('write-through persistence', () => {
     let writes = 0;
     attachPersistence({ persist: () => void writes++ });
     useWorkoutStore.getState().hydrate({
+      plans: [],
       activeSession: null,
       history: [],
       restTimer: { ...IDLE_REST_TIMER, durationMs: 1 },

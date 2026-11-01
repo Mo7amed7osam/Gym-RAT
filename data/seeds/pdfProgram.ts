@@ -1,20 +1,19 @@
-import type {
-  CardioDay,
-  DaySchedule,
-  ExercisePrescription,
-  RepRange,
-  RestDay,
-  RestPeriod,
-  RoutineId,
-  TrainingDay,
-  Weekday,
-} from '@/types/workout';
-import type { ExerciseId } from './exercisesData';
+import type { ExercisePrescription, Plan, PlanDay, RepRange, RestPeriod } from '@/types/workout';
+import type { ExerciseId } from '../exercisesData';
 
 /**
- * Weekly split from "Push - Pull - Leg / Upper - Lower Ver 5.0".
+ * "Push - Pull - Leg / Upper - Lower Ver 5.0" — the original PDF program.
  * Sets / reps / rest are copied from the PDF tables (p.6, 12, 17, 21, 27).
+ *
+ * Shipped as an immutable *reference* plan (`kind: 'reference'`). It is never
+ * selected automatically; the user may adopt it as their active plan.
+ * The PDF's Tuesday cardio and Friday rest are not plan days: the rotation
+ * only contains training days (spec §5).
  */
+
+export const PDF_PROGRAM_ID = 'pdf_ppl_ul_v5';
+/** Stable day ids; legacy sessions are mapped onto these by routine id. */
+export const pdfDayId = (routineId: string): string => `${PDF_PROGRAM_ID}:${routineId}`;
 
 // PDF rest values are either "2 دقيقة" or "1 - 2 دقيقة".
 const REST_2_MIN: RestPeriod = { defaultSeconds: 120, minSeconds: 120, maxSeconds: 120 };
@@ -28,38 +27,11 @@ function rx(exerciseId: ExerciseId, sets: number, repRange: RepRange, rest: Rest
   return { exerciseId, sets, reps: repRange, rest };
 }
 
-export const WEEKDAYS: readonly Weekday[] = [
-  'saturday',
-  'sunday',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-];
-
-const WEEKDAY_NAMES = {
-  saturday: { en: 'Saturday', ar: 'السبت' },
-  sunday: { en: 'Sunday', ar: 'الأحد' },
-  monday: { en: 'Monday', ar: 'الإثنين' },
-  tuesday: { en: 'Tuesday', ar: 'الثلاثاء' },
-  wednesday: { en: 'Wednesday', ar: 'الأربعاء' },
-  thursday: { en: 'Thursday', ar: 'الخميس' },
-  friday: { en: 'Friday', ar: 'الجمعة' },
-} as const;
-
-function base(weekday: Weekday) {
-  return {
-    weekday,
-    dayIndex: WEEKDAYS.indexOf(weekday),
-    weekdayName: WEEKDAY_NAMES[weekday],
-  };
+function day(routineId: string, position: number, rest: Omit<PlanDay, 'id' | 'position'>): PlanDay {
+  return { id: pdfDayId(routineId), position, ...rest };
 }
 
-const PUSH_A: TrainingDay = {
-  ...base('saturday'),
-  kind: 'training',
-  routineId: 'push_a',
+const PUSH_A = day('push_a', 0, {
   code: 'Push A',
   focus: 'strength',
   title: { en: 'Push Day (A)', ar: 'عضلات الدفع (1)' },
@@ -75,12 +47,9 @@ const PUSH_A: TrainingDay = {
     rx('triceps_rope_pushdown', 3, reps(10, 12), REST_1_TO_2_MIN),
     rx('lying_leg_raise', 3, reps(25), REST_1_TO_2_MIN),
   ],
-};
+});
 
-const PULL_A: TrainingDay = {
-  ...base('sunday'),
-  kind: 'training',
-  routineId: 'pull_a',
+const PULL_A = day('pull_a', 1, {
   code: 'Pull A',
   focus: 'strength',
   title: { en: 'Pull Day (A)', ar: 'عضلات السحب (1)' },
@@ -95,12 +64,9 @@ const PULL_A: TrainingDay = {
     rx('close_grip_ez_bar_curl', 4, reps(10, 12), REST_1_TO_2_MIN),
     rx('dumbbell_hammer_curl', 4, reps(10, 12), REST_1_TO_2_MIN),
   ],
-};
+});
 
-const LEG_A: TrainingDay = {
-  ...base('monday'),
-  kind: 'training',
-  routineId: 'leg_a',
+const LEG_A = day('leg_a', 2, {
   code: 'Leg A',
   focus: 'strength',
   title: { en: 'Leg Day (A)', ar: 'عضلات الرجل (1)' },
@@ -114,40 +80,9 @@ const LEG_A: TrainingDay = {
     rx('seated_calf_raise', 4, reps(12, 15), REST_1_TO_2_MIN),
     rx('hip_thrust', 3, reps(10), REST_2_MIN),
   ],
-};
+});
 
-const CARDIO_TUESDAY: CardioDay = {
-  ...base('tuesday'),
-  kind: 'cardio',
-  title: { en: 'Light Cardio & Recovery', ar: 'تمرين كارديو خفيف' },
-  durationMinutes: { min: 20, max: 30 },
-  activities: [
-    {
-      id: 'incline_walk',
-      name: { en: 'Treadmill walk / incline walk', ar: 'مشي على المشاية' },
-      durationMinutes: { min: 20, max: 30 },
-      intensity: { en: 'Easy — you can hold a conversation', ar: 'هادي — تقدر تتكلم وانت بتمشي' },
-    },
-    {
-      id: 'stationary_bike',
-      name: { en: 'Stationary bike', ar: 'عجلة ثابتة' },
-      durationMinutes: { min: 20, max: 30 },
-      intensity: { en: 'Easy, steady cadence', ar: 'سرعة هادية وثابتة' },
-    },
-    {
-      id: 'elliptical',
-      name: { en: 'Elliptical', ar: 'الإليبتكال' },
-      durationMinutes: { min: 20, max: 30 },
-      intensity: { en: 'Easy, steady pace', ar: 'سرعة هادية وثابتة' },
-    },
-  ],
-  recoveryRoutineIds: ['dynamic_warmup'],
-};
-
-const UPPER_B: TrainingDay = {
-  ...base('wednesday'),
-  kind: 'training',
-  routineId: 'upper_b',
+const UPPER_B = day('upper_b', 3, {
   code: 'Upper B',
   focus: 'hypertrophy',
   title: { en: 'Upper Day (B)', ar: 'عضلات الجزء العلوي (2)' },
@@ -164,12 +99,9 @@ const UPPER_B: TrainingDay = {
     rx('overhead_cable_curl', 3, reps(10), REST_1_TO_2_MIN),
     rx('straight_barbell_curl', 3, reps(10), REST_1_TO_2_MIN),
   ],
-};
+});
 
-const LOWER_B: TrainingDay = {
-  ...base('thursday'),
-  kind: 'training',
-  routineId: 'lower_b',
+const LOWER_B = day('lower_b', 4, {
   code: 'Lower B',
   focus: 'hypertrophy',
   title: { en: 'Lower Day (B)', ar: 'عضلات الجزء السفلي (2)' },
@@ -184,41 +116,14 @@ const LOWER_B: TrainingDay = {
     rx('dumbbell_wrist_curl', 3, reps(10, 12), REST_1_TO_2_MIN),
     rx('forearm_barbell_curl', 3, reps(10, 12), REST_1_TO_2_MIN),
   ],
-};
+});
 
-const REST_FRIDAY: RestDay = {
-  ...base('friday'),
-  kind: 'rest',
-  title: { en: 'Full Rest', ar: 'راحة كاملة' },
-  note: {
-    en: 'Full rest — no training or cardio.',
-    ar: 'راحة كاملة (ممنوع التمرين أو الكارديو)',
-  },
-};
+export const PDF_PROGRAM_DAYS: readonly PlanDay[] = [PUSH_A, PULL_A, LEG_A, UPPER_B, LOWER_B];
 
-export const WEEKLY_SCHEDULE: Record<Weekday, DaySchedule> = {
-  saturday: PUSH_A,
-  sunday: PULL_A,
-  monday: LEG_A,
-  tuesday: CARDIO_TUESDAY,
-  wednesday: UPPER_B,
-  thursday: LOWER_B,
-  friday: REST_FRIDAY,
-};
-
-export const ROUTINES: Record<RoutineId, TrainingDay> = {
-  push_a: PUSH_A,
-  pull_a: PULL_A,
-  leg_a: LEG_A,
-  upper_b: UPPER_B,
-  lower_b: LOWER_B,
-};
-
-export const PROGRAM_INFO = {
-  name: { en: 'Push - Pull - Leg / Upper - Lower', ar: 'البرنامج التدريبي' },
-  version: '5.0',
+export const PDF_PROGRAM_INFO = {
+  name: { en: 'Push / Pull / Legs + Upper / Lower v5.0', ar: 'دفع / سحب / رجل + علوي / سفلي 5.0' },
   description: {
-    en: 'Push, pull and leg days for strength, then upper and lower days for hypertrophy.',
+    en: 'Push, pull and leg days for strength, then upper and lower days for hypertrophy. Five workouts per rotation.',
     ar: 'فكرة البرنامج تعتمد على تقسيم عضلات الجسم على ثلاث أيام ما بين عضلات الدفع والسحب والرجل ثم تكرارها مرة ثانية على يومين لعضلات الجزء العلوي والسفلي',
   },
   focusLabels: {
@@ -227,32 +132,18 @@ export const PROGRAM_INFO = {
   },
 } as const;
 
-/** JS getDay(): 0 = Sunday … 6 = Saturday. Program week: 0 = Saturday … 6 = Friday. */
-export function weekdayFromDate(date: Date): Weekday {
-  return WEEKDAYS[(date.getDay() + 1) % 7];
-}
-
-export function getDaySchedule(weekday: Weekday): DaySchedule {
-  return WEEKLY_SCHEDULE[weekday];
-}
-
-export function getTrainingDays(): TrainingDay[] {
-  return WEEKDAYS.map((day) => WEEKLY_SCHEDULE[day]).filter(
-    (day): day is TrainingDay => day.kind === 'training',
-  );
-}
-
-/** Rough session length: ~45 s per working set plus prescribed rest, plus 10 min warm-up. */
-export function estimateDurationMinutes(day: TrainingDay): number {
-  const WORK_SECONDS_PER_SET = 45;
-  const WARMUP_SECONDS = 10 * 60;
-  const seconds = day.exercises.reduce(
-    (total, item) => total + item.sets * (WORK_SECONDS_PER_SET + item.rest.defaultSeconds),
-    WARMUP_SECONDS,
-  );
-  return Math.round(seconds / 60);
-}
-
-export function getTotalSets(day: TrainingDay): number {
-  return day.exercises.reduce((total, item) => total + item.sets, 0);
+/** The reference plan as shipped. `createdAt` is the seed date, not the user's install. */
+export function buildPdfReferencePlan(): Plan {
+  return {
+    id: PDF_PROGRAM_ID,
+    kind: 'reference',
+    name: PDF_PROGRAM_INFO.name,
+    description: PDF_PROGRAM_INFO.description,
+    sourcePlanId: null,
+    locked: true,
+    nextDayIndex: 0,
+    days: PDF_PROGRAM_DAYS.map((d) => ({ ...d, exercises: d.exercises.map((e) => ({ ...e })) })),
+    createdAt: '2026-11-01T00:00:00.000Z',
+    updatedAt: '2026-11-01T00:00:00.000Z',
+  };
 }

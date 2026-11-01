@@ -82,6 +82,7 @@ function parseLegacyBlob(raw: string, defaults: Pick<PersistedWorkoutState, 'res
   for (const session of [...history, ...(activeSession ? [activeSession] : [])]) assertSessionShape(session);
 
   return {
+    plans: [],
     activeSession,
     history,
     restTimer: migrated.restTimer ?? defaults.restTimer,
