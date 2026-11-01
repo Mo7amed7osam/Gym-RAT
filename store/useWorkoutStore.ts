@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import type { PersistedWorkoutState } from '@/data/db/repository';
 import { clampDayIndex, clonePlan, getNextDay, isSessionForDay } from '@/data/plans';
 import * as planEditor from '@/domain/plan/editor';
+import { recommend, type Recommendation } from '@/domain/progression';
 import * as reducer from '@/domain/session/reducer';
 import {
   buildSessionSummary,
@@ -131,6 +132,16 @@ interface WorkoutActions {
   addWarmupSets: (sessionExerciseId: string) => number;
   groupSessionExercises: (sessionExerciseIds: string[]) => void;
   ungroupSessionExercise: (sessionExerciseId: string) => void;
+
+  // Phase 3: progressive overload + coach
+  /** The deterministic suggestion for a session exercise (null when disabled). Pure; no state change. */
+  recommendationFor: (sessionExerciseId: string) => Recommendation | null;
+  /** Writes the suggestion into the prefill of incomplete sets only and records the decision. */
+  applyRecommendation: (sessionExerciseId: string) => boolean;
+  dismissRecommendation: (sessionExerciseId: string) => void;
+  /** The user changed the suggested targets themselves (targets sheet). */
+  markRecommendationEdited: (sessionExerciseId: string, weightKg: number | null, reps: { min: number; max: number }) => void;
+  dismissInsight: (key: string) => void;
 
   // Set logging
   updateSet: (sessionExerciseId: string, setId: string, values: SetValues) => void;
@@ -735,6 +746,70 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
       updateSession((current) => reducer.addWarmupSets(current, sessionExerciseId, warmups, randomUUID));
       return warmups.length;
     },
+
+    recommendationFor: (sessionExerciseId) => {
+      const state = get();
+      const session = state.activeSession;
+      const exercise = session?.exercises.find((item) => item.id === sessionExerciseId);
+      if (!session || !exercise || !state.settings.recommendationsEnabled) return null;
+      const library = state.exercises.find((item) => item.id === exercise.exerciseId);
+      return recommend({
+        history: state.history,
+        exerciseId: exercise.exerciseId,
+        prescription: { reps: exercise.prescription.reps },
+        weightType: library?.weightType ?? 'total',
+        stepKg: state.settings.progressionStepKg,
+        stepPerHandKg: state.settings.progressionStepPerHandKg,
+        now: nowIso(),
+        excludeSessionId: session.id,
+      });
+    },
+
+    applyRecommendation: (sessionExerciseId) => {
+      const recommendation = get().recommendationFor(sessionExerciseId);
+      if (!recommendation || recommendation.action === 'insufficient_data') return false;
+      const decidedAt = nowIso();
+      updateSession((session) =>
+        reducer.patchExercise(session, sessionExerciseId, (exercise) => ({
+          ...exercise,
+          // Prefill only: completed sets are logs and never change.
+          sets: exercise.sets.map((set) =>
+            set.completed || set.type === 'warmup'
+              ? set
+              : { ...set, weightKg: recommendation.weightKg ?? set.weightKg, reps: recommendation.reps.min, targetReps: recommendation.reps },
+          ),
+          recommendation: { weightKg: recommendation.weightKg, repsMin: recommendation.reps.min, repsMax: recommendation.reps.max, decision: 'accepted', decidedAt },
+        })),
+      );
+      return true;
+    },
+
+    dismissRecommendation: (sessionExerciseId) => {
+      const recommendation = get().recommendationFor(sessionExerciseId);
+      updateSession((session) =>
+        reducer.patchExercise(session, sessionExerciseId, (exercise) => ({
+          ...exercise,
+          recommendation: {
+            weightKg: recommendation?.weightKg ?? null,
+            repsMin: recommendation?.reps.min ?? exercise.prescription.reps.min,
+            repsMax: recommendation?.reps.max ?? exercise.prescription.reps.max,
+            decision: 'dismissed',
+            decidedAt: nowIso(),
+          },
+        })),
+      );
+    },
+
+    markRecommendationEdited: (sessionExerciseId, weightKg, reps) =>
+      updateSession((session) =>
+        reducer.patchExercise(session, sessionExerciseId, (exercise) => ({
+          ...exercise,
+          recommendation: { weightKg, repsMin: reps.min, repsMax: reps.max, decision: 'edited', decidedAt: nowIso() },
+        })),
+      ),
+
+    dismissInsight: (key) =>
+      set((state) => ({ settings: { ...state.settings, dismissedInsights: { ...state.settings.dismissedInsights, [key]: nowIso() } } })),
 
     groupSessionExercises: (sessionExerciseIds) => {
       if (sessionExerciseIds.length < 2) return;
