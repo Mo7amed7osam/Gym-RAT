@@ -155,6 +155,8 @@ export const progressAr: DeepStrings<typeof progressEn> = {
     toGo: 'متبقٍ %{value}',
     thisWeek: 'هذا الأسبوع',
     by: 'بحلول %{date}',
+    edit: 'تعديل الهدف',
+    editTitle: 'تغيير الهدف',
     archive: 'أرشفة الهدف',
     unarchive: 'استعادة الهدف',
     delete: 'حذف الهدف',
@@ -185,7 +187,7 @@ export const progressAr: DeepStrings<typeof progressEn> = {
       weekly_volume: '%{target} أسبوعيًا',
     },
     errors: {
-      target: 'أدخل هدفًا أكبر من صفر.',
+      target: 'أدخل هدفًا واقعيًا أكبر من صفر.',
       exercise: 'اختر تمرينًا.',
       body_metric: 'اختر قياسًا.',
       same_as_current: 'الهدف يساوي قيمتك الحالية.',

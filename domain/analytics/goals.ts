@@ -91,12 +91,22 @@ export function newlyAchievedGoalIds(evaluations: readonly GoalEvaluation[]): st
     .map((evaluation) => evaluation.goal.id);
 }
 
+/** Upper bounds that catch typos (an appended digit turns 130 kg into 1,301 kg). */
+export const GOAL_TARGET_MAX: Record<GoalKind, number> = {
+  exercise_e1rm: 1000,
+  exercise_weight: 1000,
+  bodyweight: 400,
+  body_measurement: 250,
+  weekly_sessions: 21,
+  weekly_volume: 500_000,
+};
+
 export type GoalInputError = 'target' | 'exercise' | 'body_metric' | 'same_as_current';
 
 /** Checks a new goal before it is created. */
 export function validateGoalInput(target: GoalTarget, targetValue: number, baseline: number | null): GoalInputError[] {
   const errors: GoalInputError[] = [];
-  if (!Number.isFinite(targetValue) || targetValue <= 0) errors.push('target');
+  if (!Number.isFinite(targetValue) || targetValue <= 0 || targetValue > GOAL_TARGET_MAX[target.kind]) errors.push('target');
   if ((target.kind === 'exercise_e1rm' || target.kind === 'exercise_weight') && !target.exerciseId) errors.push('exercise');
   if (target.kind === 'body_measurement' && !target.bodyMetric) errors.push('body_metric');
   if (!isRecurringGoal(target.kind) && baseline !== null && baseline === targetValue) errors.push('same_as_current');

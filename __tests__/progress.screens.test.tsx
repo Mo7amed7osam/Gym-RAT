@@ -145,6 +145,19 @@ describe('GoalsScreen', () => {
     expect(screen.getByText('4 workouts a week')).toBeTruthy();
   });
 
+  it('edits a goal target and rejects an invalid one', async () => {
+    seed();
+    useProgressStore.getState().createGoal({ kind: 'weekly_sessions', targetValue: 3, baselineValue: null });
+    await render(<GoalsScreen />);
+    await fireEvent.press(screen.getByLabelText('Edit target'));
+    await fireEvent.changeText(screen.getByLabelText('Target'), '0');
+    await fireEvent.press(screen.getByText('Save changes'));
+    expect(screen.getByText('Enter a realistic target above zero.')).toBeTruthy();
+    await fireEvent.changeText(screen.getByLabelText('Target'), '5');
+    await fireEvent.press(screen.getByText('Save changes'));
+    expect(useProgressStore.getState().goals[0].targetValue).toBe(5);
+  });
+
   it('requires a body measurement before a body goal', async () => {
     seed();
     await render(<GoalsScreen />);

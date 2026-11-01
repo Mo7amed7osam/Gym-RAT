@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Archive, ArchiveRestore, Dumbbell, Plus, Trash2 } from 'lucide-react-native';
+import { Archive, ArchiveRestore, Dumbbell, Pencil, Plus, Trash2 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,6 +57,8 @@ export default function GoalsScreen() {
   const [creating, setCreating] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Goal | null>(null);
+  const [editing, setEditing] = useState<{ goal: Goal; text: string; error: string | null } | null>(null);
+  const updateGoal = useProgressStore((state) => state.updateGoal);
 
   const completed = useMemo(() => history.filter(isCompleted), [history]);
   const context = useMemo(() => ({ history: completed, bodyEntries, now, weekStart }), [completed, bodyEntries, now, weekStart]);
@@ -75,6 +77,7 @@ export default function GoalsScreen() {
       key={evaluation.goal.id}
       evaluation={evaluation}
       title={goalTitle(evaluation.goal, t, exerciseMap)}
+      onEdit={() => setEditing({ goal: evaluation.goal, text: '', error: null })}
       onArchive={() => setGoalArchived(evaluation.goal.id, !evaluation.goal.archived)}
       onDelete={() => setPendingDelete(evaluation.goal)}
     />
@@ -83,7 +86,7 @@ export default function GoalsScreen() {
   return (
     <View style={styles.root}>
       <KeyboardAvoidingView behavior="padding" style={styles.flex}>
-        <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.sm }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.sm }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
           <ScreenHeader title={t('progress.goals.title')} onBack={() => (router.canGoBack() ? router.back() : router.replace('/progress'))} />
 
           {creating ? (
@@ -114,6 +117,38 @@ export default function GoalsScreen() {
       </KeyboardAvoidingView>
 
       <ConfirmDialog
+        visible={editing !== null}
+        title={t('progress.goals.editTitle')}
+        message={editing ? goalTitle(editing.goal, t, exerciseMap) : ''}
+        confirmLabel={t('progress.session.save')}
+        cancelLabel={t('common.cancel')}
+        onCancel={() => setEditing(null)}
+        onConfirm={() => {
+          if (!editing) return;
+          const value = parseWeight(editing.text);
+          const baseline = isRecurringGoal(editing.goal.kind) ? null : editing.goal.baselineValue;
+          const problems = validateGoalInput(editing.goal, value ?? Number.NaN, baseline);
+          if (problems.length > 0) {
+            setEditing({ ...editing, error: t(`progress.goals.errors.${problems[0]}`) });
+            return;
+          }
+          updateGoal(editing.goal.id, { targetValue: value! });
+          setEditing(null);
+        }}
+      >
+        <TextInput
+          value={editing?.text ?? ''}
+          onChangeText={(text) => editing && setEditing({ ...editing, text, error: null })}
+          keyboardType="decimal-pad"
+          autoFocus
+          placeholder={editing ? String(editing.goal.targetValue) : ''}
+          placeholderTextColor={theme.colors.labelTertiary}
+          style={styles.input}
+          accessibilityLabel={t('progress.goals.targetPlaceholder')}
+        />
+        {editing?.error ? <Text style={styles.error}>{editing.error}</Text> : null}
+      </ConfirmDialog>
+      <ConfirmDialog
         visible={pendingDelete !== null}
         title={t('progress.goals.deleteTitle')}
         message={pendingDelete ? goalTitle(pendingDelete, t, exerciseMap) : ''}
@@ -130,7 +165,7 @@ export default function GoalsScreen() {
   );
 }
 
-function GoalCard({ evaluation, title, onArchive, onDelete }: { evaluation: GoalEvaluation; title: string; onArchive: () => void; onDelete: () => void }) {
+function GoalCard({ evaluation, title, onEdit, onArchive, onDelete }: { evaluation: GoalEvaluation; title: string; onEdit: () => void; onArchive: () => void; onDelete: () => void }) {
   const styles = useStyles();
   const theme = useTheme();
   const t = useT();
@@ -143,6 +178,11 @@ function GoalCard({ evaluation, title, onArchive, onDelete }: { evaluation: Goal
         <Text style={[styles.goalTitle, styles.flex]}>{title}</Text>
         {evaluation.overdue ? <Chip label={t('progress.goals.overdue')} tone="tint" /> : null}
         {evaluation.achieved && !recurring ? <Chip label={t('progress.goals.achieved')} tone="success" /> : null}
+        {!goal.archived ? (
+          <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel={t('progress.goals.edit')} style={styles.iconButton}>
+            <Pencil size={18} color={theme.colors.tint} />
+          </Pressable>
+        ) : null}
         <Pressable onPress={onArchive} accessibilityRole="button" accessibilityLabel={t(goal.archived ? 'progress.goals.unarchive' : 'progress.goals.archive')} style={styles.iconButton}>
           <ArchiveIcon size={18} color={theme.colors.labelSecondary} />
         </Pressable>
@@ -250,6 +290,7 @@ function NewGoalForm({
         value={targetText}
         onChangeText={setTargetText}
         keyboardType="decimal-pad"
+        selectTextOnFocus
         placeholder={t('progress.goals.targetPlaceholder')}
         placeholderTextColor={theme.colors.labelTertiary}
         style={styles.input}

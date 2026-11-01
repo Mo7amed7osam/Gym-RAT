@@ -151,6 +151,8 @@ export const progressEn = {
     toGo: '%{value} to go',
     thisWeek: 'this week',
     by: 'by %{date}',
+    edit: 'Edit target',
+    editTitle: 'Change target',
     archive: 'Archive goal',
     unarchive: 'Restore goal',
     delete: 'Delete goal',
@@ -181,7 +183,7 @@ export const progressEn = {
       weekly_volume: '%{target} a week',
     },
     errors: {
-      target: 'Enter a target above zero.',
+      target: 'Enter a realistic target above zero.',
       exercise: 'Choose an exercise.',
       body_metric: 'Choose a measurement.',
       same_as_current: 'The target equals your current value.',

@@ -74,7 +74,7 @@ export default function BodyScreen() {
   return (
     <View style={styles.root}>
       <KeyboardAvoidingView behavior="padding" style={styles.flex}>
-        <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.sm }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.sm }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
           <ScreenHeader title={t('progress.body.title')} onBack={() => (router.canGoBack() ? router.back() : router.replace('/progress'))} />
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
@@ -97,6 +97,7 @@ export default function BodyScreen() {
                 value={valueText}
                 onChangeText={setValueText}
                 keyboardType="decimal-pad"
+                selectTextOnFocus
                 placeholder={unit}
                 placeholderTextColor={theme.colors.labelTertiary}
                 style={[styles.input, styles.flex]}
