@@ -28,3 +28,6 @@ Branch `feature/phase4-analytics` (worktree `../Gym RAT-phase4`), base `6319c60`
 - Logging bodyweight does not update `settings.profile.bodyweightKg` (avoids touching the workout store).
 - Weight-type semantics (`per_hand`, `assisted`) not applied to volume/e1RM (Phase 3 decision).
 - Arabic strings machine-authored; owner review pending (same as Phases 1–2).
+
+## QA pass (2026-11-02)
+Fixed: Arabic date digits, localised durations, bidi isolates, chart ticks, edit errors next to Save, select-on-focus inputs, goal target editing with bounds, boot schema repair. Integration duplicates and invalidation points listed in `specs/2026-11-02-phase4-phase3-integration-handoff.md` §2–3.
