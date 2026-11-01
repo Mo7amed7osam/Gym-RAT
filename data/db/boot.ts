@@ -11,6 +11,7 @@ import type { Driver } from './driver';
 import { importFromAsyncStorage } from './importer';
 import { SCHEMA_VERSION, getUserVersion, migrate } from './migrations';
 import { EMPTY_PROGRESS, ProgressRepository } from './progressRepository';
+import { ensureProgressSchema } from './progressSchema';
 import { WorkoutRepository } from './repository';
 import { BACKUP_DATABASE_NAME, DATABASE_NAME } from './schema';
 import { seedExercises, seedPlans } from './seed';
@@ -82,6 +83,8 @@ async function boot(): Promise<void> {
     attachPersistence({ persist: (prev, next) => repo.persistDiff(prev, next) });
 
     // Phase 4: body measurements and goals (ADR-010).
+    const repaired = ensureProgressSchema(driver);
+    if (repaired.length > 0) console.warn(`[db] created missing Phase 4 tables: ${repaired.join(', ')}`);
     const progressRepo = new ProgressRepository(driver);
     useProgressStore.getState().hydrate(progressRepo.loadAll());
     attachProgressPersistence({ persist: (prev, next) => progressRepo.persistDiff(prev, next) });
