@@ -145,6 +145,7 @@ export function buildPplUlTemplate(): Plan {
     sourcePlanId: null,
     locked: true,
     nextDayIndex: 0,
+    archived: false,
     days: PDF_PROGRAM_DAYS.map((d) => ({ ...d, exercises: d.exercises.map((e) => ({ ...e })) })),
     createdAt: '2026-11-01T00:00:00.000Z',
     updatedAt: '2026-11-01T00:00:00.000Z',

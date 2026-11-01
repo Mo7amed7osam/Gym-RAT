@@ -95,7 +95,7 @@ describe('schema v4 + repository', () => {
       MIGRATIONS[2].up(driver);
       driver.exec('PRAGMA user_version = 3');
     });
-    expect(migrate(driver)).toEqual({ from: 3, to: SCHEMA_VERSION, applied: [4] });
+    expect(migrate(driver)).toEqual({ from: 3, to: SCHEMA_VERSION, applied: [4, 5] });
     const repo = new WorkoutRepository(driver);
     expect(repo.loadAll(defaults).exercises).toEqual([]);
 

@@ -4,6 +4,7 @@ import { create } from 'zustand';
 
 import type { PersistedWorkoutState } from '@/data/db/repository';
 import { clampDayIndex, clonePlan, getNextDay, isSessionForDay } from '@/data/plans';
+import * as planEditor from '@/domain/plan/editor';
 import * as reducer from '@/domain/session/reducer';
 import {
   buildSessionSummary,
@@ -14,7 +15,9 @@ import {
 import type {
   Exercise,
   ExerciseContent,
+  ExercisePrescription,
   ExerciseSet,
+  LocalizedText,
   Plan,
   PlanDay,
   RestTimerContext,
@@ -68,8 +71,25 @@ interface WorkoutActions {
   setExerciseArchived: (id: string, archived: boolean) => void;
 
   // Plans & rotation
-  /** Makes a template/reference the active plan (copied), replacing the current active plan. */
+  /** Makes a template the active plan (copied), replacing the current active plan. */
   adoptPlan: (sourcePlanId: string) => Plan | null;
+  /** Makes any plan the single active one: locked templates are copied, user plans flip in place (P2.3). */
+  activatePlan: (planId: string) => Plan | null;
+
+  // Plan builder (P2.3) — bundled templates throw LockedPlanError; duplicate them first.
+  createPlan: (name: LocalizedText) => Plan;
+  duplicatePlan: (planId: string) => Plan | null;
+  renamePlan: (planId: string, name: LocalizedText, description: LocalizedText | null) => void;
+  setPlanArchived: (planId: string, archived: boolean) => void;
+  addPlanDay: (planId: string, code: string) => PlanDay;
+  removePlanDay: (planId: string, dayId: string) => void;
+  reorderPlanDay: (planId: string, dayId: string, toIndex: number) => void;
+  updatePlanDay: (planId: string, dayId: string, patch: Parameters<typeof planEditor.updateDay>[2]) => void;
+  addPlanExercise: (planId: string, dayId: string, exerciseId: string) => void;
+  removePlanExercise: (planId: string, dayId: string, index: number) => void;
+  reorderPlanExercise: (planId: string, dayId: string, from: number, to: number) => void;
+  substitutePlanExercise: (planId: string, dayId: string, index: number, exerciseId: string) => void;
+  updatePlanExercise: (planId: string, dayId: string, index: number, patch: Partial<Omit<ExercisePrescription, 'exerciseId'>>) => void;
   /** Points the rotation at a specific day of the active plan. */
   setNextDay: (dayIndex: number) => void;
   previewDay: (dayIndex: number | null) => void;
@@ -312,6 +332,14 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
     set((state) => ({ plans: state.plans.map((plan) => (plan.id === planId ? update(plan) : plan)) }));
   };
 
+  /** Like updatePlan, but a no-op when the editor returns the same object (locked plans throw before reaching here). */
+  const editPlan = (planId: string, update: (plan: Plan) => Plan): void => {
+    const current = get().plans.find((plan) => plan.id === planId);
+    if (!current) return;
+    const next = update(current);
+    if (next !== current) updatePlan(planId, () => next);
+  };
+
   return {
     previewDayIndex: null,
     persistenceError: null,
@@ -374,6 +402,58 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
       });
       return adopted;
     },
+
+    activatePlan: (planId) => {
+      const result = planEditor.activatePlan(get().plans, planId, randomUUID(), nowIso());
+      if (!result) return null;
+      set({ plans: result.plans, previewDayIndex: null });
+      return result.active;
+    },
+
+    createPlan: (name) => {
+      const plan = planEditor.createEmptyPlan(randomUUID(), name, nowIso());
+      set((state) => ({ plans: [...state.plans, plan] }));
+      return plan;
+    },
+
+    duplicatePlan: (planId) => {
+      const source = get().plans.find((plan) => plan.id === planId);
+      if (!source) return null;
+      const copy = planEditor.duplicatePlan(source, randomUUID(), nowIso());
+      set((state) => ({ plans: [...state.plans, copy] }));
+      return copy;
+    },
+
+    renamePlan: (planId, name, description) => editPlan(planId, (plan) => planEditor.renamePlan(plan, name, description, nowIso())),
+
+    setPlanArchived: (planId, archived) => editPlan(planId, (plan) => planEditor.setPlanArchived(plan, archived, nowIso())),
+
+    addPlanDay: (planId, code) => {
+      const day = planEditor.makeDay(randomUUID(), get().plans.find((plan) => plan.id === planId)?.days.length ?? 0, code);
+      editPlan(planId, (plan) => planEditor.addDay(plan, day, nowIso()));
+      return day;
+    },
+
+    removePlanDay: (planId, dayId) => editPlan(planId, (plan) => planEditor.removeDay(plan, dayId, nowIso())),
+
+    reorderPlanDay: (planId, dayId, toIndex) => editPlan(planId, (plan) => planEditor.reorderDay(plan, dayId, toIndex)),
+
+    updatePlanDay: (planId, dayId, patch) => editPlan(planId, (plan) => planEditor.updateDay(plan, dayId, patch, nowIso())),
+
+    addPlanExercise: (planId, dayId, exerciseId) => {
+      const rest = get().exercises.find((exercise) => exercise.id === exerciseId)?.userRestSeconds ?? null;
+      editPlan(planId, (plan) => planEditor.addExercise(plan, dayId, planEditor.defaultPrescription(exerciseId, rest), nowIso()));
+    },
+
+    removePlanExercise: (planId, dayId, index) => editPlan(planId, (plan) => planEditor.removeExercise(plan, dayId, index, nowIso())),
+
+    reorderPlanExercise: (planId, dayId, from, to) => editPlan(planId, (plan) => planEditor.reorderExercise(plan, dayId, from, to, nowIso())),
+
+    substitutePlanExercise: (planId, dayId, index, exerciseId) =>
+      editPlan(planId, (plan) => planEditor.substituteExercise(plan, dayId, index, exerciseId, nowIso())),
+
+    updatePlanExercise: (planId, dayId, index, patch) =>
+      editPlan(planId, (plan) => planEditor.updatePrescription(plan, dayId, index, patch, nowIso())),
 
     setNextDay: (dayIndex) => {
       const active = selectActivePlan(get());

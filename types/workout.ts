@@ -163,6 +163,8 @@ export interface Plan {
   /** Index into `days` of the next workout in the rotation. */
   nextDayIndex: number;
   days: PlanDay[];
+  /** Hidden from the Plan tab; never deleted, so history keeps its day ids. Active plans cannot be archived. */
+  archived: boolean;
   createdAt: ISODateString;
   updatedAt: ISODateString;
 }

@@ -12,6 +12,8 @@ interface ConfirmDialogProps {
   destructive?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Optional content between the message and the buttons (an input, a chip row). */
+  children?: React.ReactNode;
 }
 
 /** Cross-platform confirm (Alert.alert has no buttons on web). */
@@ -24,6 +26,7 @@ export function ConfirmDialog({
   destructive = false,
   onConfirm,
   onCancel,
+  children,
 }: ConfirmDialogProps) {
   const styles = useStyles();
   // Long labels ("Erase everything") truncate side by side; stack them like a native alert.
@@ -36,7 +39,8 @@ export function ConfirmDialog({
           <Text style={styles.title} accessibilityRole="header">
             {title}
           </Text>
-          <Text style={styles.message}>{message}</Text>
+          {message ? <Text style={styles.message}>{message}</Text> : null}
+          {children}
           <View style={[styles.actions, stacked && styles.actionsStacked]}>
             <Button
               label={confirmLabel}

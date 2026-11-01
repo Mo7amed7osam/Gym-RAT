@@ -173,3 +173,8 @@ CREATE TABLE IF NOT EXISTS exercises (
 );
 CREATE INDEX IF NOT EXISTS idx_exercises_origin ON exercises (origin, archived);
 `;
+
+/** v5: plans can be archived (plan builder, P2.3). */
+export const SCHEMA_V5 = `
+ALTER TABLE plans ADD COLUMN archived INTEGER NOT NULL DEFAULT 0;
+`;

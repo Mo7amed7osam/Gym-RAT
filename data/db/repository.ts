@@ -88,6 +88,7 @@ interface PlanRow {
   source_plan_id: string | null;
   locked: number;
   next_day_index: number;
+  archived: number;
   created_at: string;
   updated_at: string;
 }
@@ -319,11 +320,11 @@ export class WorkoutRepository {
   upsertPlan(plan: Plan): void {
     const d = this.driver;
     d.run(
-      `INSERT INTO plans (id, kind, name_json, description_json, source_plan_id, locked, next_day_index, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO plans (id, kind, name_json, description_json, source_plan_id, locked, next_day_index, archived, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT (id) DO UPDATE SET kind = excluded.kind, name_json = excluded.name_json,
          description_json = excluded.description_json, source_plan_id = excluded.source_plan_id, locked = excluded.locked,
-         next_day_index = excluded.next_day_index, created_at = excluded.created_at, updated_at = excluded.updated_at`,
+         next_day_index = excluded.next_day_index, archived = excluded.archived, created_at = excluded.created_at, updated_at = excluded.updated_at`,
       [
         plan.id,
         plan.kind,
@@ -332,6 +333,7 @@ export class WorkoutRepository {
         plan.sourcePlanId,
         plan.locked,
         plan.nextDayIndex,
+        plan.archived,
         plan.createdAt,
         plan.updatedAt,
       ],
@@ -504,6 +506,7 @@ export class WorkoutRepository {
       sourcePlanId: row.source_plan_id,
       locked: row.locked === 1,
       nextDayIndex: row.next_day_index,
+      archived: row.archived === 1,
       days: daysByPlan.get(row.id) ?? [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,

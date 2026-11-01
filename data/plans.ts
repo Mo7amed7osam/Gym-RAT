@@ -45,6 +45,7 @@ export function clonePlan(source: Plan, id: string, kind: Plan['kind'], now: str
     sourcePlanId: source.id,
     locked: false,
     nextDayIndex: 0,
+    archived: false,
     days: source.days.map((day, position) => ({
       ...day,
       id: `${id}:${position}`,

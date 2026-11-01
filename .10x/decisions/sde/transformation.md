@@ -22,3 +22,9 @@
 - Library: filters (scope, equipment, muscle), detail route `/exercise/[id]`, editor `/exercise/edit` (expo-image-picker + expo-file-system photo copy into `Documents/exercise-media`), in-workout guide sheet replaces the YouTube redirect (`VideoModal` deleted, `expo-web-browser` no longer used for exercises).
 - Media: `scripts/media/import-repdb.mjs` + `repdb-mapping.json` → `assets/exercise-media/` (56 WebP stills, manifest with sha256/dimensions/licence, generated require index, `COVERAGE.md`). 28/38 exact matches; 10 unmatched ship the labelled fallback card. PDF photos removed. Attribution in Settings → About.
 - Tech debt: Library `filterLibrary` is exported for tests only; custom exercise Arabic falls back to the English name; `useExerciseMap` re-creates the Map whenever any exercise changes.
+
+## Phase 2 — W3 Plan builder + W6 template sessions (2026-11-01)
+- `domain/plan/editor.ts`: pure create/duplicate/rename/archive, day add/remove/reorder (ids stable, pointer follows the day), exercise add/remove/reorder/substitute/prescription edit, `activatePlan` (locked → clone becomes active; user plan flips in place, previous active demoted to template and kept). `LockedPlanError` guards bundled templates.
+- Schema v5: `plans.archived`. Store actions mirror the editor; `editPlan` skips writes when the editor returns the same object.
+- UI: Plan tab (active plan + rotation, My plans, Bundled templates with Use / Duplicate / Start a workout (day picker → `kind: 'template'` session), Archived), `/plan/[id]` editor, `/plan/[id]/day/[dayId]` day editor with sets · reps · rest and a searchable `ExercisePickerModal`. History rows badge template/extra sessions.
+- Tech debt: reorder uses up/down buttons (no drag library); plan names are English-only (Arabic copies English); `ConfirmDialog` now accepts children for the inline name/day inputs.

@@ -27,7 +27,7 @@ describe('migrations', () => {
               ('full_body_starter:active', 'active', '{"en":"S","ar":"S"}', 0, 1, '2026-11-01T00:00:00.000Z', '2026-11-01T00:00:00.000Z')`,
     );
     const backup = jest.fn();
-    expect(migrate(driver, { backup })).toEqual({ from: 2, to: SCHEMA_VERSION, applied: [3, 4] });
+    expect(migrate(driver, { backup })).toEqual({ from: 2, to: SCHEMA_VERSION, applied: [3, 4, 5] });
     expect(backup).toHaveBeenCalledWith(2);
     expect(driver.all('SELECT id, kind, next_day_index FROM plans ORDER BY id')).toEqual([
       { id: 'full_body_starter', kind: 'template', next_day_index: 0 },
@@ -60,7 +60,7 @@ describe('migrations', () => {
     expect(driver.get('SELECT COUNT(*) AS n FROM session_exercises')).toEqual({ n: 1 });
     expect(driver.get('SELECT COUNT(*) AS n FROM sets')).toEqual({ n: 1 });
     expect(driver.get('PRAGMA foreign_keys')).toEqual({ foreign_keys: 1 });
-    expect(result).toEqual({ from: 1, to: SCHEMA_VERSION, applied: [2, 3, 4] });
+    expect(result).toEqual({ from: 1, to: SCHEMA_VERSION, applied: [2, 3, 4, 5] });
     const row = driver.get<{ plan_id: string; plan_day_id: string; kind: string; notes: string; paused_intervals_json: string }>(
       'SELECT plan_id, plan_day_id, kind, notes, paused_intervals_json FROM sessions WHERE id = ?',
       ['s1'],

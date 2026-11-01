@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { WeeklyVolumeChart } from '@/components/WeeklyVolumeChart';
 import { Button } from '@/components/ui/Button';
+import { Chip } from '@/components/ui/Chip';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { HIT } from '@/constants/theme';
@@ -189,6 +190,7 @@ function SessionRow({
         style={({ pressed }) => [styles.sessionRow, pressed && styles.pressed]}
       >
         <Badge code={session.code} />
+        {session.kind !== 'plan' ? <Chip label={t(session.kind === 'template' ? 'plan.templateBadge' : 'plan.extraBadge')} tone="link" /> : null}
         <View style={styles.flex}>
           <Text style={styles.headline}>{session.code}</Text>
           <Text style={styles.caption}>{formatShortDate(session.startedAt)}</Text>
