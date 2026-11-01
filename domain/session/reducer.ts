@@ -170,8 +170,10 @@ export function removeExercise(session: WorkoutSession, sessionExerciseId: strin
 }
 
 /**
- * Swaps the movement for this session only. Completed sets stay as logged
- * (they were done on the old exercise), incomplete sets lose their prefill.
+ * Swaps the movement for this session only. `prescription.exerciseId` keeps
+ * the plan's original slot (so "save to plan" can replace it); `exerciseId`
+ * is what is actually being performed. Completed sets stay as logged,
+ * incomplete sets lose their prefill.
  */
 export function substituteExercise(session: WorkoutSession, sessionExerciseId: string, exerciseId: string): WorkoutSession {
   return patchExercise(session, sessionExerciseId, (exercise) => {
@@ -179,7 +181,6 @@ export function substituteExercise(session: WorkoutSession, sessionExerciseId: s
     return {
       ...exercise,
       exerciseId,
-      prescription: { ...exercise.prescription, exerciseId },
       sets: exercise.sets.map((set) => (set.completed ? set : { ...set, weightKg: null, reps: null })),
     };
   });

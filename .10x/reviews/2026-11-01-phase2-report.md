@@ -1,6 +1,6 @@
 # Phase 2 — Workout Engine & Exercise Library: completion report
 
-**Date:** 2026-11-01 · **Baseline:** `e2466f7` (Phase 1 + owner clarifications) · **HEAD:** see "Commits" · **Gates on HEAD:** 133 Jest tests / 4 protected snapshots, `tsc --noEmit` clean, `expo lint` clean.
+**Date:** 2026-11-01 · **Baseline:** `e2466f7` (Phase 1 + owner clarifications) · **HEAD:** see "Commits" · **Gates on HEAD:** 135 Jest tests in 16 suites / 4 protected snapshots, `tsc --noEmit` clean, `expo lint` clean.
 **Physical iPhone:** not tested (owner chose the simulator; Developer Mode still off on the phone). Everything below marked "simulator" was performed on the iPhone 18 Pro simulator (iOS 27.0) with the Release build.
 
 ## 1. Implementation checklist
@@ -10,7 +10,7 @@
 | P2.1 Exercise data & library | Done | `exercises` table (schema v4), built-in seed refresh, custom exercises (create / edit / archive, never delete), search + scope/equipment/muscle filters, detail screen (illustration, muscles, instructions, breathing, range of motion, mistakes, alternatives, notes, rest preference, history, video placeholder), editor with photo. History keeps resolving archived ids (test + simulator). |
 | P2.2 Static media | Done | RepDB free tier investigated (licence, attribution, no premium samples). Exact-match mapping reviewed against the artwork: **28 / 38**. Import script, manifest (sha256, dimensions, licence), generated require index, labelled fallback card for the 10 unmatched, attribution in Settings → About. Images bundled (offline by construction). PDF-derived photos removed. |
 | P2.3 Plan builder | Done | Create, rename, duplicate (bundled templates too), edit, archive, activate; add/remove/reorder days (stable ids); add/remove/reorder/substitute exercises; sets, reps, rest per exercise. Exactly one active plan; rotation pointer follows reorders; history untouched by edits and switches. |
-| P2.4 Session engine | Done | Pause/resume + active time (Phase 1), reorder, do later / return, add / remove / substitute exercise during a session, session-only target edits with explicit save-to-plan, undo toast, session notes, end-time correction, review step before finishing, resume after force-quit, inactivity prompt (Resume / Finish and review / Keep open), save-failure banner. |
+| P2.4 Session engine | Done | Pause/resume + active time (Phase 1), reorder, do later / return, add / remove / substitute exercise during a session, session-only target edits with explicit save-to-plan, undo toast, session notes, end-time correction, review step before finishing, resume after force-quit, inactivity prompt (Finish and review / Keep open; dismissing keeps the session running), save-failure banner. |
 | P2.5 Sets, rest, warm-up | Done | Normal / warm-up sets unchanged; drop, rest-pause, AMRAP kinds; RPE / RIR columns (store + schema, no entry UI yet); superset / giant-set grouping; rest derived from set kind, warm-up rest setting, group position and per-exercise override; ramp-up warm-up set suggestion; atomic SQLite writes; save-failure feedback; rest timer behaviour kept; protected sets grid unchanged for normal sets. |
 | P2.6 Templates | Done | Starter remains the default; PPL/UL program is an ordinary bundled template (ADR-006); no PDF bundled; no personal data in templates; "Start a workout" from a template picks a day and creates a `template` session that never moves the rotation; history badges template / extra sessions; Starter still labelled "(draft)". |
 | P2.7 YouTube preparation | Done (minimal) | `Exercise.videoId` nullable column; detail screen shows the video section as pending; no external YouTube redirect anywhere (old `VideoModal` deleted). No curated ids shipped because embeddability could not be verified offline. |
@@ -27,7 +27,8 @@
 | `ebbefad` | fix(picker): exercise picker re-render loop (found on simulator) |
 | `ceb7500` | test: picker regression |
 | `2e32843` | fix(picker): reset search on open (found on simulator) |
-| (this commit) | state: Phase 2 report, screenshots |
+| `25140f9` | state: Phase 2 report, screenshots |
+| (this commit) | fix(session): substitution keeps the plan slot so save-to-plan replaces instead of appending; report corrections |
 
 173 files changed, +6 634 / −1 072 before this report.
 
@@ -64,7 +65,7 @@ Custom exercises use the user's own photo or the same fallback. Also still bundl
 
 ## 7. Jest, lint, TypeScript
 
-- Jest: 133 passed (18 suites), 4 snapshots passed. New suites: `exercises.library`, `plan.editor`, `session.engine`; extended: `db.boot`, `db.migrations`, `screens.hardening`, `i18n`.
+- Jest: 135 passed (16 suites), 4 snapshots passed. New suites: `exercises.library`, `plan.editor`, `session.engine`; extended: `db.boot`, `db.migrations`, `screens.hardening`, `i18n`.
 - `npx tsc --noEmit`: clean. `npx expo lint`: clean.
 - Protected sets grid: the `SetRow` snapshots are byte-identical; the `ExerciseCard` snapshot changed only in the header (illustration row, options button).
 
@@ -89,15 +90,15 @@ Custom exercises use the user's own photo or the same fallback. Also still bundl
 | Arabic RTL | pass | Today, Library, Plan mirrored with Arabic strings (new strings machine-authored, owner review pending) |
 | Light theme | pass | Library, Plan, Settings |
 
-Not exercised on the simulator: supersets, drop / rest-pause / AMRAP set kinds, warm-up set suggestion, inactivity prompt (20-minute wait), save-failure banner, custom photo picking (camera/photos permission flow), the picker search reset after `2e32843` (covered by Jest; final build smoke-tested on Library search only).
+Not exercised on the simulator: supersets, drop / rest-pause / AMRAP set kinds, warm-up set suggestion, inactivity prompt (20-minute wait), save-failure banner, custom photo picking (camera/photos permission flow), the picker search reset after `2e32843` (no test; final build smoke-tested on Library search only), save-to-plan after a substitution (Jest only, fixed in the last commit).
 
 ## 9. Physical-device tests
 
-Still pending. Nothing in this report was run on a physical iPhone. The device-signed Release build process from Phase 1 still applies once Developer Mode is enabled.
+Still pending. Nothing in this report was run on a physical iPhone. The device-signed `Release-iphoneos` build on disk is Phase 1 code and predates `expo-image-picker`; a Phase 2 device build needs `npx expo prebuild --platform ios` and a rebuild once Developer Mode is enabled (stale checkouts need the prebuild for the new native module too).
 
 ## 10. Known defects and Phase 3 dependencies
 
-Defects found and fixed during verification: exercises slice not persisted (`87379ee`), exercise picker render loop crashing any screen that mounted it (`ebbefad`), stale picker search (`2e32843`).
+Defects found and fixed during verification: exercises slice not persisted (`87379ee`), exercise picker render loop crashing any screen that mounted it (`ebbefad`), stale picker search (`2e32843`), save-to-plan after a substitution appended the new exercise instead of replacing the slot (found in review, fixed with a Jest case, not simulator-verified).
 
 Open / tech debt:
 - RPE / RIR: stored (schema, store, tests) but no entry UI.

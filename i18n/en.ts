@@ -146,7 +146,6 @@ export const en = {
     keepGoing: 'Keep going',
     inactivityTitle: 'Still training?',
     inactivityMessage: 'No set logged for %{minutes} minutes.',
-    inactivityResume: 'Resume',
     inactivityFinish: 'Finish and review',
     inactivityKeep: 'Keep open',
     saveFailed: 'Could not save your last change. Check free storage and try again.',

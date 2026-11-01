@@ -36,3 +36,5 @@
 - UI: options sheet on the workout card (guide, targets, substitute, move, next-set kind, warm-ups, superset, add after, remove), session targets sheet with explicit save-to-plan, review step before every finish (outcomes, notes, end-time −5/−15/−30 min, finish-and-advance / repeat), undo toast after each logged set, inactivity prompt (Resume / Finish and review / Keep open, snoozes for the configured interval), save-failure banner. Set number cell shows ↓ · + suffixes for drop / rest-pause / AMRAP sets only; normal rows unchanged (snapshots: header wrapper + options button only).
 - W7: `Exercise.videoId` exists and is shown as "curated" in the detail screen; no ids are shipped (embeddability unverified) and nothing opens YouTube externally.
 - Tech debt: RPE/RIR has no entry UI yet (store + schema only); superset grouping is "with the next exercise" only; inactivity timer polls every 30 s while the screen is mounted.
+
+- 2026-11-01 late: `substituteExercise` keeps `prescription.exerciseId` as the plan slot (snapshot); `saveTargetsToPlan` replaces that slot. Unused `workout.inactivityResume` strings removed.

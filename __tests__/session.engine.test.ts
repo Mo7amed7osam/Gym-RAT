@@ -44,7 +44,8 @@ describe('engine: exercises during a session', () => {
     const first = session().exercises[0];
     store.substituteSessionExercise(first.id, 'hack_squat');
     expect(session().exercises[0].exerciseId).toBe('hack_squat');
-    expect(session().exercises[0].prescription.exerciseId).toBe('hack_squat');
+    // The snapshot keeps the plan slot it came from.
+    expect(session().exercises[0].prescription.exerciseId).toBe(first.exerciseId);
 
     store.removeSessionExercise(session().exercises[6].id);
     expect(session().exercises).toHaveLength(6);
@@ -71,6 +72,22 @@ describe('engine: exercises during a session', () => {
     expect(store.saveTargetsToPlan(ex.id)).toBe(true);
     const day = selectActivePlan(useWorkoutStore.getState())!.days[0];
     expect(day.exercises[0]).toMatchObject({ exerciseId: 'leg_press', sets: 2, reps: { min: 5, max: 5 }, rest: { defaultSeconds: 150 } });
+  });
+
+  it('save-to-plan after a substitution replaces the plan slot instead of appending', () => {
+    const store = useWorkoutStore.getState();
+    const copy = store.duplicatePlan(STARTER_PLAN_ID)!;
+    store.activatePlan(copy.id);
+    start();
+    const first = session().exercises[0];
+    expect(first.exerciseId).toBe('leg_press');
+    store.substituteSessionExercise(first.id, 'hack_squat');
+    store.updateSessionPrescription(first.id, { sets: 4 });
+    expect(store.saveTargetsToPlan(first.id)).toBe(true);
+    const day = selectActivePlan(useWorkoutStore.getState())!.days[0];
+    expect(day.exercises.map((e) => e.exerciseId)).not.toContain('leg_press');
+    expect(day.exercises[0]).toMatchObject({ exerciseId: 'hack_squat', sets: 4 });
+    expect(day.exercises).toHaveLength(6);
   });
 
   it('save-to-plan refuses template sessions and locked plans', () => {

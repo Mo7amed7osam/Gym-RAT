@@ -689,7 +689,8 @@ export const useWorkoutStore = create<WorkoutStore>()((rawSet, get) => {
       if (!plan || plan.locked) return false;
       const day = plan.days.find((item) => item.id === session.planDayId);
       if (!day) return false;
-      const index = day.exercises.findIndex((item) => item.exerciseId === exercise.prescription.exerciseId || item.exerciseId === exercise.exerciseId);
+      // The snapshot's exerciseId is the plan slot this session exercise came from; a substitution replaces that slot.
+      const index = day.exercises.findIndex((item) => item.exerciseId === exercise.prescription.exerciseId);
       const now = nowIso();
       const { sets, reps, rest } = exercise.prescription;
       editPlan(plan.id, (current) => {

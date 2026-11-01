@@ -151,7 +151,6 @@ export const ar: Dictionary = {
     keepGoing: 'متابعة',
     inactivityTitle: 'ما زلت تتمرن؟',
     inactivityMessage: 'لم تُسجل مجموعة منذ %{minutes} دقيقة.',
-    inactivityResume: 'متابعة',
     inactivityFinish: 'إنهاء ومراجعة',
     inactivityKeep: 'إبقاء مفتوحًا',
     saveFailed: 'تعذر حفظ آخر تغيير. تحقق من المساحة الحرة وحاول مجددًا.',
