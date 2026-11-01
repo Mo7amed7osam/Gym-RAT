@@ -20,7 +20,7 @@
 `components/SetRow.tsx` and the grid/tiles/footer of `components/ExerciseCard.tsx` were not edited in any milestone except for theme-token and string-key substitution. RNTL snapshots taken before M5 pass after M5–M8 (one snapshot updated for a merged text node with identical rendered text).
 
 ## Owner verification checklist (Appendix D)
-- [ ] Dev build on a physical iPhone (blocked by D5: Apple credentials). Simulator builds verified.
+- [ ] Dev build on a physical iPhone — membership confirmed 2026-11-01; signed Release build and checklist in `2026-11-01-device-verification.md`. Simulator builds verified.
 - [ ] Kill test: log a set, force-quit within 1 s, relaunch → set present (10 runs). Jest proves the write commits before state applies; the physical test is yours.
 - [ ] Theme switch: System / Light / Dark / True Black + accents in Settings → Appearance.
 - [ ] Arabic end to end: Settings → Language → العربية, restart app, check layout direction and strings. Arabic text is a machine-authored draft; please correct freely in `i18n/ar.ts`.
@@ -41,6 +41,8 @@
 - No EAS project/login yet; `eas.json` is ready but untested against a real account.
 
 ## Not exercised in this session (owner will meet these first)
+
+_Update 2026-11-01: the flows below now have automated coverage in `__tests__/screens.hardening.test.tsx`, `__tests__/db.boot.test.ts` and `__tests__/i18n.test.ts` (onboarding to the end, Library search, Plan Make next / Use this plan, Reset All Data confirmation and the real boot → reset → re-boot path on a SQLite file). Device execution is still pending the owner._
 - Reset All Data end to end (needs a tap); `resetAllData` re-runs boot without a visible loading state.
 - In-app language switch via Settings (`applyLayoutDirection` + "restart to apply"): only device-language launch was tested.
 - Onboarding beyond the welcome step on device (plan adoption from onboarding, body-input parsing are not unit-tested).

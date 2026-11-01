@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.gymrat.app",
+      "appleTeamId": "8TBB6SU34J",
       "config": {
         "usesNonExemptEncryption": false
       },

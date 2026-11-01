@@ -2,7 +2,7 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
-**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. **Phase 1 complete (M0–M8 merged to main).** Awaiting owner verification (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
+**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. **Phase 1 complete (M0–M8 merged to main); hardening tests added 2026-11-01 (99 tests).** Awaiting physical-device verification (owner taps, Claude pulls evidence) and (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
 
 ## Phase tracking
 
@@ -18,7 +18,7 @@
 
 ## Owner decisions still open (block or shape Phase 1)
 - D3 Confirm owner-vs-tester interpretation (approved program ships as selectable template). Needed by M7.
-- D5 Apple Developer Program status, bundle id, team. Needed by M3 device tests.
+- D5 **Membership confirmed by owner 2026-11-01** (paid, team 8TBB6SU34J found in Xcode). Bundle id still `com.gymrat.app` (assumption; register or change before TestFlight). EAS CLI on this Mac is logged in as a different person's account — owner must log in themselves before any EAS step.
 - D6 Any real on-device data to preserve? Default: none.
 - D4 Program questionnaire + illustration mapping. Needed before M4 completes.
 - Defaults assumed unless overridden: D2 yes (RepDB metadata with attribution), D7 NORMAL, D8 full Arabic UI + Western digits for weights/reps, D9 leave OS backup, D10 drop web, D11 owner approves video list.
@@ -30,12 +30,12 @@
 | M0 | Git + Jest harness + baseline tests | **Done** — 41 tests, 96% stmts / 99% lines on the 4 target modules; tsc/lint clean |
 | M1 | Remove sync/server; persist v3 | **Done** |
 | M2 | Remove cool-down + weightIncrementKg | **Done** |
-| M3 | SQLite behind store facade + importer | **Done** (Jest proves commit-before-apply; simulator boot verified; physical tap-and-kill test pending D5 device) |
+| M3 | SQLite behind store facade + importer | **Done** (Jest proves commit-before-apply, boot/reset against a real SQLite file; simulator boot verified; physical tap-and-kill test pending owner, see reviews/2026-11-01-device-verification.md) |
 | M4 | Plan/rotation + session reducer | **Done** (Starter content = draft pending D4) |
 | M5 | Theme system | **Done** |
 | M6 | Localization + RTL | **Done** (RTL verified on simulator) |
 | M7 | Four tabs + onboarding | **Done** (onboarding verified on a fresh simulator install) |
-| M8 | Reset All Data + eas.json + dev build | **Done** (simulator build; device build blocked by D5) |
+| M8 | Reset All Data + eas.json + dev build | **Done** (simulator build verified; device-signed Release build: see reviews/2026-11-01-device-verification.md) |
 
 ## Quality baseline (measured 2026-11-01)
 `npx tsc --noEmit` 0 errors · `npx expo lint` clean · `npx expo-doctor` 20/20 · local iOS build succeeded (`.expo/xcodebuild.log`) · no tests · never run on a physical device (README).
