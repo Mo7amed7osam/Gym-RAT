@@ -2,13 +2,16 @@ import type { ExercisePrescription, Plan, PlanDay, RepRange, RestPeriod } from '
 import type { ExerciseId } from '../exercisesData';
 
 /**
- * "Push - Pull - Leg / Upper - Lower Ver 5.0" — the original PDF program.
- * Sets / reps / rest are copied from the PDF tables (p.6, 12, 17, 21, 27).
+ * "Push - Pull - Leg / Upper - Lower Ver 5.0", extracted from the owner's
+ * program document into native plan data. Sets / reps / rest follow the
+ * source tables (schedule p.6; day tables p.7, 13, 18, 22, 28; all 42 rows
+ * re-checked against the source on 2026-11-01); the document itself is not bundled.
  *
- * Shipped as an immutable *reference* plan (`kind: 'reference'`). It is never
- * selected automatically; the user may adopt it as their active plan.
- * The PDF's Tuesday cardio and Friday rest are not plan days: the rotation
- * only contains training days (spec §5).
+ * Shipped as an ordinary bundled template, selectable next to the Full Body
+ * Starter. It is never selected automatically (Starter is the default); the
+ * user adopts, follows, edits (plan editor, Phase 2) and duplicates it through
+ * the normal workout engine and rotation. The source's Tuesday cardio and
+ * Friday rest are not plan days: the rotation only contains training days.
  */
 
 export const PDF_PROGRAM_ID = 'pdf_ppl_ul_v5';
@@ -132,11 +135,11 @@ export const PDF_PROGRAM_INFO = {
   },
 } as const;
 
-/** The reference plan as shipped. `createdAt` is the seed date, not the user's install. */
-export function buildPdfReferencePlan(): Plan {
+/** The bundled template as shipped. `createdAt` is the seed date, not the user's install. */
+export function buildPplUlTemplate(): Plan {
   return {
     id: PDF_PROGRAM_ID,
-    kind: 'reference',
+    kind: 'template',
     name: PDF_PROGRAM_INFO.name,
     description: PDF_PROGRAM_INFO.description,
     sourcePlanId: null,

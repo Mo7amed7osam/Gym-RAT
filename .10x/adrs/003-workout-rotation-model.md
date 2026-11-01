@@ -1,6 +1,6 @@
 # ADR-003: Rotation-based plan model replaces weekday schedule
 
-**Status:** Accepted (Phase 1 started 2026-11-01)
+**Status:** Accepted (Phase 1 started 2026-11-01); the `reference` plan kind is superseded by ADR-006 (2026-11-01)
 **Date:** 2026-11-01
 **Feature:** transformation
 **Author:** 10x-Team (Architect + Product Manager)

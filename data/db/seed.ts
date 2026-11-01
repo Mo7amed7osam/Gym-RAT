@@ -1,5 +1,5 @@
 import { clonePlan } from '@/data/plans';
-import { PDF_PROGRAM_ID, buildPdfReferencePlan } from '@/data/seeds/pdfProgram';
+import { PDF_PROGRAM_ID, buildPplUlTemplate } from '@/data/seeds/pdfProgram';
 import { STARTER_PLAN_ID, buildStarterTemplate } from '@/data/seeds/starterPlan';
 import type { Plan } from '@/types/workout';
 
@@ -9,18 +9,18 @@ import type { PersistedWorkoutState } from './repository';
  * Ensures the bundled plans exist and that there is exactly one active plan.
  * Pure: returns the same object when nothing needs seeding.
  *
- * - Bundled reference/template plans are (re)inserted when missing. They are
- *   locked, so refreshing them never touches user data.
+ * - Bundled templates are (re)inserted when missing. They are locked, so
+ *   refreshing them never touches user data.
  * - Fresh install → Full Body Starter becomes the active plan (spec §5).
- * - Install with legacy history but no active plan → the PDF program is
- *   adopted, because that is the program the history was logged against.
+ * - Install with legacy history but no active plan → the Push/Pull/Legs +
+ *   Upper/Lower program is adopted, because the history was logged against it.
  */
 export function seedPlans(state: PersistedWorkoutState, now: string = new Date().toISOString()): PersistedWorkoutState {
   const byId = new Map(state.plans.map((plan) => [plan.id, plan]));
   let plans = state.plans;
   let changed = false;
 
-  for (const bundled of [buildPdfReferencePlan(), buildStarterTemplate()]) {
+  for (const bundled of [buildPplUlTemplate(), buildStarterTemplate()]) {
     if (!byId.has(bundled.id)) {
       plans = [...plans, bundled];
       byId.set(bundled.id, bundled);

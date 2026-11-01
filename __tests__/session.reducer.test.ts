@@ -116,7 +116,7 @@ describe('seedPlans', () => {
 
   it('seeds the reference, the starter template and an active Starter copy on a fresh install', () => {
     const seeded = seedPlans(empty(), '2026-11-01T00:00:00.000Z');
-    expect(seeded.plans.map((p) => p.kind).sort()).toEqual(['active', 'reference', 'template']);
+    expect(seeded.plans.map((p) => p.kind).sort()).toEqual(['active', 'template', 'template']);
     const active = seeded.plans.find((p) => p.kind === 'active')!;
     expect(active.sourcePlanId).toBe('full_body_starter');
     expect(active.days).toHaveLength(3);
@@ -141,8 +141,8 @@ describe('seedPlans', () => {
 describe('isSessionForDay', () => {
   it('matches by day id, or by code against the plan\'s source program', () => {
     const { isSessionForDay, clonePlan } = jest.requireActual<typeof import('@/data/plans')>('@/data/plans');
-    const { buildPdfReferencePlan } = jest.requireActual<typeof import('@/data/seeds/pdfProgram')>('@/data/seeds/pdfProgram');
-    const reference = buildPdfReferencePlan();
+    const { buildPplUlTemplate } = jest.requireActual<typeof import('@/data/seeds/pdfProgram')>('@/data/seeds/pdfProgram');
+    const reference = buildPplUlTemplate();
     const active = clonePlan(reference, 'active', 'active', '2026-11-01T00:00:00.000Z');
     const legacy = session({ planId: reference.id, planDayId: reference.days[1].id, code: 'Pull A' });
     const fresh = session({ planId: active.id, planDayId: active.days[1].id, code: 'Pull A' });

@@ -13,6 +13,29 @@ describe('migrations', () => {
     expect(migrate(driver)).toEqual({ from: SCHEMA_VERSION, to: SCHEMA_VERSION, applied: [] });
   });
 
+  it('v3 turns the retired reference kind into an ordinary template', () => {
+    const driver = createNodeDriver();
+    driver.transaction(() => {
+      MIGRATIONS[0].up(driver);
+      MIGRATIONS[1].up(driver);
+      driver.exec('PRAGMA user_version = 2');
+    });
+    driver.run(
+      `INSERT INTO plans (id, kind, name_json, locked, next_day_index, created_at, updated_at)
+       VALUES ('pdf_ppl_ul_v5', 'reference', '{"en":"P","ar":"P"}', 1, 0, '2026-11-01T00:00:00.000Z', '2026-11-01T00:00:00.000Z'),
+              ('full_body_starter', 'template', '{"en":"S","ar":"S"}', 1, 0, '2026-11-01T00:00:00.000Z', '2026-11-01T00:00:00.000Z'),
+              ('full_body_starter:active', 'active', '{"en":"S","ar":"S"}', 0, 1, '2026-11-01T00:00:00.000Z', '2026-11-01T00:00:00.000Z')`,
+    );
+    const backup = jest.fn();
+    expect(migrate(driver, { backup })).toEqual({ from: 2, to: SCHEMA_VERSION, applied: [3] });
+    expect(backup).toHaveBeenCalledWith(2);
+    expect(driver.all('SELECT id, kind, next_day_index FROM plans ORDER BY id')).toEqual([
+      { id: 'full_body_starter', kind: 'template', next_day_index: 0 },
+      { id: 'full_body_starter:active', kind: 'active', next_day_index: 1 },
+      { id: 'pdf_ppl_ul_v5', kind: 'template', next_day_index: 0 },
+    ]);
+  });
+
   it('backs up before migrating an existing database and maps legacy sessions onto PDF plan days', () => {
     const driver = createNodeDriver();
     // Build a v1 database with one legacy session row.
@@ -37,7 +60,7 @@ describe('migrations', () => {
     expect(driver.get('SELECT COUNT(*) AS n FROM session_exercises')).toEqual({ n: 1 });
     expect(driver.get('SELECT COUNT(*) AS n FROM sets')).toEqual({ n: 1 });
     expect(driver.get('PRAGMA foreign_keys')).toEqual({ foreign_keys: 1 });
-    expect(result).toEqual({ from: 1, to: SCHEMA_VERSION, applied: [2] });
+    expect(result).toEqual({ from: 1, to: SCHEMA_VERSION, applied: [2, 3] });
     const row = driver.get<{ plan_id: string; plan_day_id: string; kind: string; notes: string; paused_intervals_json: string }>(
       'SELECT plan_id, plan_day_id, kind, notes, paused_intervals_json FROM sessions WHERE id = ?',
       ['s1'],

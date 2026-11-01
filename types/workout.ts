@@ -115,18 +115,17 @@ export interface PlanDay {
 /**
  * `active`: the single plan the rotation follows (at most one).
  * `template`: bundled or user-made plan the user can start extra sessions from or adopt.
- * `reference`: immutable record of an original program (e.g. the PDF); browse-only.
  */
-export type PlanKind = 'active' | 'template' | 'reference';
+export type PlanKind = 'active' | 'template';
 
 export interface Plan {
   id: string;
   kind: PlanKind;
   name: LocalizedText;
   description: LocalizedText | null;
-  /** Template or reference this plan was copied from, if any. */
+  /** Template this plan was copied from, if any. */
   sourcePlanId: string | null;
-  /** Locked plans cannot be edited (bundled templates and references). */
+  /** Locked plans cannot be edited in place (bundled templates); adopt or duplicate them instead. */
   locked: boolean;
   /** Index into `days` of the next workout in the rotation. */
   nextDayIndex: number;

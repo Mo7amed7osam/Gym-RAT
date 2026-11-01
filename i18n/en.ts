@@ -249,7 +249,6 @@ export const en = {
     makeNext: 'Make next',
     dayMeta: '%{exercises} exercises · %{sets} sets',
     templates: 'Templates',
-    reference: 'Reference program',
     adopt: 'Use this plan',
     adoptTitle: 'Switch to %{name}?',
     adoptMessage: 'It replaces your active plan and restarts the rotation from day 1. Your history is kept.',

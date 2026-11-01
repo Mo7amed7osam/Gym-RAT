@@ -90,7 +90,7 @@ export default function PlanScreen() {
                     {plan.locked ? <Lock size={14} color={theme.colors.labelTertiary} /> : null}
                   </View>
                   <Text style={styles.secondaryNums}>
-                    {`${plan.kind === 'reference' ? `${t('plan.reference')} · ` : ''}${t('plan.daysCount', { count: plan.days.length })}`}
+                    {t('plan.daysCount', { count: plan.days.length })}
                   </Text>
                 </View>
                 {active?.sourcePlanId === plan.id ? (

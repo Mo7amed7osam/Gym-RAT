@@ -254,7 +254,6 @@ export const ar: Dictionary = {
     makeNext: 'اجعله التالي',
     dayMeta: '%{exercises} تمارين · %{sets} مجموعات',
     templates: 'القوالب',
-    reference: 'البرنامج المرجعي',
     adopt: 'استخدم هذه الخطة',
     adoptTitle: 'التبديل إلى %{name}؟',
     adoptMessage: 'ستحل محل خطتك النشطة وتبدأ الدورة من اليوم الأول. سجلك محفوظ.',

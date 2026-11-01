@@ -20,3 +20,6 @@ Schema v1 as planned (`data/db/schema.ts`). `title_json`, `prescription_json`, `
 
 ## M4 schema v2 (2026-11-01)
 `plans`, `plan_days`, `plan_exercises` (whole-plan replace per write; `ORDER BY rowid` preserves store order). `sessions` rebuilt (`sessions_v2` → rename): nullable `focus`, `kind`, `plan_id`, `plan_day_id`, `ended_at_override`, `paused_intervals_json`, `deferred_ids_json`, `notes`; legacy rows mapped to `pdf_ppl_ul_v5:<routine_id>`. Rebuild requires `PRAGMA foreign_keys = OFF` outside the transaction (otherwise DROP TABLE cascades); `migrate()` now does this and runs `foreign_key_check` before bumping `user_version`. Backup hook verified by test (v1 → v2).
+
+## 2026-11-01 — Schema v3
+- `UPDATE plans SET kind = 'template' WHERE kind = 'reference'`. The v2 CHECK constraint still lists the retired value (no table rebuild); nothing writes it any more. Backup taken before the step as for any migration from a non-zero version. Test: `__tests__/db.migrations.test.ts` "v3 turns the retired reference kind into an ordinary template".

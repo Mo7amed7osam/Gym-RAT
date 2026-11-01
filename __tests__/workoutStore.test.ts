@@ -85,7 +85,7 @@ describe('session lifecycle', () => {
     expect(adopted.sourcePlanId).toBe('pdf_ppl_ul_v5');
     expect(adopted.locked).toBe(false);
     expect(adopted.days.map((day) => day.code)).toEqual(['Push A', 'Pull A', 'Leg A', 'Upper B', 'Lower B']);
-    expect(plans.find((plan) => plan.id === 'pdf_ppl_ul_v5')?.kind).toBe('reference');
+    expect(plans.find((plan) => plan.id === 'pdf_ppl_ul_v5')?.kind).toBe('template');
   });
 
   it('pause excludes time from active seconds and finish closes an open pause', () => {

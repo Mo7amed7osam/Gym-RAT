@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS kv (
 export const SCHEMA_V2 = `
 CREATE TABLE IF NOT EXISTS plans (
   id TEXT PRIMARY KEY NOT NULL,
-  kind TEXT NOT NULL CHECK (kind IN ('active', 'template', 'reference')),
+  kind TEXT NOT NULL CHECK (kind IN ('active', 'template', 'reference')), -- 'reference' retired in v3
   name_json TEXT NOT NULL,
   description_json TEXT,
   source_plan_id TEXT,
@@ -140,3 +140,8 @@ export const KV = {
   importedAt: 'import.asyncStorage.importedAt',
   importError: 'import.asyncStorage.error',
 } as const;
+
+/** v3: the bundled program is an ordinary template; the `reference` kind is retired. */
+export const SCHEMA_V3 = `
+UPDATE plans SET kind = 'template' WHERE kind = 'reference';
+`;
