@@ -45,7 +45,17 @@
       ],
       "expo-asset",
       "expo-sqlite",
-      "expo-localization"
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "en",
+              "ar"
+            ]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
