@@ -86,3 +86,8 @@ This is simulator evidence, not physical-device evidence. The physical-iPhone ro
 ### Final state
 - Rebuilt simulator Release app (both fixes) installed over the existing data; Today, Library and Settings verified again. Simulator left on Today with the Starter plan active, no session in progress.
 - Commits: `94d7bc3` hardening tests, `a22fe8e` Apple team + checklist, `0353b23` devops decisions, then the two fixes and this report.
+
+## Owner clarification applied: extracted program is an ordinary template (ADR-006, commit `cceff93`)
+- Source document found at `~/Downloads/Push Pull Leg Upper Lower  5.0.pdf` (not in the repo, not bundled). All 42 prescription rows (sets, reps, rest) in `data/seeds/pdfProgram.ts` compared with the day tables on pages 7, 13, 18, 22, 28: **all match**. Day focus (A days strength, B days hypertrophy) and the Arabic description match page 5. Schedule page 6 (Tuesday cardio, Friday rest) is intentionally not part of the rotation.
+- `reference` plan kind retired; schema v3 rewrites existing rows; "Reference program" label removed; program is a locked bundled template selectable in onboarding and Plan; Starter stays the default.
+- Simulator (same data as before, schema v2 with a `reference` row): rebuilt app installed → `user_version=3`, `pdf_ppl_ul_v5` kind `template`, `quick_check=ok`, `gymrat.backup.db` left at v2 with the old row. Plan tab shows "5 days per rotation" with no reference label. "Use this plan" → Switch → active plan cloned from `pdf_ppl_ul_v5` with days Push A, Pull A, Leg A, Upper B, Lower B; Today shows Push A, Day 1 of 5.
