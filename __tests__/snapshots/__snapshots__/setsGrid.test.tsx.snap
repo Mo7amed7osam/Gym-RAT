@@ -1,0 +1,2130 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ExerciseCard renders header, stat tiles, sets grid and footer for the first exercise of a session 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "gap": 4,
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "color": "#FF9F0A",
+          "fontSize": 13,
+          "fontWeight": "600",
+          "lineHeight": 18,
+        }
+      }
+    >
+      Exercise 
+      1
+       of 
+      9
+    </Text>
+    <Text
+      accessibilityRole="header"
+      style={
+        {
+          "color": "#FFFFFF",
+          "fontFamily": "BarlowCondensed_700Bold",
+          "fontSize": 36,
+          "letterSpacing": 0,
+          "lineHeight": 38,
+        }
+      }
+    >
+      Flat Barbell Bench Press
+    </Text>
+    <Text
+      accessibilityLanguage="ar"
+      style={
+        {
+          "color": "rgba(235,235,245,0.6)",
+          "fontSize": 15,
+          "fontWeight": "500",
+          "lineHeight": 20,
+          "textAlign": "right",
+          "writingDirection": "rtl",
+        }
+      }
+    >
+      بنش بار على الكرسي المسطح
+    </Text>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+          "marginTop": 8,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "borderRadius": 999,
+              "paddingHorizontal": 12,
+              "paddingVertical": 6,
+            },
+            {
+              "backgroundColor": "#2C2C2E",
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 13,
+                "lineHeight": 16,
+              },
+              {
+                "color": "rgba(235,235,245,0.6)",
+                "fontWeight": "500",
+              },
+            ]
+          }
+        >
+          Chest
+        </Text>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 999,
+              "paddingHorizontal": 12,
+              "paddingVertical": 6,
+            },
+            {
+              "backgroundColor": "#2C2C2E",
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 13,
+                "lineHeight": 16,
+              },
+              {
+                "color": "rgba(235,235,245,0.6)",
+                "fontWeight": "500",
+              },
+            ]
+          }
+        >
+          Front Delts
+        </Text>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 999,
+              "paddingHorizontal": 12,
+              "paddingVertical": 6,
+            },
+            {
+              "backgroundColor": "#2C2C2E",
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 13,
+                "lineHeight": 16,
+              },
+              {
+                "color": "rgba(235,235,245,0.6)",
+                "fontWeight": "500",
+              },
+            ]
+          }
+        >
+          Triceps
+        </Text>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 999,
+              "paddingHorizontal": 12,
+              "paddingVertical": 6,
+            },
+            {
+              "backgroundColor": "rgba(10,132,255,0.18)",
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 13,
+                "lineHeight": 16,
+              },
+              {
+                "color": "#0A84FF",
+                "fontWeight": "600",
+              },
+            ]
+          }
+        >
+          Barbell
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View
+    accessibilityLabel="Watch form tutorial for Flat Barbell Bench Press"
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1C1C1E",
+          "borderRadius": 20,
+          "gap": 12,
+          "height": 168,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+        },
+        {
+          "backgroundColor": "#ffffff",
+          "height": undefined,
+          "paddingHorizontal": 0,
+          "width": "100%",
+        },
+        {
+          "aspectRatio": 4.162601626016261,
+        },
+        false,
+      ]
+    }
+  >
+    <Image
+      accessibilityIgnoresInvertColors={true}
+      resizeMode="cover"
+      source={
+        {
+          "testUri": "../../../assets/exercises/flat_barbell_bench_press.jpg",
+        }
+      }
+      style={
+        {
+          "height": "100%",
+          "width": "100%",
+        }
+      }
+    />
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#000000",
+          "borderRadius": 999,
+          "flexDirection": "row",
+          "gap": 6,
+          "minHeight": 32,
+          "paddingHorizontal": 10,
+          "position": "absolute",
+          "right": 12,
+          "top": 12,
+        }
+      }
+    >
+      <View
+        color="#0A84FF"
+        size={18}
+        testID="icon:CirclePlay"
+      />
+      <Text
+        style={
+          {
+            "color": "#0A84FF",
+            "fontSize": 13,
+            "fontWeight": "600",
+          }
+        }
+      >
+        Form video
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "gap": 2,
+        "marginTop": -8,
+        "paddingHorizontal": 4,
+      }
+    }
+  >
+    <Text
+      numberOfLines={2}
+      style={
+        {
+          "color": "rgba(235,235,245,0.6)",
+          "fontSize": 15,
+          "fontWeight": "400",
+          "lineHeight": 20,
+        }
+      }
+    >
+      • 
+      Shoulder blades pinched, feet planted
+    </Text>
+    <Text
+      numberOfLines={2}
+      style={
+        {
+          "color": "rgba(235,235,245,0.6)",
+          "fontSize": 15,
+          "fontWeight": "400",
+          "lineHeight": 20,
+        }
+      }
+    >
+      • 
+      Bar to lower chest, elbows ~45°
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      accessibilityLabel="Target 3 × 10–12"
+      accessible={true}
+      style={
+        {
+          "backgroundColor": "#1C1C1E",
+          "borderRadius": 12,
+          "flex": 1,
+          "paddingHorizontal": 12,
+          "paddingVertical": 10,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "rgba(235,235,245,0.6)",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 16,
+          }
+        }
+      >
+        Target
+      </Text>
+      <Text
+        adjustsFontSizeToFit={true}
+        minimumFontScale={0.75}
+        numberOfLines={1}
+        style={
+          {
+            "color": "#FFFFFF",
+            "fontFamily": "BarlowCondensed_700Bold",
+            "fontSize": 24,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+            "lineHeight": 28,
+          }
+        }
+      >
+        3 × 10–12
+      </Text>
+    </View>
+    <View
+      accessibilityLabel="Rest 2:00"
+      accessible={true}
+      style={
+        {
+          "backgroundColor": "#1C1C1E",
+          "borderRadius": 12,
+          "flex": 1,
+          "paddingHorizontal": 12,
+          "paddingVertical": 10,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "rgba(235,235,245,0.6)",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 16,
+          }
+        }
+      >
+        Rest
+      </Text>
+      <Text
+        adjustsFontSizeToFit={true}
+        minimumFontScale={0.75}
+        numberOfLines={1}
+        style={
+          {
+            "color": "#FFFFFF",
+            "fontFamily": "BarlowCondensed_700Bold",
+            "fontSize": 24,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+            "lineHeight": 28,
+          }
+        }
+      >
+        2:00
+      </Text>
+    </View>
+    <View
+      accessibilityLabel="Best —"
+      accessible={true}
+      style={
+        {
+          "backgroundColor": "#1C1C1E",
+          "borderRadius": 12,
+          "flex": 1,
+          "paddingHorizontal": 12,
+          "paddingVertical": 10,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "rgba(235,235,245,0.6)",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 16,
+          }
+        }
+      >
+        Best
+      </Text>
+      <Text
+        adjustsFontSizeToFit={true}
+        minimumFontScale={0.75}
+        numberOfLines={1}
+        style={
+          {
+            "color": "#FFFFFF",
+            "fontFamily": "BarlowCondensed_700Bold",
+            "fontSize": 24,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+            "lineHeight": 28,
+          }
+        }
+      >
+        —
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#1C1C1E",
+        "borderColor": "rgba(255,255,255,0.07)",
+        "borderRadius": 20,
+        "borderWidth": 0.5,
+        "overflow": "hidden",
+      }
+    }
+  >
+    <View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 10,
+          "paddingBottom": 4,
+          "paddingHorizontal": 16,
+          "paddingTop": 12,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "rgba(235,235,245,0.6)",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "lineHeight": 18,
+            },
+            {
+              "width": 32,
+            },
+          ]
+        }
+      >
+        Set
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "rgba(235,235,245,0.6)",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "lineHeight": 18,
+            },
+            {
+              "flex": 1,
+            },
+          ]
+        }
+      >
+        Previous
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "rgba(235,235,245,0.6)",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "lineHeight": 18,
+            },
+            {
+              "textAlign": "center",
+            },
+            {
+              "width": 72,
+            },
+          ]
+        }
+      >
+        kg
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "rgba(235,235,245,0.6)",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "lineHeight": 18,
+            },
+            {
+              "textAlign": "center",
+            },
+            {
+              "width": 60,
+            },
+          ]
+        }
+      >
+        Reps
+      </Text>
+      <View
+        style={
+          {
+            "width": 44,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 10,
+            "minHeight": 60,
+            "paddingHorizontal": 16,
+            "paddingVertical": 8,
+          },
+          {
+            "borderBottomColor": "rgba(84,84,88,0.6)",
+            "borderBottomWidth": 0.5,
+          },
+          false,
+        ]
+      }
+    >
+      <View
+        accessibilityActions={
+          [
+            {
+              "name": "activate",
+            },
+            {
+              "label": "Remove set",
+              "name": "longpress",
+            },
+          ]
+        }
+        accessibilityHint="Tap to switch warm-up or working set. Long press to remove."
+        accessibilityLabel="Set 1, working set"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        hitSlop={8}
+        onAccessibilityAction={[Function]}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "justifyContent": "center",
+            "minHeight": 44,
+            "width": 32,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "rgba(235,235,245,0.6)",
+                "fontFamily": "BarlowCondensed_700Bold",
+                "fontSize": 20,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+              },
+              false,
+            ]
+          }
+        >
+          1
+        </Text>
+      </View>
+      <Text
+        accessibilityLabel="No previous set"
+        adjustsFontSizeToFit={true}
+        minimumFontScale={0.8}
+        numberOfLines={1}
+        style={
+          {
+            "color": "rgba(235,235,245,0.6)",
+            "flex": 1,
+            "fontFamily": "Menlo",
+            "fontSize": 15,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+            "fontWeight": "500",
+            "lineHeight": 20,
+          }
+        }
+      >
+        —
+      </Text>
+      <TextInput
+        accessibilityLabel="Set 1 weight in kilograms"
+        keyboardType="decimal-pad"
+        maxLength={6}
+        onChangeText={[Function]}
+        onEndEditing={[Function]}
+        placeholder="kg"
+        placeholderTextColor="rgba(235,235,245,0.3)"
+        returnKeyType="next"
+        selectTextOnFocus={true}
+        style={
+          [
+            {
+              "backgroundColor": "#2C2C2E",
+              "borderRadius": 10,
+              "color": "#FFFFFF",
+              "fontSize": 22,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "fontWeight": "600",
+              "height": 44,
+              "lineHeight": 28,
+              "paddingHorizontal": 4,
+              "paddingVertical": 0,
+              "textAlign": "center",
+            },
+            {
+              "width": 72,
+            },
+          ]
+        }
+        value=""
+      />
+      <TextInput
+        accessibilityLabel="Set 1 reps, target 10 to 12"
+        keyboardType="number-pad"
+        maxLength={3}
+        onChangeText={[Function]}
+        onEndEditing={[Function]}
+        placeholder="12"
+        placeholderTextColor="rgba(235,235,245,0.3)"
+        returnKeyType="done"
+        selectTextOnFocus={true}
+        style={
+          [
+            {
+              "backgroundColor": "#2C2C2E",
+              "borderRadius": 10,
+              "color": "#FFFFFF",
+              "fontSize": 22,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "fontWeight": "600",
+              "height": 44,
+              "lineHeight": 28,
+              "paddingHorizontal": 4,
+              "paddingVertical": 0,
+              "textAlign": "center",
+            },
+            {
+              "width": 60,
+            },
+          ]
+        }
+        value=""
+      />
+      <View
+        accessibilityLabel="Log set 1"
+        accessibilityRole="checkbox"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": false,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 999,
+              "height": 44,
+              "justifyContent": "center",
+              "width": 44,
+            },
+            {
+              "borderColor": "#FF9F0A",
+              "borderWidth": 2,
+            },
+            false,
+          ]
+        }
+      >
+        <View
+          color="#FF9F0A"
+          size={20}
+          strokeWidth={3}
+          testID="icon:Check"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 10,
+            "minHeight": 60,
+            "paddingHorizontal": 16,
+            "paddingVertical": 8,
+          },
+          {
+            "borderBottomColor": "rgba(84,84,88,0.6)",
+            "borderBottomWidth": 0.5,
+          },
+          false,
+        ]
+      }
+    >
+      <View
+        accessibilityActions={
+          [
+            {
+              "name": "activate",
+            },
+            {
+              "label": "Remove set",
+              "name": "longpress",
+            },
+          ]
+        }
+        accessibilityHint="Tap to switch warm-up or working set. Long press to remove."
+        accessibilityLabel="Set 2, working set"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        hitSlop={8}
+        onAccessibilityAction={[Function]}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "justifyContent": "center",
+            "minHeight": 44,
+            "width": 32,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "rgba(235,235,245,0.6)",
+                "fontFamily": "BarlowCondensed_700Bold",
+                "fontSize": 20,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+              },
+              false,
+            ]
+          }
+        >
+          2
+        </Text>
+      </View>
+      <Text
+        accessibilityLabel="No previous set"
+        adjustsFontSizeToFit={true}
+        minimumFontScale={0.8}
+        numberOfLines={1}
+        style={
+          {
+            "color": "rgba(235,235,245,0.6)",
+            "flex": 1,
+            "fontFamily": "Menlo",
+            "fontSize": 15,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+            "fontWeight": "500",
+            "lineHeight": 20,
+          }
+        }
+      >
+        —
+      </Text>
+      <TextInput
+        accessibilityLabel="Set 2 weight in kilograms"
+        keyboardType="decimal-pad"
+        maxLength={6}
+        onChangeText={[Function]}
+        onEndEditing={[Function]}
+        placeholder="kg"
+        placeholderTextColor="rgba(235,235,245,0.3)"
+        returnKeyType="next"
+        selectTextOnFocus={true}
+        style={
+          [
+            {
+              "backgroundColor": "#2C2C2E",
+              "borderRadius": 10,
+              "color": "#FFFFFF",
+              "fontSize": 22,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "fontWeight": "600",
+              "height": 44,
+              "lineHeight": 28,
+              "paddingHorizontal": 4,
+              "paddingVertical": 0,
+              "textAlign": "center",
+            },
+            {
+              "width": 72,
+            },
+          ]
+        }
+        value=""
+      />
+      <TextInput
+        accessibilityLabel="Set 2 reps, target 10 to 12"
+        keyboardType="number-pad"
+        maxLength={3}
+        onChangeText={[Function]}
+        onEndEditing={[Function]}
+        placeholder="12"
+        placeholderTextColor="rgba(235,235,245,0.3)"
+        returnKeyType="done"
+        selectTextOnFocus={true}
+        style={
+          [
+            {
+              "backgroundColor": "#2C2C2E",
+              "borderRadius": 10,
+              "color": "#FFFFFF",
+              "fontSize": 22,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "fontWeight": "600",
+              "height": 44,
+              "lineHeight": 28,
+              "paddingHorizontal": 4,
+              "paddingVertical": 0,
+              "textAlign": "center",
+            },
+            {
+              "width": 60,
+            },
+          ]
+        }
+        value=""
+      />
+      <View
+        accessibilityLabel="Log set 2"
+        accessibilityRole="checkbox"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": false,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 999,
+              "height": 44,
+              "justifyContent": "center",
+              "width": 44,
+            },
+            {
+              "borderColor": "#3A3A3C",
+              "borderWidth": 2,
+            },
+            false,
+          ]
+        }
+      >
+        <View
+          color="rgba(235,235,245,0.3)"
+          size={20}
+          strokeWidth={3}
+          testID="icon:Check"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 10,
+            "minHeight": 60,
+            "paddingHorizontal": 16,
+            "paddingVertical": 8,
+          },
+          false,
+          false,
+        ]
+      }
+    >
+      <View
+        accessibilityActions={
+          [
+            {
+              "name": "activate",
+            },
+            {
+              "label": "Remove set",
+              "name": "longpress",
+            },
+          ]
+        }
+        accessibilityHint="Tap to switch warm-up or working set. Long press to remove."
+        accessibilityLabel="Set 3, working set"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        hitSlop={8}
+        onAccessibilityAction={[Function]}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "justifyContent": "center",
+            "minHeight": 44,
+            "width": 32,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "rgba(235,235,245,0.6)",
+                "fontFamily": "BarlowCondensed_700Bold",
+                "fontSize": 20,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+              },
+              false,
+            ]
+          }
+        >
+          3
+        </Text>
+      </View>
+      <Text
+        accessibilityLabel="No previous set"
+        adjustsFontSizeToFit={true}
+        minimumFontScale={0.8}
+        numberOfLines={1}
+        style={
+          {
+            "color": "rgba(235,235,245,0.6)",
+            "flex": 1,
+            "fontFamily": "Menlo",
+            "fontSize": 15,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+            "fontWeight": "500",
+            "lineHeight": 20,
+          }
+        }
+      >
+        —
+      </Text>
+      <TextInput
+        accessibilityLabel="Set 3 weight in kilograms"
+        keyboardType="decimal-pad"
+        maxLength={6}
+        onChangeText={[Function]}
+        onEndEditing={[Function]}
+        placeholder="kg"
+        placeholderTextColor="rgba(235,235,245,0.3)"
+        returnKeyType="next"
+        selectTextOnFocus={true}
+        style={
+          [
+            {
+              "backgroundColor": "#2C2C2E",
+              "borderRadius": 10,
+              "color": "#FFFFFF",
+              "fontSize": 22,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "fontWeight": "600",
+              "height": 44,
+              "lineHeight": 28,
+              "paddingHorizontal": 4,
+              "paddingVertical": 0,
+              "textAlign": "center",
+            },
+            {
+              "width": 72,
+            },
+          ]
+        }
+        value=""
+      />
+      <TextInput
+        accessibilityLabel="Set 3 reps, target 10 to 12"
+        keyboardType="number-pad"
+        maxLength={3}
+        onChangeText={[Function]}
+        onEndEditing={[Function]}
+        placeholder="12"
+        placeholderTextColor="rgba(235,235,245,0.3)"
+        returnKeyType="done"
+        selectTextOnFocus={true}
+        style={
+          [
+            {
+              "backgroundColor": "#2C2C2E",
+              "borderRadius": 10,
+              "color": "#FFFFFF",
+              "fontSize": 22,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "fontWeight": "600",
+              "height": 44,
+              "lineHeight": 28,
+              "paddingHorizontal": 4,
+              "paddingVertical": 0,
+              "textAlign": "center",
+            },
+            {
+              "width": 60,
+            },
+          ]
+        }
+        value=""
+      />
+      <View
+        accessibilityLabel="Log set 3"
+        accessibilityRole="checkbox"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": false,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 999,
+              "height": 44,
+              "justifyContent": "center",
+              "width": 44,
+            },
+            {
+              "borderColor": "#3A3A3C",
+              "borderWidth": 2,
+            },
+            false,
+          ]
+        }
+      >
+        <View
+          color="rgba(235,235,245,0.3)"
+          size={20}
+          strokeWidth={3}
+          testID="icon:Check"
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      accessibilityLabel="Add set"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#1C1C1E",
+            "borderRadius": 999,
+            "flex": 1,
+            "flexDirection": "row",
+            "gap": 6,
+            "justifyContent": "center",
+            "minHeight": 44,
+          },
+          false,
+        ]
+      }
+    >
+      <View
+        color="#0A84FF"
+        size={18}
+        strokeWidth={2.25}
+        testID="icon:Plus"
+      />
+      <Text
+        style={
+          {
+            "color": "#0A84FF",
+            "fontSize": 15,
+            "fontWeight": "600",
+          }
+        }
+      >
+        Add set
+      </Text>
+    </View>
+    <View
+      accessibilityLabel="Mark next set as warm-up"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#1C1C1E",
+            "borderRadius": 999,
+            "flex": 1,
+            "flexDirection": "row",
+            "gap": 6,
+            "justifyContent": "center",
+            "minHeight": 44,
+          },
+          false,
+          false,
+        ]
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#0A84FF",
+            "fontSize": 15,
+            "fontWeight": "600",
+          }
+        }
+      >
+        Mark warm-up
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`SetRow renders a logged row and a warm-up row 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 10,
+        "minHeight": 60,
+        "paddingHorizontal": 16,
+        "paddingVertical": 8,
+      },
+      {
+        "borderBottomColor": "rgba(84,84,88,0.6)",
+        "borderBottomWidth": 0.5,
+      },
+      {
+        "backgroundColor": "rgba(48,209,88,0.1)",
+      },
+    ]
+  }
+>
+  <View
+    accessibilityActions={
+      [
+        {
+          "name": "activate",
+        },
+        {
+          "label": "Remove set",
+          "name": "longpress",
+        },
+      ]
+    }
+    accessibilityHint="Tap to switch warm-up or working set. Long press to remove."
+    accessibilityLabel="Set 1, working set"
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    hitSlop={8}
+    onAccessibilityAction={[Function]}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "justifyContent": "center",
+        "minHeight": 44,
+        "width": 32,
+      }
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "rgba(235,235,245,0.6)",
+            "fontFamily": "BarlowCondensed_700Bold",
+            "fontSize": 20,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+          },
+          false,
+        ]
+      }
+    >
+      1
+    </Text>
+  </View>
+  <Text
+    accessibilityLabel="No previous set"
+    adjustsFontSizeToFit={true}
+    minimumFontScale={0.8}
+    numberOfLines={1}
+    style={
+      {
+        "color": "rgba(235,235,245,0.6)",
+        "flex": 1,
+        "fontFamily": "Menlo",
+        "fontSize": 15,
+        "fontVariant": [
+          "tabular-nums",
+        ],
+        "fontWeight": "500",
+        "lineHeight": 20,
+      }
+    }
+  >
+    —
+  </Text>
+  <Text
+    style={
+      [
+        {
+          "color": "#FFFFFF",
+          "fontSize": 22,
+          "fontVariant": [
+            "tabular-nums",
+          ],
+          "fontWeight": "600",
+          "lineHeight": 28,
+          "textAlign": "center",
+        },
+        {
+          "width": 72,
+        },
+      ]
+    }
+  >
+    60
+  </Text>
+  <Text
+    style={
+      [
+        {
+          "color": "#FFFFFF",
+          "fontSize": 22,
+          "fontVariant": [
+            "tabular-nums",
+          ],
+          "fontWeight": "600",
+          "lineHeight": 28,
+          "textAlign": "center",
+        },
+        {
+          "width": 60,
+        },
+      ]
+    }
+  >
+    12
+  </Text>
+  <View
+    accessibilityLabel="Set 1 logged. Tap to undo"
+    accessibilityRole="checkbox"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": true,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "borderRadius": 999,
+          "height": 44,
+          "justifyContent": "center",
+          "width": 44,
+        },
+        {
+          "backgroundColor": "#30D158",
+        },
+        false,
+      ]
+    }
+  >
+    <View
+      color="#000000"
+      size={20}
+      strokeWidth={3}
+      testID="icon:Check"
+    />
+  </View>
+</View>
+`;
+
+exports[`SetRow renders a logged row and a warm-up row 2`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 10,
+        "minHeight": 60,
+        "paddingHorizontal": 16,
+        "paddingVertical": 8,
+      },
+      false,
+      false,
+    ]
+  }
+>
+  <View
+    accessibilityActions={
+      [
+        {
+          "name": "activate",
+        },
+        {
+          "label": "Remove set",
+          "name": "longpress",
+        },
+      ]
+    }
+    accessibilityHint="Tap to switch warm-up or working set. Long press to remove."
+    accessibilityLabel="Set 1, warm-up set"
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    hitSlop={8}
+    onAccessibilityAction={[Function]}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "justifyContent": "center",
+        "minHeight": 44,
+        "width": 32,
+      }
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "rgba(235,235,245,0.6)",
+            "fontFamily": "BarlowCondensed_700Bold",
+            "fontSize": 20,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+          },
+          {
+            "color": "#FF9F0A",
+          },
+        ]
+      }
+    >
+      W
+    </Text>
+  </View>
+  <Text
+    accessibilityLabel="No previous set"
+    adjustsFontSizeToFit={true}
+    minimumFontScale={0.8}
+    numberOfLines={1}
+    style={
+      {
+        "color": "rgba(235,235,245,0.6)",
+        "flex": 1,
+        "fontFamily": "Menlo",
+        "fontSize": 15,
+        "fontVariant": [
+          "tabular-nums",
+        ],
+        "fontWeight": "500",
+        "lineHeight": 20,
+      }
+    }
+  >
+    —
+  </Text>
+  <TextInput
+    accessibilityLabel="Set 1 weight in kilograms"
+    keyboardType="decimal-pad"
+    maxLength={6}
+    onChangeText={[Function]}
+    onEndEditing={[Function]}
+    placeholder="kg"
+    placeholderTextColor="rgba(235,235,245,0.3)"
+    returnKeyType="next"
+    selectTextOnFocus={true}
+    style={
+      [
+        {
+          "backgroundColor": "#2C2C2E",
+          "borderRadius": 10,
+          "color": "#FFFFFF",
+          "fontSize": 22,
+          "fontVariant": [
+            "tabular-nums",
+          ],
+          "fontWeight": "600",
+          "height": 44,
+          "lineHeight": 28,
+          "paddingHorizontal": 4,
+          "paddingVertical": 0,
+          "textAlign": "center",
+        },
+        {
+          "width": 72,
+        },
+      ]
+    }
+    value=""
+  />
+  <TextInput
+    accessibilityLabel="Set 1 reps, target 10 to 12"
+    keyboardType="number-pad"
+    maxLength={3}
+    onChangeText={[Function]}
+    onEndEditing={[Function]}
+    placeholder="12"
+    placeholderTextColor="rgba(235,235,245,0.3)"
+    returnKeyType="done"
+    selectTextOnFocus={true}
+    style={
+      [
+        {
+          "backgroundColor": "#2C2C2E",
+          "borderRadius": 10,
+          "color": "#FFFFFF",
+          "fontSize": 22,
+          "fontVariant": [
+            "tabular-nums",
+          ],
+          "fontWeight": "600",
+          "height": 44,
+          "lineHeight": 28,
+          "paddingHorizontal": 4,
+          "paddingVertical": 0,
+          "textAlign": "center",
+        },
+        {
+          "width": 60,
+        },
+      ]
+    }
+    value=""
+  />
+  <View
+    accessibilityLabel="Log set 1"
+    accessibilityRole="checkbox"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": false,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "borderRadius": 999,
+          "height": 44,
+          "justifyContent": "center",
+          "width": 44,
+        },
+        {
+          "borderColor": "#3A3A3C",
+          "borderWidth": 2,
+        },
+        false,
+      ]
+    }
+  >
+    <View
+      color="rgba(235,235,245,0.3)"
+      size={20}
+      strokeWidth={3}
+      testID="icon:Check"
+    />
+  </View>
+</View>
+`;
+
+exports[`SetRow renders the active (next) row with previous values as placeholders 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 10,
+        "minHeight": 60,
+        "paddingHorizontal": 16,
+        "paddingVertical": 8,
+      },
+      {
+        "borderBottomColor": "rgba(84,84,88,0.6)",
+        "borderBottomWidth": 0.5,
+      },
+      false,
+    ]
+  }
+>
+  <View
+    accessibilityActions={
+      [
+        {
+          "name": "activate",
+        },
+        {
+          "label": "Remove set",
+          "name": "longpress",
+        },
+      ]
+    }
+    accessibilityHint="Tap to switch warm-up or working set. Long press to remove."
+    accessibilityLabel="Set 1, working set"
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    hitSlop={8}
+    onAccessibilityAction={[Function]}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "justifyContent": "center",
+        "minHeight": 44,
+        "width": 32,
+      }
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "rgba(235,235,245,0.6)",
+            "fontFamily": "BarlowCondensed_700Bold",
+            "fontSize": 20,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+          },
+          false,
+        ]
+      }
+    >
+      1
+    </Text>
+  </View>
+  <Text
+    accessibilityLabel="Previous 57.5 × 12"
+    adjustsFontSizeToFit={true}
+    minimumFontScale={0.8}
+    numberOfLines={1}
+    style={
+      {
+        "color": "rgba(235,235,245,0.6)",
+        "flex": 1,
+        "fontFamily": "Menlo",
+        "fontSize": 15,
+        "fontVariant": [
+          "tabular-nums",
+        ],
+        "fontWeight": "500",
+        "lineHeight": 20,
+      }
+    }
+  >
+    57.5 × 12
+  </Text>
+  <TextInput
+    accessibilityLabel="Set 1 weight in kilograms"
+    keyboardType="decimal-pad"
+    maxLength={6}
+    onChangeText={[Function]}
+    onEndEditing={[Function]}
+    placeholder="57.5"
+    placeholderTextColor="rgba(235,235,245,0.3)"
+    returnKeyType="next"
+    selectTextOnFocus={true}
+    style={
+      [
+        {
+          "backgroundColor": "#2C2C2E",
+          "borderRadius": 10,
+          "color": "#FFFFFF",
+          "fontSize": 22,
+          "fontVariant": [
+            "tabular-nums",
+          ],
+          "fontWeight": "600",
+          "height": 44,
+          "lineHeight": 28,
+          "paddingHorizontal": 4,
+          "paddingVertical": 0,
+          "textAlign": "center",
+        },
+        {
+          "width": 72,
+        },
+      ]
+    }
+    value=""
+  />
+  <TextInput
+    accessibilityLabel="Set 1 reps, target 10 to 12"
+    keyboardType="number-pad"
+    maxLength={3}
+    onChangeText={[Function]}
+    onEndEditing={[Function]}
+    placeholder="12"
+    placeholderTextColor="rgba(235,235,245,0.3)"
+    returnKeyType="done"
+    selectTextOnFocus={true}
+    style={
+      [
+        {
+          "backgroundColor": "#2C2C2E",
+          "borderRadius": 10,
+          "color": "#FFFFFF",
+          "fontSize": 22,
+          "fontVariant": [
+            "tabular-nums",
+          ],
+          "fontWeight": "600",
+          "height": 44,
+          "lineHeight": 28,
+          "paddingHorizontal": 4,
+          "paddingVertical": 0,
+          "textAlign": "center",
+        },
+        {
+          "width": 60,
+        },
+      ]
+    }
+    value=""
+  />
+  <View
+    accessibilityLabel="Log set 1"
+    accessibilityRole="checkbox"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": false,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "borderRadius": 999,
+          "height": 44,
+          "justifyContent": "center",
+          "width": 44,
+        },
+        {
+          "borderColor": "#FF9F0A",
+          "borderWidth": 2,
+        },
+        false,
+      ]
+    }
+  >
+    <View
+      color="#FF9F0A"
+      size={20}
+      strokeWidth={3}
+      testID="icon:Check"
+    />
+  </View>
+</View>
+`;
