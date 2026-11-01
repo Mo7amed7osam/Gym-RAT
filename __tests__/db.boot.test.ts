@@ -99,6 +99,31 @@ describe('boot', () => {
     expect(query<{ next_day_index: number }>("SELECT next_day_index FROM plans WHERE kind = 'active'").next_day_index).toBe(1);
   });
 
+  it('writes custom exercises and plan edits through to the file (regression: exercises slice was not gated)', async () => {
+    await ensureBooted();
+    const store = useWorkoutStore.getState();
+    const custom = store.createCustomExercise({
+      name: { en: 'Cable Lateral Raise', ar: 'رفرفة' },
+      primaryMuscles: ['side_delts'],
+      secondaryMuscles: [],
+      equipment: ['cable'],
+      weightType: 'total',
+      isUnilateral: true,
+      instructions: [],
+      breathing: null,
+      rangeOfMotion: null,
+      commonMistakes: [],
+      alternatives: [],
+      videoId: null,
+    });
+    expect(query<{ n: number }>(`SELECT COUNT(*) AS n FROM exercises WHERE origin = 'custom'`).n).toBe(1);
+    store.setExerciseArchived(custom.id, true);
+    expect(query<{ archived: number }>(`SELECT archived FROM exercises WHERE id = '${custom.id}'`).archived).toBe(1);
+    const plan = store.createPlan({ en: 'Mine', ar: 'خطتي' });
+    store.addPlanDay(plan.id, 'Day 1');
+    expect(query<{ n: number }>(`SELECT COUNT(*) AS n FROM plan_days WHERE plan_id = '${plan.id}'`).n).toBe(1);
+  });
+
   it('Reset All Data deletes the file and AsyncStorage, then boots a fresh install that persists again', async () => {
     await ensureBooted();
     expect(useWorkoutStore.getState().history).toHaveLength(1);

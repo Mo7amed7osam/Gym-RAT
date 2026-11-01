@@ -218,6 +218,7 @@ const pickPersisted = (state: WorkoutState): PersistedWorkoutState => ({
 });
 
 const persistedChanged = (prev: WorkoutState, next: WorkoutState): boolean =>
+  prev.exercises !== next.exercises ||
   prev.plans !== next.plans ||
   prev.activeSession !== next.activeSession ||
   prev.history !== next.history ||
