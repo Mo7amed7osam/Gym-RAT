@@ -9,6 +9,7 @@
 
 ## Phase 1 complete — next: owner verification, then Phase 2 approval
 - Report: `reviews/2026-11-01-phase1-report.md` (changes, evidence, owner checklist, limitations).
+- Simulator verification evidence: `reviews/2026-11-01-device-verification.md` (simulator section). Physical iPhone not tested (owner: no test iPhone).
 - Blockers carried: D5 partially resolved (membership confirmed; device build signed locally with team 8TBB6SU34J; Developer Mode on the iPhone and the owner's own EAS login still needed), D4 (program + Starter content + illustration mapping), D3 (owner-vs-tester confirm), D8 (digits).
 - Phase 2 first tasks (when approved): exercise library table + RepDB exact-match mapping (ADR-004) → owner review → import script → manifest + lint → Library detail; then plan editor; then session engine additions.
 

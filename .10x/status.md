@@ -2,7 +2,7 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
-**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. **Phase 1 complete (M0–M8 merged to main); hardening tests added 2026-11-01 (99 tests).** Awaiting physical-device verification (owner taps, Claude pulls evidence) and (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
+**Current phase:** Implementation — product Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…005 Accepted. **Phase 1 complete (M0–M8 merged to main); hardening tests added 2026-11-01 (99 tests).** Simulator verification run 2026-11-01 (owner chose simulator over a physical iPhone): kill test 10/10, rotation advance/repeat, pause, Arabic RTL, theme, Reset All Data, reboot all passed; two defects found and fixed (Library search focus, dialog label truncation). Physical-device rows still pending. Awaiting (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
 
 ## Phase tracking
 
