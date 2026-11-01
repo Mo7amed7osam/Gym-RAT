@@ -1,7 +1,7 @@
 import { compareTotals, delta, sessionStats, totalsFor } from '@/domain/analytics/aggregate';
 import { monthGrid, sessionsByDay, weeklyStreak } from '@/domain/analytics/calendar';
 import { addDays, comparisonRanges, dayKey, periodRange } from '@/domain/analytics/dates';
-import { baselineStrengthMetrics, getStrengthMetrics, registerStrengthMetrics, type StrengthMetrics } from '@/domain/analytics/metrics';
+import { recordsStrengthMetrics, getStrengthMetrics, registerStrengthMetrics, type StrengthMetrics } from '@/domain/analytics/metrics';
 import { muscleSetDistribution } from '@/domain/analytics/muscles';
 import { exerciseProgression, metricValue, trainedExercises } from '@/domain/analytics/progression';
 import { trendOf, weeklySeries } from '@/domain/analytics/trends';
@@ -168,7 +168,7 @@ describe('exercise progression', () => {
   });
 
   it('asks the registered strength engine for e1RM (Phase 3 boundary)', () => {
-    const engine: StrengthMetrics = { ...baselineStrengthMetrics, estimateOneRepMax: (w, r) => w * r };
+    const engine: StrengthMetrics = { ...recordsStrengthMetrics, estimateOneRepMax: (w, r) => w * r };
     registerStrengthMetrics(engine);
     try {
       expect(getStrengthMetrics()).toBe(engine);
@@ -176,7 +176,7 @@ describe('exercise progression', () => {
     } finally {
       registerStrengthMetrics(null);
     }
-    expect(getStrengthMetrics()).toBe(baselineStrengthMetrics);
+    expect(getStrengthMetrics()).toBe(recordsStrengthMetrics);
   });
 
   it('lists trained exercises most recent first', () => {

@@ -6,7 +6,7 @@ import { isValidBodyValue } from '@/domain/analytics/body';
 import type { BodyEntry, BodyMetricKind, Goal, GoalKind } from '@/types/progress';
 
 /**
- * Body measurements and goals (ADR-010). Kept apart from the workout store so
+ * Body measurements and goals (ADR-011). Kept apart from the workout store so
  * Phase 3 and Phase 4 never edit the same state shape. Same write-through
  * contract: the database commits first, then the state changes; a failed
  * write leaves the state untouched and records `persistenceError`.

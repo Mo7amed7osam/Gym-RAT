@@ -43,5 +43,5 @@ Sets Logging UI layout; rest timer model; `lib/workoutMath.ts`, `lib/parseNumber
 
 ---
 ## Phase 4 track (2026-11-02) — `feature/phase4-analytics`
-From architect/planning to SDE. Read ADR-010 and `decisions/*/phase4-analytics.md`. Task order A1→A8 in `decisions/engineering-manager/phase4-analytics.md`. Do not edit Phase 3 surfaces listed in `decisions/staff-engineer/phase4-analytics.md`.
+From architect/planning to SDE. Read ADR-011 (was 010 on the branch) and `decisions/*/phase4-analytics.md`. Task order A1→A8 in `decisions/engineering-manager/phase4-analytics.md`. Do not edit Phase 3 surfaces listed in `decisions/staff-engineer/phase4-analytics.md`.
 Implementation done (A1–A7): see `decisions/sde/phase4-analytics.md`, `decisions/dba/phase4-analytics.md`. QA focus: history edit recompute (edit early session → later PRs change), delete recompute, to-date period comparisons, schema v7 upgrade, Arabic RTL on charts/calendar.

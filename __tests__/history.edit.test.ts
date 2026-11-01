@@ -11,7 +11,7 @@ import {
   validateHistorySession,
 } from '@/domain/history/edit';
 import { commitSessionEdit, removeFromHistory, replayHistory, summarize } from '@/domain/history/recompute';
-import { baselineStrengthMetrics } from '@/domain/analytics/metrics';
+import { recordsStrengthMetrics } from '@/domain/analytics/metrics';
 import { deleteHistorySession, saveHistorySession } from '@/store/historyActions';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { WorkoutSession } from '@/types/workout';
@@ -26,7 +26,7 @@ function benchHistory(): WorkoutSession[] {
     session(local(2026, 10, 8), [exercise('bench', [done(70, 8)])]),
     session(local(2026, 10, 15), [exercise('bench', [done(75, 8)])]),
   ];
-  return replayHistory(chronological, 0, baselineStrengthMetrics);
+  return replayHistory(chronological, 0, recordsStrengthMetrics);
 }
 
 const byStart = (history: WorkoutSession[], date: Date) => history.find((s) => s.startedAt === date.toISOString())!;
@@ -73,7 +73,7 @@ describe('edit operations', () => {
     expect(edited.finishedAt).toBe(base.finishedAt);
     expect(edited.endedAtOverride).toBe(local(2026, 10, 1, 18, 45).toISOString());
     expect(edited.pausedIntervals).toEqual([{ from: local(2026, 10, 1, 18, 15).toISOString(), to: local(2026, 10, 1, 18, 20).toISOString() }]);
-    expect(summarize(edited, [], baselineStrengthMetrics)).toMatchObject({ durationSeconds: 30 * 60, activeSeconds: 25 * 60 });
+    expect(summarize(edited, [], recordsStrengthMetrics)).toMatchObject({ durationSeconds: 30 * 60, activeSeconds: 25 * 60 });
   });
 });
 
@@ -108,7 +108,7 @@ describe('validation', () => {
 describe('replay recompute', () => {
   it('keeps references for sessions whose summary did not change', () => {
     const history = benchHistory();
-    const again = replayHistory(history, 0, baselineStrengthMetrics);
+    const again = replayHistory(history, 0, recordsStrengthMetrics);
     again.forEach((s, i) => expect(s).toBe(history[i]));
   });
 
@@ -127,7 +127,7 @@ describe('replay recompute', () => {
     const sx = first.exercises[0];
     const edited = patchHistorySet(first, sx.id, sx.sets[0].id, { weightKg: 100 });
 
-    const result = commitSessionEdit(history, edited, NOW, baselineStrengthMetrics);
+    const result = commitSessionEdit(history, edited, NOW, recordsStrengthMetrics);
     if (!result.ok) throw new Error('expected ok');
     const next = result.history;
     expect(byStart(next, local(2026, 10, 1)).summary!.totalVolumeKg).toBe(1000);
@@ -142,7 +142,7 @@ describe('replay recompute', () => {
     const latest = byStart(history, local(2026, 10, 15));
     // Moving the last session before the others makes it the first bench ever.
     const moved = setHistoryTimes(latest, local(2026, 9, 20).toISOString(), local(2026, 9, 20, 19).toISOString());
-    const result = commitSessionEdit(history, moved, NOW, baselineStrengthMetrics);
+    const result = commitSessionEdit(history, moved, NOW, recordsStrengthMetrics);
     if (!result.ok) throw new Error('expected ok');
     expect(result.history.map((s) => s.id)).toEqual([
       byStart(history, local(2026, 10, 8)).id,
@@ -158,7 +158,7 @@ describe('replay recompute', () => {
     const history = benchHistory();
     const first = history[2];
     const bad = patchHistorySet(first, first.exercises[0].id, first.exercises[0].sets[0].id, { reps: -2 });
-    const result = commitSessionEdit(history, bad, NOW, baselineStrengthMetrics);
+    const result = commitSessionEdit(history, bad, NOW, recordsStrengthMetrics);
     expect(result.ok).toBe(false);
     expect(commitSessionEdit(history, { ...first, id: 'unknown' }, NOW).ok).toBe(false);
   });
@@ -166,7 +166,7 @@ describe('replay recompute', () => {
   it('hands records back to later sessions when the record session is deleted', () => {
     const history = benchHistory();
     const middle = byStart(history, local(2026, 10, 8));
-    const next = removeFromHistory(history, middle.id, baselineStrengthMetrics);
+    const next = removeFromHistory(history, middle.id, recordsStrengthMetrics);
     expect(next).toHaveLength(2);
     const latest = byStart(next, local(2026, 10, 15));
     expect(latest.summary!.personalRecords.find((r) => r.kind === 'top_weight')).toMatchObject({ value: 75, previous: 60 });
@@ -177,7 +177,7 @@ describe('replay recompute', () => {
   it('leaves non-completed sessions in place', () => {
     const cancelled = session(local(2026, 10, 10), [exercise('bench', [done(500, 1)])], { status: 'cancelled' });
     const history = newestFirst([...benchHistory(), cancelled]);
-    const replayed = replayHistory(history, 0, baselineStrengthMetrics);
+    const replayed = replayHistory(history, 0, recordsStrengthMetrics);
     expect(replayed).toContain(cancelled);
     expect(byStart(replayed, local(2026, 10, 15)).summary!.personalRecords).toHaveLength(2);
   });

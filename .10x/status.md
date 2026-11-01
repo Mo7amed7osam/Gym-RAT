@@ -43,7 +43,7 @@
 ---
 ## Phase 4 — Progress & Analytics (parallel track, branch `feature/phase4-analytics`)
 **Authorized:** owner brief 2026-11-02 (parallel with Phase 3 on another instance). Base `6319c60`. Worktree `../Gym RAT-phase4`.
-**ADR:** 010. **Slug:** `phase4-analytics`.
+**ADR:** 011 (renumbered at integration; was 010 on the branch). **Slug:** `phase4-analytics`.
 | Task | Status |
 |---|---|
 | Design + plan (ADR-010, architect, staff, EM, senior) | Done |

@@ -1,6 +1,6 @@
 # Architect — phase4-analytics
 
-**Phase:** product Phase 4 (Progress & Analytics), branch `feature/phase4-analytics` from `6319c60`. ADR-010.
+**Phase:** product Phase 4 (Progress & Analytics), branch `feature/phase4-analytics` from `6319c60`. ADR-011.
 
 ## Components
 | Unit | Responsibility | Depends on |

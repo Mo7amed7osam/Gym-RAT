@@ -119,55 +119,6 @@ export function getExerciseBests(history: readonly WorkoutSession[], exerciseId:
   return bests;
 }
 
-/** One record per exercise per kind: the best new set that beats all prior history. */
-export function detectPersonalRecords(
-  session: WorkoutSession,
-  history: readonly WorkoutSession[],
-): PersonalRecord[] {
-  const records: PersonalRecord[] = [];
-
-  for (const exercise of session.exercises) {
-    const counted = exercise.sets.filter(isCountedSet);
-    if (counted.length === 0) continue;
-
-    const prior = getExerciseBests(history, exercise.exerciseId);
-    // First time doing the exercise isn't a PR — there is nothing to beat.
-    if (prior.bestSet === null) continue;
-
-    let topSet = counted[0];
-    let bestE1rmSet = counted[0];
-    for (const set of counted) {
-      if (set.weightKg > topSet.weightKg) topSet = set;
-      if (estimateOneRepMax(set.weightKg, set.reps) > estimateOneRepMax(bestE1rmSet.weightKg, bestE1rmSet.reps)) {
-        bestE1rmSet = set;
-      }
-    }
-
-    if (topSet.weightKg > prior.topWeightKg) {
-      records.push({
-        exerciseId: exercise.exerciseId,
-        kind: 'top_weight',
-        value: topSet.weightKg,
-        previous: prior.topWeightKg,
-        setId: topSet.id,
-      });
-    }
-
-    const bestE1rm = estimateOneRepMax(bestE1rmSet.weightKg, bestE1rmSet.reps);
-    if (bestE1rm > prior.bestOneRepMax) {
-      records.push({
-        exerciseId: exercise.exerciseId,
-        kind: 'estimated_1rm',
-        value: roundTo(bestE1rm, 0.5),
-        previous: roundTo(prior.bestOneRepMax, 0.5),
-        setId: bestE1rmSet.id,
-      });
-    }
-  }
-
-  return records;
-}
-
 /** Summary for a session whose `finishedAt` (and optional override) is already set. */
 export function buildSessionSummary(
   session: WorkoutSession,

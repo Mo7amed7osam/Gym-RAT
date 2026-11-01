@@ -1,4 +1,4 @@
-# ADR-010: Phase 4 analytics as pure derivations, a separate progress store, and a strength-metrics seam for Phase 3
+# ADR-011: Phase 4 analytics as pure derivations, a separate progress store, and a strength-metrics seam for Phase 3
 
 **Status:** Accepted (Phase 4, 2026-11-02, owner brief "Phase 4 parallel implementation")
 **Date:** 2026-11-02

@@ -1,34 +1,26 @@
-import { detectPersonalRecords, estimateOneRepMax } from '@/lib/workoutMath';
-import type { PersonalRecord, WorkoutSession } from '@/types/workout';
+import { createRecordsStrengthMetrics, totalWeightType, type StrengthMetrics, type WeightTypeResolver } from '@/domain/records/strengthMetrics';
+
+export type { StrengthMetrics } from '@/domain/records/strengthMetrics';
 
 /**
- * Integration boundary with the Phase 3 strength engine (ADR-010).
+ * Integration boundary with the Phase 3 strength engine (ADR-011, ADR-012).
  *
  * Phase 4 never defines its own e1RM or PR rules: progression charts, goals
- * and history recomputation all ask the registered engine. Until Phase 3
- * registers one, the baseline adapter delegates to `lib/workoutMath`.
+ * and history recomputation all ask the registered engine, and that engine is
+ * always `domain/records`. The only thing that varies is how an exercise's
+ * weight type is resolved: tests use `total` for everything, the app registers
+ * a resolver backed by the exercise library at boot so that a live finish and
+ * a history replay produce byte-identical summaries.
  */
-export interface StrengthMetrics {
-  /** Estimated one-rep max for a single set; 0 when the set carries no load or reps. */
-  estimateOneRepMax(weightKg: number, reps: number): number;
-  /**
-   * Records `session` sets against `priorHistory` (completed sessions that
-   * started before it, any order). Must be pure: history replay calls it once
-   * per session in chronological order.
-   */
-  detectPersonalRecords(session: WorkoutSession, priorHistory: readonly WorkoutSession[]): PersonalRecord[];
-}
+export const recordsStrengthMetrics: StrengthMetrics = createRecordsStrengthMetrics(totalWeightType);
 
-export const baselineStrengthMetrics: StrengthMetrics = {
-  estimateOneRepMax,
-  detectPersonalRecords,
-};
+let registered: StrengthMetrics = recordsStrengthMetrics;
 
-let registered: StrengthMetrics = baselineStrengthMetrics;
-
-/** Called once by the Phase 3 engine at startup; `null` restores the baseline (tests). */
-export function registerStrengthMetrics(engine: StrengthMetrics | null): void {
-  registered = engine ?? baselineStrengthMetrics;
+/** Called once at boot with the library-backed resolver; `null` restores the default (tests). */
+export function registerStrengthMetrics(engine: StrengthMetrics | WeightTypeResolver | null): void {
+  if (engine === null) registered = recordsStrengthMetrics;
+  else if (typeof engine === 'function') registered = createRecordsStrengthMetrics(engine);
+  else registered = engine;
 }
 
 export function getStrengthMetrics(): StrengthMetrics {

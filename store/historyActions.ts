@@ -3,7 +3,7 @@ import { useWorkoutStore } from '@/store/useWorkoutStore';
 import type { WorkoutSession } from '@/types/workout';
 
 /**
- * History corrections from the Progress screens (ADR-010). Both go through
+ * History corrections from the Progress screens (ADR-011). Both go through
  * `useWorkoutStore.setState`, which is the store's guarded write-through: the
  * edited session and every recomputed summary land in one transaction, or
  * nothing changes and `persistenceError` is set.

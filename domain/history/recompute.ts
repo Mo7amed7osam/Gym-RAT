@@ -6,7 +6,7 @@ import type { PersonalRecord, SessionSummary, WorkoutSession } from '@/types/wor
 import { validateHistorySession, type HistoryEditError } from './edit';
 
 /**
- * History corrections (ADR-010). Any change to a finished session can change
+ * History corrections (ADR-011). Any change to a finished session can change
  * the records of every later session, so summaries are replayed in start
  * order from the earliest affected point. Sessions whose summary comes out
  * identical keep their object, so the write-through diff only rewrites rows

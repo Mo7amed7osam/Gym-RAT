@@ -1,6 +1,6 @@
 # SDE — phase4-analytics
 
-Branch `feature/phase4-analytics` (worktree `../Gym RAT-phase4`), base `6319c60`. ADR-010.
+Branch `feature/phase4-analytics` (worktree `../Gym RAT-phase4`), base `6319c60`. ADR-011.
 
 ## Built
 | Area | Files |

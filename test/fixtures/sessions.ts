@@ -40,6 +40,7 @@ export function exercise(exerciseId: string, sets: ExerciseSet[], extra: Partial
     notes: '',
     groupId: null,
     groupKind: null,
+    recommendation: null,
     ...extra,
   };
 }

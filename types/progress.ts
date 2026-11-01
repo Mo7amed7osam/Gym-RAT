@@ -1,5 +1,5 @@
 /**
- * Phase 4 user data: body measurements and goals (ADR-010). Stored in the
+ * Phase 4 user data: body measurements and goals (ADR-011). Stored in the
  * Phase 4–owned `body_metrics` and `goals` tables, held by `useProgressStore`.
  */
 
