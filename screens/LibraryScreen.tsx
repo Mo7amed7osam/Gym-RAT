@@ -38,32 +38,32 @@ export default function LibraryScreen() {
 
   return (
     <View style={styles.root}>
+      {/* The search box lives outside the list: a TextInput inside ListHeaderComponent loses focus on every keystroke when the data changes. */}
+      <View style={[styles.header, { paddingTop: insets.top + theme.spacing.lg }]}>
+        <Text style={styles.largeTitle} accessibilityRole="header">
+          {t('library.title')}
+        </Text>
+        <View style={styles.search}>
+          <Search size={18} color={theme.colors.labelSecondary} />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('library.search')}
+            placeholderTextColor={theme.colors.labelTertiary}
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            accessibilityLabel={t('library.search')}
+            style={styles.searchInput}
+          />
+        </View>
+        <Text style={styles.count}>{t('library.count', { count: exercises.length })}</Text>
+      </View>
       <FlatList
         data={exercises}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.lg }]}
+        contentContainerStyle={styles.content}
         keyboardDismissMode="on-drag"
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <Text style={styles.largeTitle} accessibilityRole="header">
-              {t('library.title')}
-            </Text>
-            <View style={styles.search}>
-              <Search size={18} color={theme.colors.labelSecondary} />
-              <TextInput
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t('library.search')}
-                placeholderTextColor={theme.colors.labelTertiary}
-                autoCorrect={false}
-                clearButtonMode="while-editing"
-                accessibilityLabel={t('library.search')}
-                style={styles.searchInput}
-              />
-            </View>
-            <Text style={styles.count}>{t('library.count', { count: exercises.length })}</Text>
-          </View>
-        }
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={<Text style={styles.empty}>{t('library.empty')}</Text>}
         ListFooterComponent={<Text style={styles.footnote}>{t('library.customSoon')}</Text>}
         renderItem={({ item }) => <ExerciseRow exercise={item} onPress={() => setOpenId(item.id)} />}
@@ -106,7 +106,7 @@ const useStyles = createStyles((t) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: t.colors.background },
     content: { paddingHorizontal: t.spacing.screen, paddingBottom: t.spacing.xxxl * 2 },
-    header: { gap: t.spacing.md, marginBottom: t.spacing.md },
+    header: { gap: t.spacing.md, paddingHorizontal: t.spacing.screen, paddingBottom: t.spacing.md },
     flex: { flex: 1, minWidth: 0 },
     largeTitle: { ...t.typography.largeTitle, color: t.colors.label },
     search: {
