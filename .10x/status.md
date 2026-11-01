@@ -54,4 +54,4 @@
 | A5 body + goals | Done (`73f05eb`) |
 | A6 Progress tab | Done (`42394fe`) |
 | A7 sub-screens | Done (`42394fe`) |
-| A8 verification | Jest 197/197, tsc 0, lint clean; simulator run in progress |
+| A8 verification | Jest 197/197, tsc 0, lint clean on the branch; superseded by `reviews/2026-11-02-integration-report.md` |
