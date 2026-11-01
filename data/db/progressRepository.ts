@@ -2,7 +2,7 @@ import type { BodyEntry, BodyMetricKind, Goal, GoalKind } from '@/types/progress
 
 import type { Driver } from './driver';
 
-/** The Phase 4 slices that live in the database (ADR-010). */
+/** The Phase 4 slices that live in the database (ADR-011). */
 export interface PersistedProgressState {
   /** Oldest measurement first. */
   bodyEntries: BodyEntry[];
