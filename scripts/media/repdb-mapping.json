@@ -13,7 +13,6 @@
     "pec_deck_fly": "pec-deck",
     "overhead_dumbbell_press": "dumbbell-shoulder-press",
     "dumbbell_lateral_raise": "lateral-raise",
-    "dumbbell_skull_crusher": "db-skull-crusher",
     "dumbbell_bent_over_row": "single-arm-db-row",
     "seated_close_grip_row": "seated-cable-row",
     "standing_lat_pushdown": "straight-arm-pulldown",
@@ -30,23 +29,63 @@
     "hip_thrust": "hip-thrust",
     "flat_dumbbell_bench_press": "db-bench-press",
     "wide_grip_lat_pulldown": "lat-pulldown",
-    "seated_dumbbell_press": "seated-db-press",
-    "dumbbell_kickback": "tricep-kickback",
     "hack_squat": "hack-squat",
     "dumbbell_lunge": "db-lunge",
     "dumbbell_wrist_curl": "dumbbell-wrist-curl",
     "forearm_barbell_curl": "reverse-curl"
   },
   "unmatched": {
-    "high_low_cable_fly": { "nearest": "cable-fly", "reason": "RepDB artwork shows a mid-height fly; the program prescribes high-to-low handles" },
-    "triceps_rope_pushdown": { "nearest": "tricep-pushdown", "reason": "RepDB artwork uses a bar attachment, not a rope" },
-    "lying_leg_raise": { "nearest": "lying-leg-raise", "reason": "RepDB artwork is floor-based; the program uses a flat bench" },
-    "hammer_strength_lat_pulldown": { "nearest": "lat-pulldown", "reason": "plate-loaded Hammer Strength machine, RepDB only has the cable pulldown" },
-    "hammer_strength_incline_press": { "nearest": "chest-press-machine", "reason": "incline plate-loaded machine; RepDB only has a flat chest press machine" },
-    "leaning_lateral_raise": { "nearest": "lateral-raise", "reason": "leaning single-arm variant not in RepDB" },
-    "barbell_skull_crusher": { "nearest": "skull-crusher", "reason": "program uses an EZ bar; RepDB artwork shows a straight bar" },
-    "overhead_cable_curl": { "nearest": "cable-curl", "reason": "one-arm overhead (high pulley) curl not in RepDB" },
-    "straight_barbell_curl": { "nearest": "barbell-curl", "reason": "program prescribes a wide grip; RepDB artwork is shoulder-width" },
-    "leg_press_calf_raise": { "nearest": "machine-calf-raise", "reason": "calf raise on the leg press sled not in RepDB" }
+    "barbell_skull_crusher": {
+      "nearest": "skull-crusher",
+      "reason": "program uses an EZ bar; RepDB artwork shows a straight bar"
+    },
+    "dumbbell_kickback": {
+      "nearest": "tricep-kickback",
+      "reason": "RepDB artwork is a two-arm, unsupported kickback; the program is single-arm with the other hand on a bench"
+    },
+    "dumbbell_skull_crusher": {
+      "nearest": "db-skull-crusher",
+      "reason": "RepDB artwork is on a flat bench; the program is lying on the floor"
+    },
+    "hammer_strength_incline_press": {
+      "nearest": "chest-press-machine",
+      "reason": "incline plate-loaded machine; RepDB only has a flat chest press machine"
+    },
+    "hammer_strength_lat_pulldown": {
+      "nearest": "lat-pulldown",
+      "reason": "plate-loaded Hammer Strength machine, RepDB only has the cable pulldown"
+    },
+    "high_low_cable_fly": {
+      "nearest": "cable-fly",
+      "reason": "RepDB artwork shows a mid-height fly; the program prescribes high-to-low handles"
+    },
+    "leaning_lateral_raise": {
+      "nearest": "lateral-raise",
+      "reason": "leaning single-arm variant not in RepDB"
+    },
+    "leg_press_calf_raise": {
+      "nearest": "machine-calf-raise",
+      "reason": "calf raise on the leg press sled not in RepDB"
+    },
+    "lying_leg_raise": {
+      "nearest": "lying-leg-raise",
+      "reason": "RepDB artwork is floor-based; the program uses a flat bench"
+    },
+    "overhead_cable_curl": {
+      "nearest": "cable-curl",
+      "reason": "one-arm overhead (high pulley) curl not in RepDB"
+    },
+    "seated_dumbbell_press": {
+      "nearest": "seated-db-press",
+      "reason": "RepDB start frame holds a neutral grip in front of the face; the program lowers to ear level with palms forward"
+    },
+    "straight_barbell_curl": {
+      "nearest": "barbell-curl",
+      "reason": "program prescribes a wide grip; RepDB artwork is shoulder-width"
+    },
+    "triceps_rope_pushdown": {
+      "nearest": "tricep-pushdown",
+      "reason": "RepDB artwork uses a bar attachment, not a rope"
+    }
   }
 }
