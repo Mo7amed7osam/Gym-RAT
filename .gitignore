@@ -42,3 +42,6 @@ yarn-error.*
 
 # test coverage
 coverage/
+
+# Phase 7 local build output (archives, IPA, logs)
+release-artifacts/

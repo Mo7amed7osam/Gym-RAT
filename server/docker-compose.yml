@@ -1,0 +1,71 @@
+# Gym RAT auth server on a single VPS (ADR-015).
+#   cp .env.example .env   # fill in the secrets
+#   docker compose up -d --build
+# Postgres is reachable only on the internal network; Caddy is the only
+# service that publishes ports (80/443) and terminates HTTPS.
+name: gymrat-auth
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gymrat}
+      POSTGRES_USER: ${POSTGRES_USER:-gymrat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gymrat} -d ${POSTGRES_DB:-gymrat}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-gymrat}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-gymrat}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?set PUBLIC_ORIGIN in .env}
+      TRUST_PROXY: "1"
+      SMTP_URL: ${SMTP_URL:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      OFFLINE_LEASE_DAYS: ${OFFLINE_LEASE_DAYS:-7}
+      INVITE_TTL_HOURS: ${INVITE_TTL_HOURS:-72}
+      RESET_TTL_MINUTES: ${RESET_TTL_MINUTES:-60}
+    expose:
+      - "3000"
+    logging: *logging
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS (the domain) in .env}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging: *logging
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
