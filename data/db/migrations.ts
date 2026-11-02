@@ -1,5 +1,5 @@
 import type { Driver } from './driver';
-import { REQUIRED_COLUMNS, REQUIRED_TABLES, SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8 } from './schema';
+import { REQUIRED_COLUMNS, REQUIRED_TABLES, SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8, SCHEMA_V10 } from './schema';
 
 export interface MigrationStep {
   version: number;
@@ -31,6 +31,10 @@ export function reconcileSchema(driver: Driver): string[] {
     driver.exec(SCHEMA_V8); // CREATE TABLE IF NOT EXISTS: never touches an existing table
     for (const table of ['body_metrics', 'goals']) if (!tables.has(table)) repaired.push(table);
   }
+  if (getUserVersion(driver) >= 10 && !tables.has('health_exports')) {
+    driver.exec(SCHEMA_V10); // Phase 5 ledger; create-only
+    repaired.push('health_exports');
+  }
   return repaired;
 }
 
@@ -39,7 +43,7 @@ export function reconcileSchema(driver: Driver): string[] {
  * 7 = Phase 3 (recommendation decision), 8 = Phase 4 (body metrics, goals; was
  * that branch's step 7), 9 = reconcile, so a database upgraded by either branch
  * alone receives the other branch's change. Steps 7 and 8 check the file before
- * altering it for the same reason.
+ * altering it for the same reason. 10 = Apple Health export ledger (Phase 5).
  */
 export const MIGRATIONS: readonly MigrationStep[] = [
   { version: 1, up: (driver) => driver.exec(SCHEMA_V1) },
@@ -56,6 +60,7 @@ export const MIGRATIONS: readonly MigrationStep[] = [
   },
   { version: 8, up: (driver) => driver.exec(SCHEMA_V8) },
   { version: 9, up: (driver) => void reconcileSchema(driver) },
+  { version: 10, up: (driver) => driver.exec(SCHEMA_V10) },
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

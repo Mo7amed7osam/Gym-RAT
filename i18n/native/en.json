@@ -1,0 +1,5 @@
+{
+  "NSHealthUpdateUsageDescription": "Gym RAT saves each finished workout to Apple Health as a strength-training session (start, end and pauses only). It never reads your Health data.",
+  "NSPhotoLibraryUsageDescription": "Gym RAT uses your photos to illustrate custom exercises you create.",
+  "NSCameraUsageDescription": "Gym RAT uses the camera to photograph custom exercises you create."
+}

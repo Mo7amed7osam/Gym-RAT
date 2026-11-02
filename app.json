@@ -14,7 +14,14 @@
       "config": {
         "usesNonExemptEncryption": false
       },
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSHealthUpdateUsageDescription": "Gym RAT saves each finished workout to Apple Health as a strength-training session (start, end and pauses only). It never reads your Health data."
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.default-data-protection": "NSFileProtectionCompleteUnlessOpen"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -67,6 +74,23 @@
           "photosPermission": "Gym RAT uses your photos to illustrate custom exercises you create.",
           "cameraPermission": "Gym RAT uses the camera to photograph custom exercises you create."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "enableRemoteNotifications": false,
+          "enableBackgroundRemoteNotifications": false,
+          "sounds": [
+            "./assets/sounds/rest-complete.wav"
+          ]
+        }
+      ],
+      [
+        "expo-widgets",
+        {
+          "enablePushNotifications": false,
+          "frequentUpdates": false
+        }
       ]
     ],
     "experiments": {
@@ -75,6 +99,10 @@
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "splash": null
+    "splash": null,
+    "locales": {
+      "en": "./i18n/native/en.json",
+      "ar": "./i18n/native/ar.json"
+    }
   }
 }

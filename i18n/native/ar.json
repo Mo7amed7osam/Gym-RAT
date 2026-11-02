@@ -1,0 +1,5 @@
+{
+  "NSHealthUpdateUsageDescription": "يحفظ Gym RAT كل تمرين تُنهيه في تطبيق صحتي كجلسة تمارين قوة (البداية والنهاية والتوقفات فقط). لا يقرأ بياناتك الصحية أبدًا.",
+  "NSPhotoLibraryUsageDescription": "يستخدم Gym RAT صورك لتوضيح التمارين المخصصة التي تنشئها.",
+  "NSCameraUsageDescription": "يستخدم Gym RAT الكاميرا لتصوير التمارين المخصصة التي تنشئها."
+}

@@ -131,7 +131,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions (status);
 CREATE INDEX IF NOT EXISTS idx_sessions_plan_day ON sessions (plan_day_id);
 `;
 
-export const REQUIRED_TABLES = ['sessions', 'session_exercises', 'sets', 'kv', 'plans', 'plan_days', 'plan_exercises', 'exercises', 'body_metrics', 'goals'] as const;
+export const REQUIRED_TABLES = ['sessions', 'session_exercises', 'sets', 'kv', 'plans', 'plan_days', 'plan_exercises', 'exercises', 'body_metrics', 'goals', 'health_exports'] as const;
 
 /**
  * Columns whose presence is checked on every launch, not inferred from
@@ -235,4 +235,19 @@ CREATE TABLE IF NOT EXISTS goals (
   updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_goals_archived ON goals (archived, created_at);
+`;
+
+/**
+ * v10: Apple Health export ledger (Phase 5, ADR-013). One row per session
+ * written to Health, so a re-export replaces instead of duplicating and a
+ * deleted session can be removed from Health. No foreign key: the row must
+ * outlive its session until the Health copy is deleted.
+ */
+export const SCHEMA_V10 = `
+CREATE TABLE IF NOT EXISTS health_exports (
+  session_id TEXT PRIMARY KEY NOT NULL,
+  fingerprint TEXT NOT NULL,
+  health_uuid TEXT NOT NULL,
+  exported_at TEXT NOT NULL
+);
 `;

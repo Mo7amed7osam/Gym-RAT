@@ -208,9 +208,9 @@ describe('combined schema: fresh install', () => {
 
 describe('combined schema: upgrades from each real starting point', () => {
   it.each<[string, Origin, number[]]>([
-    ['Phase 2 (v6)', 'v6', [7, 8, 9]],
-    ['Phase 3 build (v7 = recommendation_json)', 'phase3', [8, 9]],
-    ['Phase 4 build (v7 = body_metrics + goals)', 'phase4', [8, 9]],
+    ['Phase 2 (v6)', 'v6', [7, 8, 9, 10]],
+    ['Phase 3 build (v7 = recommendation_json)', 'phase3', [8, 9, 10]],
+    ['Phase 4 build (v7 = body_metrics + goals)', 'phase4', [8, 9, 10]],
   ])('%s → combined, keeping workouts, decisions, body entries and goals', (_label, origin, expectedSteps) => {
     const seeded = databaseFrom(origin);
     const backup = jest.fn();
@@ -257,7 +257,7 @@ describe('combined schema: repeated launches and mixed states', () => {
     seeded.driver.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`); // claims the combined schema, has only Phase 3's half
     const onRepair = jest.fn();
     expect(migrate(seeded.driver, { onRepair })).toEqual({ from: SCHEMA_VERSION, to: SCHEMA_VERSION, applied: [] });
-    expect(onRepair).toHaveBeenCalledWith(['body_metrics', 'goals']);
+    expect(onRepair).toHaveBeenCalledWith(['body_metrics', 'goals', 'health_exports']);
     expectCombinedSchema(seeded.driver);
     expectDataIntact(seeded);
 
@@ -265,7 +265,7 @@ describe('combined schema: repeated launches and mixed states', () => {
     other.driver.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
     const repairs = jest.fn();
     migrate(other.driver, { onRepair: repairs });
-    expect(repairs).toHaveBeenCalledWith(['session_exercises.recommendation_json']);
+    expect(repairs).toHaveBeenCalledWith(['session_exercises.recommendation_json', 'health_exports']);
     expectCombinedSchema(other.driver);
     expectDataIntact(other);
   });
@@ -303,7 +303,7 @@ describe('combined schema: failure and recovery', () => {
     expect(seeded.driver.all('SELECT * FROM body_metrics')).toEqual(rowsBefore.body);
 
     // The fixed build picks up where the failed one stopped.
-    expect(migrate(seeded.driver)).toEqual({ from: 8, to: SCHEMA_VERSION, applied: [9] });
+    expect(migrate(seeded.driver)).toEqual({ from: 8, to: SCHEMA_VERSION, applied: [9, 10] });
     expectCombinedSchema(seeded.driver);
     expectDataIntact(seeded);
   });

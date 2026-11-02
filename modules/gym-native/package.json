@@ -1,0 +1,10 @@
+{
+  "name": "gym-native",
+  "version": "1.0.0",
+  "description": "Gym RAT native helpers: Apple Health workout export and file protection",
+  "main": "index.ts",
+  "private": true,
+  "license": "UNLICENSED",
+  "author": "Gym RAT",
+  "homepage": "https://repdb.co"
+}

@@ -187,7 +187,7 @@ describe('real simulator database from the Phase 3 build', () => {
     expect(before.decisions).toHaveLength(1);
     const backup = jest.fn();
     const onRepair = jest.fn();
-    expect(migrate(driver, { backup, onRepair })).toEqual({ from: 7, to: SCHEMA_VERSION, applied: [8, 9] });
+    expect(migrate(driver, { backup, onRepair })).toEqual({ from: 7, to: SCHEMA_VERSION, applied: [8, 9, 10] });
     expect(backup).toHaveBeenCalledWith(7);
     expect(onRepair).not.toHaveBeenCalled();
     expect(() => verifySchema(driver)).not.toThrow();
