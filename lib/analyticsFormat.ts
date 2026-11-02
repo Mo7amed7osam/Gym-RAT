@@ -1,18 +1,11 @@
 /** Display helpers for the Progress screens (locale-aware, Western digits per D8). */
 
 import { getCurrentLocale, intlLocale } from '@/i18n';
-import { formatLongDate, formatShortDate, formatTime } from '@/lib/format';
+import { formatLongDate, formatShortDate, formatTime, latinDigits } from '@/lib/format';
 
 const locale = () => intlLocale(getCurrentLocale());
 
-/**
- * Hermes ignores both the `-u-nu-latn` extension and `numberingSystem` for
- * dates (seen on the iOS simulator), so Arabic-Indic digits are mapped back to
- * Western ones after formatting (decision D8).
- */
-export function latinDigits(text: string): string {
-  return text.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (d) => String((d.charCodeAt(0) & 0xf) % 10));
-}
+export { latinDigits };
 
 /** "November 2026" */
 export function formatMonthYear(date: Date): string {

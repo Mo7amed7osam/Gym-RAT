@@ -92,7 +92,7 @@ export default function ExerciseProgressScreen() {
           <View style={styles.tiles}>
             <StatTile label={t('progress.exercise.best')} value={format(best)} />
             <StatTile label={t('progress.exercise.latest')} value={format(latest)} />
-            <StatTile label={t('progress.exercise.change')} value={change === null ? '—' : `${formatSigned(change)}${isKg ? ' kg' : ''}`} />
+            <StatTile label={t('progress.exercise.change')} value={change === null ? '—' : `${formatSigned(change)}${isKg ? ` ${t('common.kg')}` : ''}`} />
             <StatTile label={t('progress.exercise.trend')} value={t(`progress.trend.${trend.direction}`)} />
           </View>
         ) : null}
