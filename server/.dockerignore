@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+.git
+tests
+coverage
+*.md
+.env
+.env.*
+!.env.example
+deploy/caddy/data
+deploy/backups

@@ -251,3 +251,25 @@ CREATE TABLE IF NOT EXISTS health_exports (
   exported_at TEXT NOT NULL
 );
 `;
+
+// ─── Per-account files (ADR-016) ─────────────────────────────────────────────
+
+/** Renamed legacy file once its workouts were attached to an account. */
+export const LEGACY_CLAIMED_DATABASE_NAME = 'gymrat.legacy-claimed.db';
+
+const SAFE_USER_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+/** Server user ids are UUIDs; anything else is refused so an id can never become a path. */
+export function assertSafeUserId(userId: string): string {
+  if (!SAFE_USER_ID.test(userId)) throw new Error('Invalid user id for a database file name');
+  return userId;
+}
+
+/** `gymrat.u-<userId>.db`: one database per account on this phone. */
+export function userDatabaseName(userId: string): string {
+  return `gymrat.u-${assertSafeUserId(userId)}.db`;
+}
+
+export function userBackupDatabaseName(userId: string): string {
+  return `gymrat.u-${assertSafeUserId(userId)}.backup.db`;
+}

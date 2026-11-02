@@ -94,7 +94,8 @@
           "frequentUpdates": false
         }
       ],
-      "./plugins/withUnlicensedAssetGuard"
+      "./plugins/withUnlicensedAssetGuard",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

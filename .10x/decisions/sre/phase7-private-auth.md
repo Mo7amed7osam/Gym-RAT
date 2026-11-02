@@ -1,0 +1,4 @@
+# SRE — phase7-private-auth
+**SLOs (proposed):** `/api/health` 99.5 % monthly; login p95 < 800 ms (Argon2id dominates at ~150 ms); members keep training during any outage thanks to the 7-day lease.
+**Monitoring:** uptime monitor on `/api/health`; Caddy health polling; watch audit lines `member.refresh.reuse_detected`, `admin.login.failed`, `*.rate_limited`; disk usage of volumes and backups.
+**Runbook:** server down → `docker compose ps`, `logs app`, `logs db`; database unreachable → health returns 503 "degraded", restart `db`, restore from backup if corrupt; certificate issues → `logs caddy`, check DNS and ports 80/443; admin locked out → recovery code, else bootstrap CLI; suspected token theft → disable member or revoke sessions from the dashboard, rotate `AUTH_SECRET` if the server itself was compromised.
