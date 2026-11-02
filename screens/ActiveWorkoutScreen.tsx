@@ -38,7 +38,7 @@ import { activeSeconds, isPaused } from '@/domain/session/reducer';
 import { useLocale, useT } from '@/i18n';
 import { selectIsWorkoutPaused, selectNextDay, useWorkoutStore, useExerciseMap } from '@/store/useWorkoutStore';
 import type { PersonalRecord, SessionExercise, WorkoutSession } from '@/types/workout';
-import { createStyles, useTheme } from '@/theme';
+import { CHROME_MAX_FONT_SCALE, createStyles, useTheme } from '@/theme';
 
 type Stage = 'warmup' | 'exercises';
 
@@ -80,6 +80,8 @@ function ElapsedLabel({ session, completed, total }: { session: WorkoutSession; 
   return (
     <Text
       style={[styles.topElapsed, paused && styles.topElapsedPaused]}
+      numberOfLines={1}
+      maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}
       accessibilityLabel={t('workout.elapsedA11y', { paused: paused ? `${t('workout.paused')}, ` : '', time: formatElapsed(seconds), completed, total })}
     >
       {`${paused ? `${t('workout.paused')} · ` : ''}${formatElapsed(seconds)}`}
@@ -247,7 +249,9 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
           <ChevronDown size={24} color={theme.colors.label} />
         </Pressable>
         <View style={styles.topTitle}>
-          <Text style={styles.topCode}>{session.code}</Text>
+          <Text style={styles.topCode} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}>
+            {session.code}
+          </Text>
           <ElapsedLabel session={session} completed={completed} total={total} />
         </View>
         <Pressable
@@ -263,7 +267,9 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
           {paused ? <Play size={22} color={theme.colors.tint} fill={theme.colors.tint} /> : <Pause size={22} color={theme.colors.label} fill={theme.colors.label} />}
         </Pressable>
         <Pressable onPress={requestFinish} accessibilityRole="button" style={styles.finishButton}>
-          <Text style={styles.finishText}>{t('common.finish')}</Text>
+          <Text style={styles.finishText} numberOfLines={1} maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}>
+            {t('common.finish')}
+          </Text>
         </Pressable>
       </View>
 
@@ -291,7 +297,9 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
               accessibilityState={{ selected }}
               style={[styles.segment, selected && styles.segmentSelected]}
             >
-              <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>{t(item.labelKey)}</Text>
+              <Text style={[styles.segmentText, selected && styles.segmentTextSelected]} numberOfLines={1} maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}>
+                {t(item.labelKey)}
+              </Text>
             </Pressable>
           );
         })}
