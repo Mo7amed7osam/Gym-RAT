@@ -1,4 +1,5 @@
 import type { Dictionary } from './en';
+import { authAr } from './auth.ar';
 import { iosAr } from './ios.ar';
 import { progressAr } from './progress.ar';
 
@@ -7,6 +8,7 @@ import { progressAr } from './progress.ar';
  * Exercise names stay English-first with their Arabic subtitle from the library.
  */
 export const ar: Dictionary = {
+  auth: authAr,
   progress: progressAr,
   ios: iosAr,
   common: {
