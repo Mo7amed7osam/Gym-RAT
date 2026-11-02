@@ -136,28 +136,10 @@
       }
     },
     "dumbbell_kickback": {
-      "kind": "still_pair",
-      "source": "repdb",
-      "sourceId": "tricep-kickback",
-      "sourceName": "Dumbbell Tricep Kickback",
-      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
-      "attribution": "Exercise data by RepDB (repdb.co)",
-      "files": {
-        "start": {
-          "file": "dumbbell_kickback-start.webp",
-          "sha256": "088e179809edb35af5c09927708a9c25d95a5b75d0adf8fd19c59774e9e83caf",
-          "width": 512,
-          "height": 512,
-          "bytes": 15458
-        },
-        "end": {
-          "file": "dumbbell_kickback-end.webp",
-          "sha256": "7808e75802fdc4196aace9956a1ee7733422e5d9c2e9dfe826c02b0ed1f4715d",
-          "width": 512,
-          "height": 512,
-          "bytes": 14194
-        }
-      }
+      "kind": "none",
+      "source": null,
+      "nearest": "tricep-kickback",
+      "reason": "RepDB artwork is a two-arm, unsupported kickback; the program is single-arm with the other hand on a bench"
     },
     "dumbbell_lateral_raise": {
       "kind": "still_pair",
@@ -208,28 +190,10 @@
       }
     },
     "dumbbell_skull_crusher": {
-      "kind": "still_pair",
-      "source": "repdb",
-      "sourceId": "db-skull-crusher",
-      "sourceName": "Dumbbell Skull Crusher",
-      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
-      "attribution": "Exercise data by RepDB (repdb.co)",
-      "files": {
-        "start": {
-          "file": "dumbbell_skull_crusher-start.webp",
-          "sha256": "cf0a894ca9fc6dc8d7d35cfd0e7e85a07a4dc2493e7a957a6daaa9b5bbbb3f98",
-          "width": 512,
-          "height": 512,
-          "bytes": 13554
-        },
-        "end": {
-          "file": "dumbbell_skull_crusher-end.webp",
-          "sha256": "788832229f97ae02121ebe93702fabe42c9c993a810ac9e0044318857d3fda85",
-          "width": 512,
-          "height": 512,
-          "bytes": 14470
-        }
-      }
+      "kind": "none",
+      "source": null,
+      "nearest": "db-skull-crusher",
+      "reason": "RepDB artwork is on a flat bench; the program is lying on the floor"
     },
     "dumbbell_wrist_curl": {
       "kind": "still_pair",
@@ -634,28 +598,10 @@
       }
     },
     "seated_dumbbell_press": {
-      "kind": "still_pair",
-      "source": "repdb",
-      "sourceId": "seated-db-press",
-      "sourceName": "Seated Dumbbell Shoulder Press",
-      "license": "RepDB Free Tier License v1.0 (LICENSE-DATA.md)",
-      "attribution": "Exercise data by RepDB (repdb.co)",
-      "files": {
-        "start": {
-          "file": "seated_dumbbell_press-start.webp",
-          "sha256": "5e946e697771645023bc24ad9483a99f7d1673e792c3c436a276dc60c44442f4",
-          "width": 512,
-          "height": 512,
-          "bytes": 17404
-        },
-        "end": {
-          "file": "seated_dumbbell_press-end.webp",
-          "sha256": "7edc80e11acf42ed286bf7d62708ea105b2aea6b3abf90a5eb3ce6551b39b43b",
-          "width": 512,
-          "height": 512,
-          "bytes": 14032
-        }
-      }
+      "kind": "none",
+      "source": null,
+      "nearest": "seated-db-press",
+      "reason": "RepDB start frame holds a neutral grip in front of the face; the program lowers to ear level with palms forward"
     },
     "standing_calf_raise": {
       "kind": "still_pair",

@@ -3,15 +3,17 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { buildInsights } from '@/domain/coach';
-import { useT } from '@/i18n';
+import { useT, useLocale } from '@/i18n';
 import { selectActivePlan, useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
+import { localName } from '@/lib/exerciseName';
 
 /** Today's coach card (Phase 3 W3): up to three rule-based, dismissable insights from the user's own history. */
 export function CoachCard({ now }: { now: number }) {
   const styles = useStyles();
   const theme = useTheme();
   const t = useT();
+  const locale = useLocale();
   const history = useWorkoutStore((state) => state.history);
   const exercises = useWorkoutStore((state) => state.exercises);
   const activePlan = useWorkoutStore(selectActivePlan);
@@ -33,7 +35,7 @@ export function CoachCard({ now }: { now: number }) {
         <Text style={styles.title}>{t('coach.title')}</Text>
       </View>
       {insights.map((insight, index) => {
-        const name = insight.exerciseId ? (exerciseMap.get(insight.exerciseId)?.name.en ?? insight.exerciseId) : '';
+        const name = insight.exerciseId ? (localName(exerciseMap.get(insight.exerciseId)?.name, locale, insight.exerciseId)) : '';
         const params = { ...insight.params, name };
         return (
           <View key={insight.key} style={[styles.row, index < insights.length - 1 && styles.divider]}>
@@ -41,7 +43,7 @@ export function CoachCard({ now }: { now: number }) {
               <Text style={styles.rowTitle}>{t(`coach.insight.${insight.kind}`, params)}</Text>
               <Text style={styles.rowBody}>{t(`coach.insight.${insight.kind}Body`, params)}</Text>
             </View>
-            <Pressable onPress={() => dismissInsight(insight.key)} accessibilityRole="button" accessibilityLabel={t('coach.dismiss')} hitSlop={8} style={styles.dismiss}>
+            <Pressable onPress={() => dismissInsight(insight.key)} accessibilityRole="button" accessibilityLabel={`${t('coach.dismiss')}: ${t(`coach.insight.${insight.kind}`, params)}`} hitSlop={8} style={styles.dismiss}>
               <X size={16} color={theme.colors.labelSecondary} />
             </Pressable>
           </View>

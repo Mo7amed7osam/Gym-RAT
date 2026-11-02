@@ -8,8 +8,7 @@ import verified from './youtubeVideos.json';
  */
 export interface CuratedVideo {
   videoId: string;
-  title: string;
-  channel: string;
+  /** When the id last passed the oEmbed check. Titles are not stored (the player shows its own). */
   checkedAt: string;
 }
 

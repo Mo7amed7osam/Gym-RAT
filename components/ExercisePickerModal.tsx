@@ -12,6 +12,7 @@ import { useLocale, useT } from '@/i18n';
 import { selectLibrary, useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 import type { Exercise } from '@/types/workout';
+import { localName } from '@/lib/exerciseName';
 
 interface ExercisePickerModalProps {
   visible: boolean;
@@ -121,12 +122,12 @@ function SuggestionRow({ item, locale, onPress }: { item: SubstituteSuggestion; 
         ? t(item.sameWeightType ? 'library.equivalenceReason.similarMuscle' : 'library.equivalenceReason.similarLoad')
         : t('library.equivalenceReason.different', { muscles: item.sharedPrimary.map((m) => MUSCLE_LABELS[m][locale]).join(', ') || item.exercise.primaryMuscles.map((m) => MUSCLE_LABELS[m][locale]).join(', ') });
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${item.exercise.name.en}, ${t(`library.equivalence.${item.equivalence}`)}`} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${localName(item.exercise.name, locale)}, ${t(`library.equivalence.${item.equivalence}`)}`} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
       <ExerciseThumb exerciseId={item.exercise.id} size={48} />
       <View style={styles.flex}>
         <View style={styles.nameRow}>
           <Text style={[styles.name, styles.shrink]} numberOfLines={2}>
-            {item.exercise.name.en}
+            {localName(item.exercise.name, locale)}
           </Text>
           <Chip label={t(`library.equivalence.${item.equivalence}`)} tone={item.equivalence === 'equivalent' ? 'success' : item.equivalence === 'similar' ? 'tint' : 'neutral'} />
         </View>
@@ -141,11 +142,11 @@ function SuggestionRow({ item, locale, onPress }: { item: SubstituteSuggestion; 
 function Row({ exercise, locale, onPress }: { exercise: Exercise; locale: 'en' | 'ar'; onPress: () => void }) {
   const styles = useStyles();
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={exercise.name.en} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={localName(exercise.name, locale)} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
       <ExerciseThumb exerciseId={exercise.id} size={48} />
       <View style={styles.flex}>
         <Text style={styles.name} numberOfLines={2}>
-          {exercise.name.en}
+          {localName(exercise.name, locale)}
         </Text>
         <Text style={styles.secondary} numberOfLines={1}>
           {exercise.primaryMuscles.map((m) => MUSCLE_LABELS[m][locale]).join(' · ')}

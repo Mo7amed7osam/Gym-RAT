@@ -10,11 +10,12 @@ import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { SelectChip } from '@/components/ui/SelectChip';
 import { HIT } from '@/constants/theme';
-import { useT } from '@/i18n';
+import { useT, useLocale } from '@/i18n';
 import { parseReps } from '@/lib/parseNumber';
 import { useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 import type { ExercisePrescription, TrainingFocus } from '@/types/workout';
+import { localName } from '@/lib/exerciseName';
 
 const REST_CHOICES = [60, 90, 120, 150, 180] as const;
 
@@ -25,6 +26,7 @@ export default function PlanDayEditorScreen() {
   const styles = useStyles();
   const theme = useTheme();
   const t = useT();
+  const locale = useLocale();
   const insets = useSafeAreaInsets();
   const plan = useWorkoutStore((state) => state.plans.find((item) => item.id === id));
   const day = plan?.days.find((item) => item.id === dayId);
@@ -100,7 +102,7 @@ export default function PlanDayEditorScreen() {
                 <View style={styles.cardHeader}>
                   <ExerciseThumb exerciseId={item.exerciseId} size={48} />
                   <Text style={[styles.headline, styles.flex]} numberOfLines={2}>
-                    {exercise?.name.en ?? item.exerciseId}
+                    {localName(exercise?.name, locale, item.exerciseId)}
                   </Text>
                   {editable ? (
                     <View style={styles.cardActions}>

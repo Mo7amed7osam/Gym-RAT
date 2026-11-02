@@ -13,6 +13,14 @@ import type { AccentId, AppearanceSettings, Density, TextScale, ThemeMode } from
  */
 
 export type ColorScheme = 'light' | 'dark';
+
+/**
+ * Upper bound for system Dynamic Type on navigation chrome and buttons
+ * (top bars, segmented controls, button labels). Body text still scales
+ * fully; capping chrome keeps the controls on screen at accessibility sizes,
+ * as iOS does for its own navigation and tab bars.
+ */
+export const CHROME_MAX_FONT_SCALE = 1.5;
 export type ThemeColors = { [K in keyof typeof base.colors]: string } & { photoBackground: string; illustrationBackground: string };
 
 export interface Theme {

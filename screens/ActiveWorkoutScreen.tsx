@@ -18,6 +18,7 @@ import { RestTimerModal, RestTimerPill } from '@/components/RestTimerModal';
 import { ExerciseGuideModal } from '@/components/ExerciseGuideModal';
 import { ExerciseOptionsSheet, type SheetAction } from '@/components/ExerciseOptionsSheet';
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
+import { GroupExercisesSheet } from '@/components/GroupExercisesSheet';
 import { SessionTargetsSheet } from '@/components/SessionTargetsSheet';
 import { WorkoutKeepAwake } from '@/components/WorkoutKeepAwake';
 import { WorkoutReviewModal } from '@/components/WorkoutReviewModal';
@@ -38,7 +39,8 @@ import { activeSeconds, isPaused } from '@/domain/session/reducer';
 import { useLocale, useT } from '@/i18n';
 import { selectIsWorkoutPaused, selectNextDay, useWorkoutStore, useExerciseMap } from '@/store/useWorkoutStore';
 import type { PersonalRecord, SessionExercise, WorkoutSession } from '@/types/workout';
-import { createStyles, useTheme } from '@/theme';
+import { CHROME_MAX_FONT_SCALE, createStyles, useTheme } from '@/theme';
+import { localName } from '@/lib/exerciseName';
 
 type Stage = 'warmup' | 'exercises';
 
@@ -80,6 +82,8 @@ function ElapsedLabel({ session, completed, total }: { session: WorkoutSession; 
   return (
     <Text
       style={[styles.topElapsed, paused && styles.topElapsedPaused]}
+      numberOfLines={1}
+      maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}
       accessibilityLabel={t('workout.elapsedA11y', { paused: paused ? `${t('workout.paused')}, ` : '', time: formatElapsed(seconds), completed, total })}
     >
       {`${paused ? `${t('workout.paused')} · ` : ''}${formatElapsed(seconds)}`}
@@ -91,6 +95,7 @@ const isExerciseDone = (exercise: SessionExercise) => exercise.sets.length > 0 &
 
 function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFinished: (session: WorkoutSession) => void }) {
   const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const router = useRouter();
@@ -102,6 +107,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
   const [videoExerciseId, setVideoExerciseId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<'discard' | 'remove' | null>(null);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [grouping, setGrouping] = useState(false);
   const [targetsFor, setTargetsFor] = useState<string | null>(null);
   const [picker, setPicker] = useState<'substitute' | 'add' | null>(null);
   const [reviewing, setReviewing] = useState(false);
@@ -224,6 +230,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         current.groupId
           ? { key: 'ungroup', label: t('workout.ungroup'), onPress: () => { setOptionsOpen(false); ungroupSessionExercise(current.id); } }
           : { key: 'superset', label: t('workout.supersetWithNext'), disabled: !nextExerciseInSession, onPress: () => { setOptionsOpen(false); if (nextExerciseInSession) groupSessionExercises([current.id, nextExerciseInSession.id]); } },
+        { key: 'group', label: t('workout.groupExercises'), detail: t('workout.groupExercisesDetail'), disabled: session.exercises.length < 2, onPress: () => { setOptionsOpen(false); setGrouping(true); } },
         { key: 'add', label: t('workout.addExerciseAfter'), onPress: () => { setOptionsOpen(false); setPicker('add'); } },
         { key: 'remove', label: t('workout.removeExercise'), destructive: true, onPress: () => { setOptionsOpen(false); setConfirm('remove'); } },
       ]
@@ -247,7 +254,9 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
           <ChevronDown size={24} color={theme.colors.label} />
         </Pressable>
         <View style={styles.topTitle}>
-          <Text style={styles.topCode}>{session.code}</Text>
+          <Text style={styles.topCode} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}>
+            {session.code}
+          </Text>
           <ElapsedLabel session={session} completed={completed} total={total} />
         </View>
         <Pressable
@@ -263,7 +272,9 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
           {paused ? <Play size={22} color={theme.colors.tint} fill={theme.colors.tint} /> : <Pause size={22} color={theme.colors.label} fill={theme.colors.label} />}
         </Pressable>
         <Pressable onPress={requestFinish} accessibilityRole="button" style={styles.finishButton}>
-          <Text style={styles.finishText}>{t('common.finish')}</Text>
+          <Text style={styles.finishText} numberOfLines={1} maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}>
+            {t('common.finish')}
+          </Text>
         </Pressable>
       </View>
 
@@ -291,7 +302,9 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
               accessibilityState={{ selected }}
               style={[styles.segment, selected && styles.segmentSelected]}
             >
-              <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>{t(item.labelKey)}</Text>
+              <Text style={[styles.segmentText, selected && styles.segmentTextSelected]} numberOfLines={1} maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}>
+                {t(item.labelKey)}
+              </Text>
             </Pressable>
           );
         })}
@@ -326,7 +339,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                       accessibilityState={{ selected }}
                       accessibilityLabel={t('workout.exerciseA11y', {
                         n: i + 1,
-                        name: exerciseMap.get(exercise.exerciseId)?.name.en ?? '',
+                        name: localName(exerciseMap.get(exercise.exerciseId)?.name, locale, ''),
                         done: done ? t('workout.doneSuffix') : '',
                         skipped: exercise.skipped ? t('workout.skippedSuffix') : '',
                       })}
@@ -359,7 +372,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                   <View style={styles.flex}>
                     <Text style={styles.upNextLabel}>{t('common.upNext')}</Text>
                     <Text style={styles.upNextName} numberOfLines={1}>
-                      {exerciseMap.get(next.exerciseId)?.name.en}
+                      {localName(exerciseMap.get(next.exerciseId)?.name, locale)}
                     </Text>
                   </View>
                   <Text style={styles.upNextMeta}>
@@ -453,7 +466,19 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
       <RestTimerModal visible={restSheetVisible} onMinimize={() => setDismissedRestKey(restKey)} />
       <ExerciseGuideModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
       <WorkoutReviewModal session={reviewing ? session : null} onCancel={() => setReviewing(false)} onFinish={finish} />
-      <ExerciseOptionsSheet visible={optionsOpen} title={current ? (exerciseMap.get(current.exerciseId)?.name.en ?? '') : ''} actions={optionActions} onClose={() => setOptionsOpen(false)} />
+      {grouping ? (
+        <GroupExercisesSheet
+          visible
+          exercises={session.exercises}
+          initialIndex={index}
+          onConfirm={(ids) => {
+            setGrouping(false);
+            groupSessionExercises(ids);
+          }}
+          onClose={() => setGrouping(false)}
+        />
+      ) : null}
+      <ExerciseOptionsSheet visible={optionsOpen} title={current ? (localName(exerciseMap.get(current.exerciseId)?.name, locale, '')) : ''} actions={optionActions} onClose={() => setOptionsOpen(false)} />
       <SessionTargetsSheet
         exercise={session.exercises.find((item) => item.id === targetsFor) ?? null}
         canSaveToPlan={canSaveToPlan}
@@ -477,7 +502,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
       />
       <ConfirmDialog
         visible={confirm === 'remove'}
-        title={t('workout.removeExerciseTitle', { name: current ? (exerciseMap.get(current.exerciseId)?.name.en ?? '') : '' })}
+        title={t('workout.removeExerciseTitle', { name: current ? (localName(exerciseMap.get(current.exerciseId)?.name, locale, '')) : '' })}
         message={t('workout.removeExerciseMessage')}
         confirmLabel={t('plan.editor.remove')}
         destructive

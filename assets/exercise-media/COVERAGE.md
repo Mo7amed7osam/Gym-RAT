@@ -2,7 +2,7 @@
 
 Generated 2026-11-01T19:58:17.424Z from RepDB commit 66c4298af8d99b9dc397dad6699e508fb871d249.
 
-**28 of 38 built-in exercises** have exact RepDB start/end stills (74%). The rest show the labelled "No illustration" card.
+**25 of 38 built-in exercises** have exact RepDB start/end stills (66%). The rest show the labelled "No illustration" card.
 
 ## Matched
 | Gym RAT id | RepDB id | RepDB name | files |
@@ -12,10 +12,8 @@ Generated 2026-11-01T19:58:17.424Z from RepDB commit 66c4298af8d99b9dc397dad6699
 | dumbbell_deadlift | dumbbell-deadlift | Dumbbell Deadlift | start + end |
 | dumbbell_front_raise | dumbbell-front-raise | Dumbbell Front Raise | start + end |
 | dumbbell_hammer_curl | hammer-curl | Dumbbell Hammer Curl | start + end |
-| dumbbell_kickback | tricep-kickback | Dumbbell Tricep Kickback | start + end |
 | dumbbell_lateral_raise | lateral-raise | Dumbbell Lateral Raise | start + end |
 | dumbbell_lunge | db-lunge | Dumbbell Lunge | start + end |
-| dumbbell_skull_crusher | db-skull-crusher | Dumbbell Skull Crusher | start + end |
 | dumbbell_wrist_curl | dumbbell-wrist-curl | Dumbbell Wrist Curl | start + end |
 | flat_barbell_bench_press | bench-press | Barbell Bench Press | start + end |
 | flat_dumbbell_bench_press | db-bench-press | Dumbbell Bench Press | start + end |
@@ -31,12 +29,14 @@ Generated 2026-11-01T19:58:17.424Z from RepDB commit 66c4298af8d99b9dc397dad6699
 | reverse_pec_deck | machine-reverse-fly | Machine Reverse Fly | start + end |
 | seated_calf_raise | seated-calf-raise | Seated Calf Raise | start + end |
 | seated_close_grip_row | seated-cable-row | Seated Cable Row | start + end |
-| seated_dumbbell_press | seated-db-press | Seated Dumbbell Shoulder Press | start + end |
 | standing_calf_raise | standing-calf-raise | Standing Calf Raise | start + end |
 | standing_lat_pushdown | straight-arm-pulldown | Straight-Arm Pulldown | start + end |
 | wide_grip_lat_pulldown | lat-pulldown | Lat Pulldown | start + end |
 
 ## Unmatched (fallback card)
+
+Phase 6 visual audit (2026-11-02) moved dumbbell_kickback, dumbbell_skull_crusher and seated_dumbbell_press here: their artwork showed a different variant from the program.
+
 | Gym RAT id | nearest RepDB variant | why it was rejected |
 |---|---|---|
 | barbell_skull_crusher | skull-crusher | program uses an EZ bar; RepDB artwork shows a straight bar |
@@ -48,6 +48,9 @@ Generated 2026-11-01T19:58:17.424Z from RepDB commit 66c4298af8d99b9dc397dad6699
 | lying_leg_raise | lying-leg-raise | RepDB artwork is floor-based; the program uses a flat bench |
 | overhead_cable_curl | cable-curl | one-arm overhead (high pulley) curl not in RepDB |
 | straight_barbell_curl | barbell-curl | program prescribes a wide grip; RepDB artwork is shoulder-width |
+| dumbbell_kickback | tricep-kickback | RepDB artwork is a two-arm, unsupported kickback; the program is single-arm with the other hand on a bench |
+| dumbbell_skull_crusher | db-skull-crusher | RepDB artwork is on a flat bench; the program is lying on the floor |
+| seated_dumbbell_press | seated-db-press | RepDB start frame holds a neutral grip in front of the face; the program lowers to ear level with palms forward |
 | triceps_rope_pushdown | tricep-pushdown | RepDB artwork uses a bar attachment, not a rope |
 
 Licence: RepDB Free Tier License v1.0 (LICENSE-DATA.md). Attribution shown in Settings → About: "Exercise data by RepDB (repdb.co)". Images copied unmodified; no upscaling, background removal or generative derivation.

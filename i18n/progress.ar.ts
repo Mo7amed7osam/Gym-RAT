@@ -1,6 +1,5 @@
 import type { progressEn } from './progress.en';
-
-type DeepStrings<T> = { [K in keyof T]: T[K] extends string ? string : DeepStrings<T[K]> };
+import type { DeepStrings } from './en';
 
 /** Arabic strings for the Phase 4 Progress screens. Western digits for numbers (decision D8). */
 export const progressAr: DeepStrings<typeof progressEn> = {
@@ -16,7 +15,7 @@ export const progressAr: DeepStrings<typeof progressEn> = {
   weeklyVolume: 'الحجم الأسبوعي',
   frequency: 'معدل التمرين',
   avgPerWeek: 'بمعدل %{value} تمارين في الأسبوع',
-  workoutsCount: { one: '%{count} تمرين', other: '%{count} تمارين' },
+  workoutsCount: { zero: '%{count} تمرين', one: 'تمرين واحد', two: 'تمرينان', few: '%{count} تمارين', many: '%{count} تمرينًا', other: '%{count} تمرين' },
   periods: { week: 'أسبوع', month: 'شهر', quarter: '3 أشهر', year: 'سنة' },
   compare: {
     week: 'مقارنةً بالنقطة نفسها من الأسبوع الماضي',
@@ -26,7 +25,7 @@ export const progressAr: DeepStrings<typeof progressEn> = {
   },
   tiles: { sessions: 'التمارين', volume: 'الحجم', sets: 'المجموعات الفعلية', activeTime: 'الوقت الفعلي', trainingDays: 'أيام التمرين' },
   trend: { up: 'في ارتفاع', down: 'في انخفاض', flat: 'ثابت' },
-  units: { kgValue: '%{value} كجم', cmValue: '%{value} سم', percentValue: '%{value}٪', minutes: '%{m} دقيقة', hours: '%{h} ساعة', hoursMinutes: '%{h} س %{m} د' },
+  units: { kgValue: '%{value} كجم', cmValue: '%{value} سم', percentValue: '%{value}%', minutes: '%{m} د', hours: '%{h} س', hoursMinutes: '%{h} س %{m} د' },
   muscles: {
     title: 'المجموعات لكل عضلة',
     hint: 'المجموعات الفعلية في هذه الفترة. العضلة الأساسية تُحسب مجموعة كاملة والثانوية نصف مجموعة.',
@@ -37,15 +36,15 @@ export const progressAr: DeepStrings<typeof progressEn> = {
     title: 'التقويم',
     streak: 'سلسلة تمرين %{count} أسابيع متتالية',
     streakTile: 'السلسلة',
-    weeksValue: { one: '%{count} أسبوع', other: '%{count} أسابيع' },
-    workoutsA11y: { one: '%{count} تمرين', other: '%{count} تمارين' },
+    weeksValue: { zero: '%{count} أسبوع', one: 'أسبوع واحد', two: 'أسبوعان', few: '%{count} أسابيع', many: '%{count} أسبوعًا', other: '%{count} أسبوع' },
+    workoutsA11y: { zero: '%{count} تمرين', one: 'تمرين واحد', two: 'تمرينان', few: '%{count} تمارين', many: '%{count} تمرينًا', other: '%{count} تمرين' },
     previousMonth: 'الشهر السابق',
     nextMonth: 'الشهر التالي',
     restDay: 'يوم راحة: لا تمارين مسجلة.',
   },
   history: {
     title: 'كل التمارين',
-    setsCount: { one: '%{count} مجموعة', other: '%{count} مجموعات' },
+    setsCount: { zero: '%{count} مجموعة', one: 'مجموعة واحدة', two: 'مجموعتان', few: '%{count} مجموعات', many: '%{count} مجموعة', other: '%{count} مجموعة' },
   },
   session: {
     missing: 'التمرين غير موجود',
@@ -58,7 +57,7 @@ export const progressAr: DeepStrings<typeof progressEn> = {
     durationMinutes: 'المدة (دقيقة)',
     duration: 'المدة',
     records: 'الأرقام القياسية',
-    recordKinds: { top_weight: 'أعلى وزن', estimated_1rm: 'أقصى تكرار مقدّر' },
+    recordKinds: { top_weight: 'أعلى وزن', estimated_1rm: '‏1RM المقدّر' },
     was: '(كان %{value})',
     notes: 'ملاحظات',
     notesPlaceholder: 'كيف كان التمرين؟',
@@ -93,11 +92,11 @@ export const progressAr: DeepStrings<typeof progressEn> = {
     title: 'تطور التمارين',
     search: 'ابحث عن تمرين',
     empty: 'لم تسجل أي تمرين بعد.',
-    rowMeta: { one: '%{count} جلسة · آخرها %{date} · أفضل 1RM مقدّر', other: '%{count} جلسات · آخرها %{date} · أفضل 1RM مقدّر' },
-    e1rmNote: '1RM المقدّر = أقصى وزن لتكرار واحد محسوب من أفضل مجموعة.',
+    rowMeta: { zero: '%{count} جلسة · آخرها %{date} · أفضل ‏1RM مقدّر', one: 'جلسة واحدة · آخرها %{date} · أفضل ‏1RM مقدّر', two: 'جلستان · آخرها %{date} · أفضل ‏1RM مقدّر', few: '%{count} جلسات · آخرها %{date} · أفضل ‏1RM مقدّر', many: '%{count} جلسة · آخرها %{date} · أفضل ‏1RM مقدّر', other: '%{count} جلسة · آخرها %{date} · أفضل ‏1RM مقدّر' },
+    e1rmNote: '‏1RM المقدّر = أقصى وزن لتكرار واحد محسوب من أفضل مجموعة.',
   },
   exercise: {
-    metrics: { e1rm: '1RM مقدّر', topWeight: 'أعلى وزن', volume: 'الحجم', reps: 'التكرارات' },
+    metrics: { e1rm: '‏1RM المقدّر', topWeight: 'أعلى وزن', volume: 'الحجم', reps: 'التكرارات' },
     ranges: { '3m': '3 أشهر', '6m': '6 أشهر', '1y': 'سنة', all: 'الكل' },
     repsValue: '%{value} تكرار',
     best: 'الأفضل',
@@ -105,7 +104,7 @@ export const progressAr: DeepStrings<typeof progressEn> = {
     change: 'التغيير',
     trend: 'الاتجاه',
     sessions: 'الجلسات',
-    sessionMeta: { one: '%{count} مجموعة · الأفضل %{best}', other: '%{count} مجموعات · الأفضل %{best}' },
+    sessionMeta: { zero: '%{count} مجموعة · الأفضل %{best}', one: 'مجموعة واحدة · الأفضل %{best}', two: 'مجموعتان · الأفضل %{best}', few: '%{count} مجموعات · الأفضل %{best}', many: '%{count} مجموعة · الأفضل %{best}', other: '%{count} مجموعة · الأفضل %{best}' },
     empty: 'سجّل مجموعة فعلية من هذا التمرين لترى تطورك.',
     emptyRange: 'لا جلسات في هذه الفترة. جرّب فترة أطول.',
     chartA11y: '%{metric} عبر %{count} جلسات، من %{first} إلى %{last}',
@@ -169,9 +168,9 @@ export const progressAr: DeepStrings<typeof progressEn> = {
     targetPlaceholder: 'الهدف',
     deadline: 'الموعد النهائي',
     noDeadline: 'بدون',
-    weeks: { one: '%{count} أسبوع', other: '%{count} أسابيع' },
+    weeks: { zero: '%{count} أسبوع', one: 'أسبوع واحد', two: 'أسبوعان', few: '%{count} أسابيع', many: '%{count} أسبوعًا', other: '%{count} أسبوع' },
     kinds: {
-      exercise_e1rm: '1RM مقدّر لتمرين',
+      exercise_e1rm: '‏1RM المقدّر لتمرين',
       exercise_weight: 'وزن تمرين',
       bodyweight: 'وزن الجسم',
       body_measurement: 'قياس',

@@ -417,4 +417,8 @@ export interface WorkoutSettings {
   healthExportEnabled: boolean;
   /** When Health export was turned on; workouts that started earlier are not exported. */
   healthExportSince: ISODateString | null;
+  /** Effort rating offered on the rest sheet after each working set (feeds progression rule 5a). */
+  effortScale: EffortScale;
 }
+
+export type EffortScale = 'off' | 'rpe' | 'rir';

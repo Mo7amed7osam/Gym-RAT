@@ -21,6 +21,20 @@ export const SUPPORTED_LOCALES: readonly Locale[] = ['en', 'ar'];
 const i18n = new I18n({ en, ar });
 i18n.defaultLocale = 'en';
 i18n.enableFallback = true;
+i18n.pluralization.register('ar', (_i18n, count) => [arabicPluralForm(count), 'other']);
+
+/** CLDR Arabic plural category: 0, 1, 2, 3–10, 11–99 (mod 100), otherwise "other". */
+export function arabicPluralForm(count: number): 'zero' | 'one' | 'two' | 'few' | 'many' | 'other' {
+  const n = Math.abs(count);
+  if (!Number.isInteger(n)) return 'other';
+  const mod = n % 100;
+  if (n === 0) return 'zero';
+  if (n === 1) return 'one';
+  if (n === 2) return 'two';
+  if (mod >= 3 && mod <= 10) return 'few';
+  if (mod >= 11 && mod <= 99) return 'many';
+  return 'other';
+}
 
 export function deviceLocale(): Locale {
   const code = getLocales()[0]?.languageCode ?? 'en';

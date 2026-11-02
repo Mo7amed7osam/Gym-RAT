@@ -23,9 +23,15 @@ const placeholders = (text: string) => (text.match(/%\{\w+\}/g) ?? []).sort();
 const enFlat = flatten(en as unknown as Tree);
 const arFlat = flatten(ar as unknown as Tree);
 
+// Arabic plurals use the extra CLDR categories (zero/two/few/many) on top of en's one/other.
+const ARABIC_ONLY_PLURAL = /\.(zero|two|few|many)$/;
+const isArabicPluralExtra = (key: string) => ARABIC_ONLY_PLURAL.test(key) && `${key.replace(ARABIC_ONLY_PLURAL, '')}.other` in enFlat;
+// Singular/dual forms may spell the number out ("تمرين واحد", "تمرينان") instead of %{count}.
+const withoutCount = (list: string[]) => list.filter((p) => p !== '%{count}');
+
 describe('dictionaries', () => {
   it('ar has exactly the keys en has', () => {
-    expect(Object.keys(arFlat).sort()).toEqual(Object.keys(enFlat).sort());
+    expect(Object.keys(arFlat).filter((key) => !isArabicPluralExtra(key)).sort()).toEqual(Object.keys(enFlat).sort());
   });
 
   it('has no empty strings', () => {
@@ -35,8 +41,9 @@ describe('dictionaries', () => {
 
   it('keeps the same interpolation placeholders in both languages', () => {
     const mismatched = Object.keys(enFlat).filter((key) => {
-      const a = placeholders(enFlat[key]);
-      const b = placeholders(arFlat[key] ?? '');
+      const spelledOut = key.endsWith('.one');
+      const a = spelledOut ? withoutCount(placeholders(enFlat[key])) : placeholders(enFlat[key]);
+      const b = spelledOut ? withoutCount(placeholders(arFlat[key] ?? '')) : placeholders(arFlat[key] ?? '');
       return a.length !== b.length || a.some((p, i) => p !== b[i]);
     });
     expect(mismatched).toEqual([]);

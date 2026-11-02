@@ -2,12 +2,20 @@ import type { ExercisePrescription, LocalizedText, Plan, PlanDay, RepRange, Rest
 import type { BuiltinExerciseId } from '../exercisesData';
 
 /**
- * Full Body Starter — DRAFT. Content is a placeholder until the owner approves
- * the final starter program (decision D4 in the master plan). It uses only
+ * Full Body Starter: the default plan on a fresh install. It uses only
  * exercises already in the library so every install has a runnable default.
+ * Earlier builds labelled it "(draft)"; `seedPlans` renames those copies.
  */
 
 export const STARTER_PLAN_ID = 'full_body_starter';
+
+export const STARTER_NAME: LocalizedText = { en: 'Full Body Starter', ar: 'برنامج الجسم الكامل للمبتدئين' };
+export const STARTER_DESCRIPTION: LocalizedText = {
+  en: 'Three full-body workouts per rotation.',
+  ar: 'ثلاثة تمارين لكامل الجسم في كل دورة.',
+};
+/** The name earlier builds stored; copies still carrying it are renamed at boot. */
+export const LEGACY_STARTER_NAME_EN = 'Full Body Starter (draft)';
 
 const REST_90: RestPeriod = { defaultSeconds: 90, minSeconds: 60, maxSeconds: 120 };
 const REST_120: RestPeriod = { defaultSeconds: 120, minSeconds: 120, maxSeconds: 150 };
@@ -60,11 +68,8 @@ export function buildStarterTemplate(): Plan {
   return {
     id: STARTER_PLAN_ID,
     kind: 'template',
-    name: { en: 'Full Body Starter (draft)', ar: 'برنامج الجسم الكامل للمبتدئين (مسودة)' },
-    description: {
-      en: 'Three full-body workouts per rotation. Draft content pending approval.',
-      ar: 'ثلاث تمارين لكامل الجسم في كل دورة. محتوى مبدئي بانتظار الاعتماد.',
-    },
+    name: STARTER_NAME,
+    description: STARTER_DESCRIPTION,
     sourcePlanId: null,
     locked: true,
     nextDayIndex: 0,

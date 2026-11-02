@@ -27,6 +27,7 @@ import { useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 
 import { goalTitle, goalValueText } from './analytics/goalText';
+import { localName } from '@/lib/exerciseName';
 
 const TREND_WEEKS = 12;
 const PREVIEW_ROWS = 5;
@@ -213,7 +214,7 @@ export default function ProgressScreen() {
                   {exercises.map((item, index) => (
                     <ListRow
                       key={item.exerciseId}
-                      title={exerciseMap.get(item.exerciseId)?.name.en ?? item.exerciseId}
+                      title={localName(exerciseMap.get(item.exerciseId)?.name, locale, item.exerciseId)}
                       subtitle={t('progress.exercises.rowMeta', { count: item.sessions, date: formatDayMonth(item.lastPerformedAt) })}
                       value={formatKg(item.bestE1rmKg)}
                       isLast={index === exercises.length - 1}
@@ -258,7 +259,7 @@ function SectionTitle({ title, action, onAction }: { title: string; action: stri
       <Text style={styles.sectionTitle} accessibilityRole="header">
         {title}
       </Text>
-      <Text style={styles.link} onPress={onAction} accessibilityRole="button" suppressHighlighting>
+      <Text style={styles.link} onPress={onAction} accessibilityRole="button" accessibilityLabel={`${action}: ${title}`} suppressHighlighting>
         {action}
       </Text>
     </View>

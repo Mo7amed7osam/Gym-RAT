@@ -32,7 +32,7 @@ export const iosEn = {
   },
   video: {
     title: 'Video tutorial',
-    by: 'YouTube · %{channel}',
+    source: 'Plays from YouTube. Links in the player open the YouTube app or Safari.',
     needsInternet: 'Video needs an internet connection. Everything else works offline.',
     unavailable: 'This video can’t be played in the app right now.',
     retry: 'Try again',

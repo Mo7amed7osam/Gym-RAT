@@ -21,6 +21,7 @@ import { formatSet, getExerciseBests, getPreviousPerformance, isCountedSet } fro
 import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 import type { Exercise } from '@/types/workout';
+import { localName, secondaryName } from '@/lib/exerciseName';
 
 const REST_OPTIONS: (number | null)[] = [null, 60, 90, 120, 150, 180];
 
@@ -75,7 +76,7 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
       <View style={styles.titleBlock}>
         <View style={styles.titleRow}>
           <Text style={styles.title} accessibilityRole="header">
-            {exercise.name.en}
+            {localName(exercise.name, locale)}
           </Text>
           {onEdit ? (
             <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel={t('library.detail.edit')} hitSlop={8} style={styles.iconButton}>
@@ -83,9 +84,9 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
             </Pressable>
           ) : null}
         </View>
-        {exercise.name.ar && exercise.name.ar !== exercise.name.en ? (
-          <Text style={styles.arabic} accessibilityLanguage="ar">
-            {exercise.name.ar}
+{secondaryName(exercise.name, locale) ? (
+          <Text style={styles.arabic} accessibilityLanguage={locale === 'ar' ? 'en' : 'ar'}>
+            {secondaryName(exercise.name, locale)}
           </Text>
         ) : null}
         <View style={styles.chips}>
@@ -159,7 +160,7 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
                 accessibilityRole="button"
                 style={({ pressed }) => [styles.linkRow, index < alternatives.length - 1 && styles.divider, pressed && styles.pressed]}
               >
-                <Text style={[styles.body, styles.flex]}>{item.exercise.name.en}</Text>
+                <Text style={[styles.body, styles.flex]}>{localName(item.exercise.name, locale)}</Text>
                 <Chip
                   label={t(`library.equivalence.${item.equivalence}`)}
                   tone={item.equivalence === 'equivalent' ? 'success' : item.equivalence === 'similar' ? 'tint' : 'neutral'}

@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
 import { BUTTON_HEIGHT } from '@/constants/theme';
-import { createStyles, useTheme, type Theme } from '@/theme';
+import { CHROME_MAX_FONT_SCALE, createStyles, useTheme, type Theme } from '@/theme';
 
 export type ButtonVariant = 'primary' | 'tinted' | 'secondary' | 'destructive';
 
@@ -20,6 +20,8 @@ interface ButtonProps {
   icon?: LucideIcon;
   disabled?: boolean;
   accessibilityHint?: string;
+  /** Spoken label when the visible one is ambiguous out of context (repeated per row). Defaults to `label`. */
+  accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -30,6 +32,7 @@ export function Button({
   icon: Icon,
   disabled = false,
   accessibilityHint,
+  accessibilityLabel,
   style,
 }: ButtonProps) {
   const styles = useStyles();
@@ -38,7 +41,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled }}
       disabled={disabled}
@@ -50,7 +53,7 @@ export function Button({
       ]}
     >
       {Icon ? <Icon size={18} color={palette.foreground} strokeWidth={2.25} /> : null}
-      <Text style={[styles.label, { color: palette.foreground }]} numberOfLines={1}>
+      <Text style={[styles.label, { color: palette.foreground }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}>
         {label}
       </Text>
     </Pressable>

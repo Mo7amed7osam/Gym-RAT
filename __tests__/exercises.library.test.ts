@@ -62,7 +62,7 @@ describe('media manifest', () => {
     const missing = BUILTIN_EXERCISES.filter((exercise) => !MEDIA_MANIFEST.entries[exercise.id]);
     expect(missing.map((e) => e.id)).toEqual([]);
     const matched = BUILTIN_EXERCISES.filter((exercise) => hasBundledMedia(exercise.id));
-    expect(matched).toHaveLength(28);
+    expect(matched).toHaveLength(25);
     for (const exercise of matched) {
       const media = getExerciseMedia(exercise);
       expect(media.kind).toBe('still_pair');

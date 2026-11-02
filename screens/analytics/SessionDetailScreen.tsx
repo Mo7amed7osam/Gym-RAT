@@ -135,7 +135,8 @@ export default function SessionDetailScreen() {
             onBack={() => (editing ? setConfirmDiscard(true) : goBack())}
             trailing={
               editing ? null : (
-                <Pressable onPress={startEditing} accessibilityRole="button" accessibilityLabel={t('progress.session.edit')} hitSlop={8} style={styles.iconButton}>
+                // Shortcut for sighted users; VoiceOver gets the labelled "Edit workout" button below once, not twice.
+                <Pressable onPress={startEditing} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" hitSlop={8} style={styles.iconButton}>
                   <Pencil size={20} color={theme.colors.tint} />
                 </Pressable>
               )

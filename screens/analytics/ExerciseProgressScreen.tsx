@@ -10,12 +10,13 @@ import { isCompleted } from '@/domain/analytics/aggregate';
 import { addDays } from '@/domain/analytics/dates';
 import { PROGRESSION_METRICS, exerciseProgression, metricValue, type ProgressionMetric } from '@/domain/analytics/progression';
 import { trendOf } from '@/domain/analytics/trends';
-import { useT } from '@/i18n';
+import { useLocale, useT } from '@/i18n';
 import { formatDayMonth, formatDayMonthYear, formatNumber, formatSigned, isolate } from '@/lib/analyticsFormat';
 import { formatKg } from '@/lib/format';
 import { useFocusNow } from '@/lib/useFocusNow';
 import { useExercise, useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
+import { localName, secondaryName } from '@/lib/exerciseName';
 
 type RangeKey = '3m' | '6m' | '1y' | 'all';
 const RANGES: readonly RangeKey[] = ['3m', '6m', '1y', 'all'];
@@ -25,6 +26,7 @@ const RANGE_DAYS: Record<RangeKey, number | null> = { '3m': 91, '6m': 182, '1y':
 export default function ExerciseProgressScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -50,13 +52,13 @@ export default function ExerciseProgressScreen() {
   const latest = values[values.length - 1] ?? 0;
   const change = values.length > 1 ? latest - values[0] : null;
   const trend = trendOf(values);
-  const name = exercise?.name.en ?? id ?? '';
+  const name = localName(exercise?.name, locale, id ?? '');
 
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + theme.spacing.sm }]} showsVerticalScrollIndicator={false}>
         <ScreenHeader title={name} onBack={() => (router.canGoBack() ? router.back() : router.replace('/progress'))} />
-        {exercise && exercise.name.ar && exercise.name.ar !== exercise.name.en ? <Text style={styles.subtitle}>{exercise.name.ar}</Text> : null}
+        {secondaryName(exercise?.name, locale) ? <Text style={styles.subtitle}>{secondaryName(exercise?.name, locale)}</Text> : null}
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
           {PROGRESSION_METRICS.map((key) => (

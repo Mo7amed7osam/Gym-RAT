@@ -1,6 +1,6 @@
 import { Play, RotateCcw } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { WebViewNavigation } from 'react-native-webview';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
@@ -14,9 +14,12 @@ import { createStyles, useTheme } from '@/theme';
  * loaded until the user taps play. The official IFrame Player API runs in an
  * OS WebView whose origin is the app's bundle id (YouTube's client identity
  * requirement for embedded players); the page is generated locally, so no
- * third-party host is involved. Navigation away from the player (YouTube
- * logo, "Watch on YouTube") is blocked: the app never redirects out. Errors
- * and missing connectivity show a fallback card; a workout never depends on it.
+ * third-party host is involved. Links inside the player (YouTube logo, title,
+ * "Watch on YouTube") stay working, as YouTube's policies require, but open
+ * outside the app (YouTube app or Safari) instead of replacing the player;
+ * nothing else may navigate the WebView. Only the video id is stored; the
+ * player shows its own title and attribution. Errors and missing connectivity
+ * show a fallback card; a workout never depends on it.
  */
 
 type PlayerState = 'idle' | 'loading' | 'ready' | 'unavailable' | 'offline';
@@ -29,11 +32,23 @@ export const PLAYER_ORIGIN = `https://${appConfig.expo.ios.bundleIdentifier}`;
 /** Player error strings from react-native-youtube-iframe that mean "this video cannot play here". */
 const UNPLAYABLE = new Set(['embed_not_allowed', 'video_not_found', 'invalid_parameter', 'HTML5_error']);
 
-/** Only the generated player page may load in the top frame; YouTube's iframe loads inside it. */
-export function allowPlayerNavigation(request: Pick<WebViewNavigation, 'url'> & { isTopFrame?: boolean; mainDocumentURL?: string }): boolean {
+const YOUTUBE_HOST = /^https:\/\/([a-z0-9-]+\.)*(youtube\.com|youtu\.be|youtube-nocookie\.com|google\.com)(\/|$)/i;
+
+/**
+ * Only the generated player page may load in the top frame; YouTube's iframe
+ * loads inside it. A top-frame request to YouTube (a link in the player) is
+ * handed to iOS so it opens in the YouTube app or Safari; anything else is
+ * dropped.
+ */
+export function allowPlayerNavigation(
+  request: Pick<WebViewNavigation, 'url'> & { isTopFrame?: boolean; mainDocumentURL?: string },
+  openExternally: (url: string) => unknown = (url) => Linking.openURL(url).catch(() => undefined),
+): boolean {
   if (request.isTopFrame === false) return true;
   const url = request.mainDocumentURL ?? request.url;
-  return url === 'about:blank' || url.startsWith(PLAYER_ORIGIN);
+  if (url === 'about:blank' || url.startsWith(PLAYER_ORIGIN)) return true;
+  if (YOUTUBE_HOST.test(request.url)) openExternally(request.url);
+  return false;
 }
 
 export function ExerciseVideo({ video }: { video: CuratedVideo | null }) {
@@ -73,7 +88,7 @@ export function ExerciseVideo({ video }: { video: CuratedVideo | null }) {
         <Pressable
           onPress={start}
           accessibilityRole="button"
-          accessibilityLabel={`${t('ios.video.title')}: ${video.title}`}
+          accessibilityLabel={`${t('ios.video.title')}, YouTube`}
           style={({ pressed }) => [styles.poster, { height }, pressed && styles.pressed]}
         >
           <View style={styles.playButton}>
@@ -97,11 +112,11 @@ export function ExerciseVideo({ video }: { video: CuratedVideo | null }) {
           play={false}
           useLocalHTML
           baseUrlOverride={PLAYER_ORIGIN}
-          initialPlayerParams={{ rel: false, modestbranding: true }}
+          initialPlayerParams={{ rel: false }}
           onReady={() => setState('ready')}
           onError={(error: string) => setState(UNPLAYABLE.has(error) ? 'unavailable' : 'offline')}
           webViewProps={{
-            onShouldStartLoadWithRequest: allowPlayerNavigation,
+            onShouldStartLoadWithRequest: (request: WebViewNavigation) => allowPlayerNavigation(request),
             onError: () => setState('offline'),
             onHttpError: () => setState('offline'),
             allowsFullscreenVideo: true,
@@ -113,10 +128,7 @@ export function ExerciseVideo({ video }: { video: CuratedVideo | null }) {
         />
       ) : null}
       <View style={styles.caption}>
-        <Text style={styles.title} numberOfLines={2}>
-          {video.title}
-        </Text>
-        <Text style={styles.note}>{t('ios.video.by', { channel: video.channel })}</Text>
+        <Text style={styles.note}>{t('ios.video.source')}</Text>
         {state === 'idle' ? <Text style={styles.note}>{t('ios.video.needsInternet')}</Text> : null}
       </View>
     </View>
@@ -139,7 +151,6 @@ const useStyles = createStyles((t) =>
     retry: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.xs, minHeight: 44, paddingHorizontal: t.spacing.md },
     retryText: { ...t.typography.headline, color: t.colors.link },
     caption: { padding: t.spacing.lg, gap: t.spacing.xxs },
-    title: { ...t.typography.subheadline, color: t.colors.label },
     note: { ...t.typography.footnote, color: t.colors.labelSecondary, padding: 0 },
     pressed: { opacity: 0.7 },
   }),

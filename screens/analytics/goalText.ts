@@ -2,6 +2,8 @@ import type { GoalEvaluation } from '@/domain/analytics/goals';
 import { formatNumber, isolate } from '@/lib/analyticsFormat';
 import { BODY_METRIC_UNITS, type BodyMetricKind, type Goal, type GoalKind } from '@/types/progress';
 import type { Exercise } from '@/types/workout';
+import { getCurrentLocale } from '@/i18n';
+import { localName } from '@/lib/exerciseName';
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
 
@@ -17,7 +19,7 @@ export function formatGoalValue(kind: GoalKind, bodyMetric: BodyMetricKind | nul
 }
 
 export function goalTitle(goal: Goal, t: Translate, exercises: ReadonlyMap<string, Exercise>): string {
-  const exercise = goal.exerciseId ? (exercises.get(goal.exerciseId)?.name.en ?? goal.exerciseId) : '';
+  const exercise = goal.exerciseId ? (localName(exercises.get(goal.exerciseId)?.name, getCurrentLocale(), goal.exerciseId)) : '';
   const metric = goal.bodyMetric ? t(`progress.body.kinds.${goal.bodyMetric}`) : '';
   return t(`progress.goals.titles.${goal.kind}`, { exercise, metric, target: formatGoalValue(goal.kind, goal.bodyMetric, goal.targetValue, t) });
 }

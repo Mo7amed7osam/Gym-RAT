@@ -104,7 +104,7 @@ export default function PlanScreen() {
                     {isNext ? (
                       <Text style={styles.nextBadge}>{t('plan.nextUp')}</Text>
                     ) : (
-                      <Pressable onPress={() => setNextDay(index)} accessibilityRole="button" style={styles.linkButton}>
+                      <Pressable onPress={() => setNextDay(index)} accessibilityRole="button" accessibilityLabel={`${t('plan.makeNext')}: ${day.code}`} style={styles.linkButton}>
                         <Text style={styles.linkText}>{t('plan.makeNext')}</Text>
                       </Pressable>
                     )}
@@ -146,11 +146,12 @@ export default function PlanScreen() {
                   {active?.sourcePlanId === plan.id ? (
                     <Text style={styles.secondary}>{t('plan.editor.active')}</Text>
                   ) : (
-                    <Button label={t('plan.adopt')} variant="tinted" onPress={() => setPending({ kind: 'activate', plan })} style={styles.smallButton} />
+                    <Button label={t('plan.adopt')} accessibilityLabel={`${t('plan.adopt')}: ${plan.name[locale]}`} variant="tinted" onPress={() => setPending({ kind: 'activate', plan })} style={styles.smallButton} />
                   )}
-                  <Button label={t('plan.duplicate')} variant="secondary" onPress={() => duplicate(plan)} style={styles.smallButton} />
+                  <Button label={t('plan.duplicate')} accessibilityLabel={`${t('plan.duplicate')}: ${plan.name[locale]}`} variant="secondary" onPress={() => duplicate(plan)} style={styles.smallButton} />
                   <Button
                     label={t('plan.startFromTemplate')}
+                    accessibilityLabel={`${t('plan.startFromTemplate')}: ${plan.name[locale]}`}
                     variant="secondary"
                     disabled={activeSession !== null}
                     onPress={() => {

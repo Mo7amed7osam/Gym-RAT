@@ -129,6 +129,12 @@ export const en = {
     warmupsUnavailable: 'Enter a working weight first',
     supersetWithNext: 'Superset with the next exercise',
     ungroup: 'Remove from superset',
+    groupExercises: 'Group exercises…',
+    groupExercisesDetail: 'Superset (2) or giant set (3+), done back to back',
+    groupTitle: 'Group exercises',
+    groupHint: 'Pick neighbouring exercises; everything between the first and last pick is included. Reorder first with Move earlier / later.',
+    groupSuperset: 'Make superset',
+    groupGiant: 'Make giant set (%{count})',
     groupBadge: 'Superset',
     giantBadge: 'Giant set',
     saveToPlan: 'Save targets to plan',
@@ -160,6 +166,10 @@ export const en = {
     rpe: 'RPE',
     rir: 'RIR',
     feedbackTitle: 'How hard was set %{n}?',
+    rpeValueA11y: 'RPE %{value}',
+    rirValueA11y: '%{value} reps in reserve',
+    rpeHint: '10 = nothing left, 8 = two more reps possible',
+    rirHint: 'Reps you could still have done',
   },
   history: {
     wasLabel: 'was %{previous}',
@@ -215,6 +225,9 @@ export const en = {
     hapticsDetail: 'Taps when a set is logged and when rest is over.',
     soundTitle: 'Rest-over sound',
     soundDetail: 'Plays a chime when the rest timer reaches zero.',
+    effort: 'Rate effort after each set',
+    effortDetail: 'Shown on the rest sheet. Hard sets (RPE 9.5–10 or 0 reps in reserve) hold the weight suggestion.',
+    effortOff: 'Off',
     restWarning: 'Rest timer warning',
     restWarningDetail: 'The ring turns orange when this much rest is left.',
     seconds: '%{n} seconds',
@@ -584,5 +597,7 @@ export const en = {
   },
 };
 
-type DeepStrings<T> = { [K in keyof T]: T[K] extends string ? string : DeepStrings<T[K]> };
+/** CLDR plural forms; English uses one/other, Arabic all six (registered in i18n/index.ts). */
+export type PluralForms = { zero?: string; one: string; two?: string; few?: string; many?: string; other: string };
+export type DeepStrings<T> = { [K in keyof T]: T[K] extends string ? string : T[K] extends { one: string; other: string } ? PluralForms : DeepStrings<T[K]> };
 export type Dictionary = DeepStrings<typeof en>;
