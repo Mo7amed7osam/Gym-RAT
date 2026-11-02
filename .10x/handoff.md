@@ -1,6 +1,6 @@
 # Handoff
 
-**2026-11-02 — Phase 3 + Phase 4 integration** on `integration/phase3-phase4` (`reviews/2026-11-02-integration-report.md`, ADR-012). Schema v9 = 7 Phase 3 column, 8 Phase 4 tables, 9 reconcile; `migrate()` reconciles on every launch. One strength engine (`domain/records`) behind `domain/analytics/metrics`. Both feature branches and the Phase 4 worktree preserved. Next: owner review; Phase 5 only on authorization; no TestFlight.
+**2026-11-02 — Phase 3 + Phase 4 integration** on `integration/phase3-phase4` (`reviews/2026-11-02-integration-report.md`, ADR-012). Schema v9 = 7 Phase 3 column, 8 Phase 4 tables, 9 reconcile; `migrate()` reconciles on every launch. One strength engine (`domain/records`) behind `domain/analytics/metrics`. Ten simulator scenarios performed with AXe (simulator-scoped input; no desktop mouse). Both feature branches and the Phase 4 worktree preserved; merged into `main`. Next: owner review; Phase 5 only on authorization; no TestFlight.
 
 **2026-11-02 — Phase 3 implemented and partly simulator-verified** (`reviews/2026-11-02-phase3-report.md`). Next: owner runs the checklist in §6 of that report, then authorizes Phase 4 (analytics) or Phase 5 (iOS integrations). Do not start either, or TestFlight, without the owner's word. Open: RPE/RIR entry UI, Arabic copy review, README, curated YouTube ids, Developer Mode on the iPhone, owner's own EAS login. Simulator driving: use `tap` only when the owner is not using the Mac; points = px × 874 / image height.
 
