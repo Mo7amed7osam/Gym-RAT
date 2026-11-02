@@ -21,9 +21,10 @@ import {
   type HistoryEditError,
 } from '@/domain/history/edit';
 import { endTimeMs } from '@/domain/session/reducer';
-import { useT } from '@/i18n';
+import { useLocale, useT } from '@/i18n';
 import { formatDayMonthYear, formatHoursMinutes, formatLongDateLatin, formatNumber, formatTimeLatin, ltr, parseTimeInput, toTimeInput } from '@/lib/analyticsFormat';
 import { formatKg } from '@/lib/format';
+import { RECORD_KIND_LABEL_KEY, formatRecordPrevious, formatRecordValue } from '@/lib/recordFormat';
 import { formatInputNumber, parseReps, parseWeight } from '@/lib/parseNumber';
 import { deleteHistorySession, saveHistorySession } from '@/store/historyActions';
 import { useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
@@ -47,6 +48,7 @@ const durationMinutes = (session: WorkoutSession) =>
 export default function SessionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -168,14 +170,14 @@ export default function SessionDetailScreen() {
           {!editing && prs.length > 0 ? (
             <Card title={t('progress.session.records')}>
               {prs.map((record) => (
-                <View key={`${record.exerciseId}:${record.kind}`} style={styles.recordRow}>
+                <View key={`${record.exerciseId}:${record.kind}:${record.setId}`} style={styles.recordRow}>
                   <Star size={14} color={theme.colors.tint} fill={theme.colors.tint} />
                   <Text style={[styles.body, styles.flex]} numberOfLines={2}>
-                    {exerciseMap.get(record.exerciseId)?.name.en ?? record.exerciseId} · {t(`progress.session.recordKinds.${record.kind}`)}
+                    {exerciseMap.get(record.exerciseId)?.name[locale] ?? record.exerciseId} · {t(RECORD_KIND_LABEL_KEY[record.kind])}
                   </Text>
                   <Text style={styles.recordValue}>
-                    {formatKg(record.value)}
-                    {record.previous !== null ? <Text style={styles.caption}> {t('progress.session.was', { value: ltr(formatKg(record.previous)) })}</Text> : null}
+                    {formatRecordValue(record.kind, record.value, record.weightKg)}
+                    {record.previous !== null ? <Text style={styles.caption}> {t('progress.session.was', { value: ltr(formatRecordPrevious(record.kind, record.previous)) })}</Text> : null}
                   </Text>
                 </View>
               ))}
@@ -187,7 +189,7 @@ export default function SessionDetailScreen() {
             <ExerciseBlock
               key={exercise.id}
               exercise={exercise}
-              name={exerciseMap.get(exercise.exerciseId)?.name.en ?? exercise.exerciseId}
+              name={exerciseMap.get(exercise.exerciseId)?.name[locale] ?? exercise.exerciseId}
               editing={editing}
               prSetIds={prSetIds}
               onPatch={(setId, patch) => update((current) => patchHistorySet(current, exercise.id, setId, patch))}
@@ -406,8 +408,9 @@ function ExerciseBlock({
           <View key={set.id} style={[styles.viewRow, !set.completed && styles.dim]}>
             <Text style={[styles.setNumberInline, set.type === 'warmup' && styles.warmupInline]}>{set.type === 'warmup' ? 'W' : set.setNumber}</Text>
             <Text style={[styles.mono, styles.flex]}>
-              {set.reps === null ? '—' : set.weightKg ? `${formatNumber(set.weightKg, 2)} kg × ${set.reps}` : `BW × ${set.reps}`}
+              {set.reps === null ? '—' : set.weightKg ? `${formatNumber(set.weightKg, 2)} ${t('common.kg')} × ${set.reps}` : `BW × ${set.reps}`}
               {set.rpe !== null ? `  RPE ${set.rpe}` : ''}
+              {set.rir !== null ? `  RIR ${set.rir}` : ''}
             </Text>
             {prSetIds.has(set.id) ? <Star size={13} color={theme.colors.tint} fill={theme.colors.tint} /> : null}
           </View>
