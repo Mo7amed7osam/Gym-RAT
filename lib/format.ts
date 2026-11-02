@@ -2,11 +2,13 @@
 
 import { getCurrentLocale, intlLocale } from '@/i18n';
 
-const kgFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const kgFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
 const dateLocale = () => intlLocale(getCurrentLocale());
 
+/** Whole kilograms for totals ("9,600 kg"); a half step survives for loads ("102.5 kg"). */
 export function formatKg(value: number): string {
-  return `${kgFormatter.format(Math.round(value))} kg`;
+  const rounded = Math.round(value * 2) / 2;
+  return `${kgFormatter.format(rounded)} kg`;
 }
 
 /** Short form for tight tiles: "8,925 kg" below 10 t, then "28.7 t". */

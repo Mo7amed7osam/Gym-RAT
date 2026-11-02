@@ -9,8 +9,11 @@ import {
 } from '@/lib/format';
 
 describe('format helpers', () => {
-  it('formats kilograms with grouping and rounding', () => {
-    expect(formatKg(8925.4)).toBe('8,925 kg');
+  it('formats kilograms with grouping, keeping half-kilo loads', () => {
+    expect(formatKg(8925.4)).toBe('8,925.5 kg');
+    expect(formatKg(9600)).toBe('9,600 kg');
+    expect(formatKg(102.5)).toBe('102.5 kg');
+    expect(formatKg(102.3)).toBe('102.5 kg');
     expect(formatKgCompact(28_700)).toBe('28.7 t');
     expect(formatKgCompact(9_999)).toBe('9,999 kg');
   });
