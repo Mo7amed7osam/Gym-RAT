@@ -22,18 +22,10 @@ RUN groupadd --system app && useradd --system --gid app --home /app app
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public
-# Migrations, the CLI scripts and the few packages they need at runtime (drizzle-kit is not needed).
+# Migrations and the bundled CLI (migrate, bootstrap-admin); `postgres` is the one runtime dependency they need.
 COPY --from=build --chown=app:app /app/drizzle ./drizzle
-COPY --from=build --chown=app:app /app/scripts ./scripts
-COPY --from=build --chown=app:app /app/src/lib/db/schema.ts ./src/lib/db/schema.ts
-COPY --from=build --chown=app:app /app/src/lib/auth/crypto.ts ./src/lib/auth/crypto.ts
-COPY --from=build --chown=app:app /app/src/lib/env.ts ./src/lib/env.ts
-COPY --from=build --chown=app:app /app/node_modules/tsx ./node_modules/tsx
-COPY --from=build --chown=app:app /app/node_modules/esbuild ./node_modules/esbuild
-COPY --from=build --chown=app:app /app/node_modules/@esbuild ./node_modules/@esbuild
-COPY --from=build --chown=app:app /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
-COPY --from=build --chown=app:app /app/node_modules/resolve-pkg-maps ./node_modules/resolve-pkg-maps
-COPY --from=build --chown=app:app /app/node_modules/.bin/tsx ./node_modules/.bin/tsx
+COPY --from=build --chown=app:app /app/dist/cli ./dist/cli
+COPY --from=build --chown=app:app /app/node_modules/postgres ./node_modules/postgres
 COPY --chown=app:app deploy/scripts/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 USER app

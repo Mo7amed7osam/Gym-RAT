@@ -247,3 +247,32 @@ describe('AccountSection', () => {
     await waitFor(() => expect(useAuthStore.getState().snapshot.status).toBe('signedOut'));
   });
 });
+
+describe('LegacyDataScreen', () => {
+  it('shows the counts from the probe, attaches on request and never deletes on "Not now"', async () => {
+    const { claimLegacyData } = jest.requireMock('@/data/db/boot') as { claimLegacyData: jest.Mock };
+    const { legacyPromptState } = jest.requireActual('@/screens/auth/legacyPrompt') as typeof import('@/screens/auth/legacyPrompt');
+    const LegacyDataScreen = (require('@/screens/auth/LegacyDataScreen') as typeof import('@/screens/auth/LegacyDataScreen')).default;
+    const { session } = install({});
+    await act(async () => {
+      await session.signIn(user.email, 'pw');
+    });
+    legacyPromptState.probe = { source: 'database', sessions: 12, customExercises: 2, userPlans: 1, bodyEntries: 0, goals: 3, hasUserData: true };
+
+    await render(<LegacyDataScreen />);
+    expect(screen.getByText('Workouts found on this phone')).toBeTruthy();
+    expect(screen.getByText(/Attach it to amr@example.com\?/)).toBeTruthy();
+    expect(screen.getByText('12 sessions')).toBeTruthy();
+    expect(screen.getByText('2 custom exercises')).toBeTruthy();
+    expect(screen.getByText('3 goals')).toBeTruthy();
+    expect(screen.queryByText(/body entries/)).toBeNull();
+
+    await fireEvent.press(screen.getByLabelText('Not now'));
+    expect(claimLegacyData).not.toHaveBeenCalled();
+    expect(mockReplace).toHaveBeenCalledWith('/');
+
+    await fireEvent.press(screen.getByTestId('legacy-claim'));
+    await waitFor(() => expect(claimLegacyData).toHaveBeenCalledWith(user.id));
+    expect(legacyPromptState.probe).toBeNull();
+  });
+});

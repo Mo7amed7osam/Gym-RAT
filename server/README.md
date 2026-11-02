@@ -67,7 +67,7 @@ docker compose logs -f app          # "migrations applied" then "Ready"
 curl -s https://$SITE_ADDRESS/api/health
 
 # first admin (one-time link printed; no password in env or chat)
-docker compose exec app node ./node_modules/tsx/dist/cli.mjs ./scripts/bootstrap-admin.ts --email you@example.com --name "Your Name"
+docker compose exec app node dist/cli/bootstrap-admin.mjs --email you@example.com --name "Your Name"
 ```
 
 Then build the iPhone app with `EXPO_PUBLIC_AUTH_API_URL=https://<SITE_ADDRESS>` in the app's
@@ -82,7 +82,7 @@ Then build the iPhone app with `EXPO_PUBLIC_AUTH_API_URL=https://<SITE_ADDRESS>`
 | Backup | `./deploy/scripts/backup.sh` → `deploy/backups/gymrat-<UTC>.sql.gz`, keeps 14. Cron: `15 3 * * * cd /opt/gymrat/server && ./deploy/scripts/backup.sh >> /var/log/gymrat-backup.log 2>&1`. Copy the folder off-box. |
 | Restore | `./deploy/scripts/restore.sh deploy/backups/<file>.sql.gz` (stops the app, replaces the database, starts it) |
 | Rotate `AUTH_SECRET` | change `.env`, `docker compose up -d`: every member must sign in again (access tokens and TOTP seeds are bound to it; re-enrol admin TOTP via the bootstrap CLI) |
-| Add another admin | `ALLOW_ADDITIONAL_ADMIN=1 … bootstrap-admin.ts --email …` (deliberate, never through the dashboard) |
+| Add another admin | `docker compose exec -e ALLOW_ADDITIONAL_ADMIN=1 app node dist/cli/bootstrap-admin.mjs --email …` (deliberate, never through the dashboard) |
 | Lost authenticator | use a recovery code; if none left, run the bootstrap CLI for that email to get a fresh setup link, then re-enrol |
 
 Container logs are capped at 10 MB × 5 files per service (`logging` in `docker-compose.yml`).

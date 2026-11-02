@@ -93,6 +93,10 @@ function ThemedNavigation() {
               <Stack.Screen name="auth/login" options={{ gestureEnabled: false, animation: 'fade' }} />
               <Stack.Screen name="auth/forgot" />
             </Stack.Protected>
+            <Stack.Protected guard={signedIn}>
+              {/* Reachable before onboarding: a first sign-in on a phone with pre-account data offers the claim right away (ADR-016). */}
+              <Stack.Screen name="auth/legacy-data" options={{ gestureEnabled: false, animation: 'fade' }} />
+            </Stack.Protected>
             <Stack.Protected guard={signedIn && !onboarded}>
               <Stack.Screen name="onboarding/index" options={{ gestureEnabled: false, animation: 'fade' }} />
             </Stack.Protected>
@@ -100,7 +104,6 @@ function ThemedNavigation() {
               <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
               <Stack.Screen name="workout" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
               <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="auth/legacy-data" options={{ presentation: 'modal', gestureEnabled: false }} />
               <Stack.Screen name="exercise/[id]" />
               <Stack.Screen name="exercise/edit" options={{ presentation: 'modal' }} />
               <Stack.Screen name="plan/[id]/index" />
@@ -150,9 +153,14 @@ function AccountSession({ userId }: { userId: string }) {
   useEffect(() => {
     if (!hydrated || offered.current) return;
     offered.current = true;
-    void shouldOfferLegacyData(userId, sessionCount, secureAuthStorage).then((probe) => {
-      if (probe) router.push('/auth/legacy-data');
-    });
+    // A beat after sign-in so iOS can finish its own "Save password?" sheet first; presenting
+    // another screen underneath that sheet leaves it stuck and swallowing touches.
+    const timer = setTimeout(() => {
+      void shouldOfferLegacyData(userId, sessionCount, secureAuthStorage).then((probe) => {
+        if (probe) router.push('/auth/legacy-data');
+      });
+    }, 1200);
+    return () => clearTimeout(timer);
   }, [hydrated, router, sessionCount, userId]);
 
   return <BootOverlay visible={!hydrated} />;
