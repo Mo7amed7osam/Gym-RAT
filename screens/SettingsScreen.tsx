@@ -16,7 +16,7 @@ import { healthAccess, notificationAccess, requestHealthAccess, requestNotificat
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { applyLayoutDirection, resolveLocale, useT } from '@/i18n';
 import { ACCENTS, ACCENT_IDS, createStyles, useTheme } from '@/theme';
-import type { AppearanceSettings, Density, LanguageSetting, PersonalRecordKind, TextScale, ThemeMode, WorkoutSettings } from '@/types/workout';
+import type { AppearanceSettings, Density, EffortScale, LanguageSetting, PersonalRecordKind, TextScale, ThemeMode, WorkoutSettings } from '@/types/workout';
 
 type ToggleKey = 'autoStartRestTimer' | 'prefillFromHistory' | 'hapticsEnabled' | 'restSoundEnabled';
 
@@ -28,6 +28,7 @@ const TOGGLES: { key: ToggleKey; title: string; detail: string }[] = [
 ];
 
 const WARNING_OPTIONS = [5, 10, 15, 30] as const;
+const EFFORT_OPTIONS: readonly EffortScale[] = ['off', 'rpe', 'rir'];
 const WARMUP_REST_OPTIONS = [30, 45, 60, 90] as const;
 const STEP_OPTIONS = [1.25, 2.5, 5] as const;
 const STEP_PER_HAND_OPTIONS = [0.5, 1, 2] as const;
@@ -208,6 +209,31 @@ export default function SettingsScreen() {
         </View>
 
         <IntegrationsSection />
+
+        <View style={styles.section}>
+          <SectionHeader title={t('settings.effort')} />
+          <View style={[styles.group, styles.groupPadded]}>
+            <Text style={styles.rowDetail}>{t('settings.effortDetail')}</Text>
+            <View style={styles.segmented} accessibilityRole="radiogroup">
+              {EFFORT_OPTIONS.map((scale) => {
+                const selected = settings.effortScale === scale;
+                const label = scale === 'off' ? t('settings.effortOff') : t(scale === 'rpe' ? 'workout.rpe' : 'workout.rir');
+                return (
+                  <Pressable
+                    key={scale}
+                    onPress={() => set({ effortScale: scale })}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={label}
+                    style={[styles.segment, selected && styles.segmentSelected]}
+                  >
+                    <Text style={[styles.segmentValue, selected && styles.segmentValueSelected]}>{label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        </View>
 
         <View style={styles.section}>
           <SectionHeader title={t('settings.restWarning')} />

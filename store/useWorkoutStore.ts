@@ -208,6 +208,7 @@ export const DEFAULT_SETTINGS: WorkoutSettings = {
   liveActivityEnabled: true,
   healthExportEnabled: false,
   healthExportSince: null,
+  effortScale: 'rpe',
 };
 
 const MIN_REST_DURATION_MS = 5_000;

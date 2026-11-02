@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EffortPicker } from '@/components/EffortPicker';
 import { Button } from '@/components/ui/Button';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT } from '@/constants/theme';
@@ -59,6 +60,7 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
   const resumeRestTimer = useWorkoutStore((state) => state.resumeRestTimer);
   const adjustRestTimer = useWorkoutStore((state) => state.adjustRestTimer);
   const skipRestTimer = useWorkoutStore((state) => state.skipRestTimer);
+  const effortScale = useWorkoutStore((state) => state.settings.effortScale);
 
   const onElapsed = useCallback(
     () => restCompleteFeedback({ haptics: hapticsEnabled, sound: soundEnabled }),
@@ -105,6 +107,10 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
               <Text style={styles.subtitle}>{t('rest.setLogged', { n: completed.setNumber, set: formatSet(completed) })}</Text>
             ) : null}
           </View>
+
+          {exercise && completed && completed.type === 'working' && effortScale !== 'off' ? (
+            <EffortPicker scale={effortScale} sessionExerciseId={exercise.id} set={completed} />
+          ) : null}
 
           <View
             style={styles.ringWrap}
