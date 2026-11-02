@@ -36,7 +36,7 @@ export const iosAr: DeepStrings<typeof iosEn> = {
   },
   video: {
     title: 'فيديو تعليمي',
-    by: 'YouTube · %{channel}',
+    source: 'يُشغَّل من YouTube. الروابط داخل المشغّل تفتح تطبيق YouTube أو Safari.',
     needsInternet: 'الفيديو يحتاج إلى اتصال بالإنترنت. كل ما عداه يعمل دون اتصال.',
     unavailable: 'لا يمكن تشغيل هذا الفيديو داخل التطبيق الآن.',
     retry: 'إعادة المحاولة',

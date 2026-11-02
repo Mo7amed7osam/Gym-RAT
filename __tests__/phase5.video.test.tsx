@@ -5,7 +5,7 @@ import { EXERCISES } from '@/data/exercisesData';
 import { CURATED_VIDEOS, type CuratedVideo } from '@/data/youtubeVideos';
 import { setCurrentLocale } from '@/i18n';
 
-const video: CuratedVideo = { videoId: 'abcdefghijk', title: 'How to bench press', channel: 'Channel', checkedAt: '2026-11-02T00:00:00.000Z' };
+const video: CuratedVideo = { videoId: 'abcdefghijk', checkedAt: '2026-11-02T00:00:00.000Z' };
 
 async function layout(view: Awaited<ReturnType<typeof render>>) {
   await act(async () => {
@@ -21,7 +21,7 @@ describe('exercise video', () => {
     await layout(view);
     expect(screen.queryByTestId('youtube-player')).toBeNull();
     expect(screen.getByText('Video needs an internet connection. Everything else works offline.')).toBeTruthy();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Video tutorial: How to bench press' })));
+    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Video tutorial, YouTube' })));
     const player = screen.getByTestId('youtube-player');
     expect(player.props).toMatchObject({ videoId: 'abcdefghijk', useLocalHTML: true, baseUrlOverride: PLAYER_ORIGIN, width: 360, height: 203 });
     expect(PLAYER_ORIGIN).toBe('https://com.gymrat.app');
@@ -54,8 +54,13 @@ describe('exercise video', () => {
     expect(allowPlayerNavigation({ url: 'about:blank' })).toBe(true);
     expect(allowPlayerNavigation({ url: `${PLAYER_ORIGIN}/` })).toBe(true);
     expect(allowPlayerNavigation({ url: 'https://www.youtube.com/embed/abcdefghijk', isTopFrame: false })).toBe(true);
-    expect(allowPlayerNavigation({ url: 'https://www.youtube.com/watch?v=abcdefghijk', isTopFrame: true })).toBe(false);
-    expect(allowPlayerNavigation({ url: 'https://m.youtube.com/', mainDocumentURL: 'https://m.youtube.com/' })).toBe(false);
+    // Player links (policy: must not be disabled) open outside the app; nothing replaces the player.
+    const opened: string[] = [];
+    const open = (url: string) => opened.push(url);
+    expect(allowPlayerNavigation({ url: 'https://www.youtube.com/watch?v=abcdefghijk', isTopFrame: true }, open)).toBe(false);
+    expect(allowPlayerNavigation({ url: 'https://m.youtube.com/', mainDocumentURL: 'https://m.youtube.com/' }, open)).toBe(false);
+    expect(allowPlayerNavigation({ url: 'https://example.com/ad', isTopFrame: true }, open)).toBe(false);
+    expect(opened).toEqual(['https://www.youtube.com/watch?v=abcdefghijk', 'https://m.youtube.com/']);
   });
 });
 
@@ -64,8 +69,8 @@ describe('curated video list', () => {
     for (const [exerciseId, entry] of Object.entries(CURATED_VIDEOS)) {
       expect(EXERCISES[exerciseId as keyof typeof EXERCISES]).toBeDefined();
       expect(entry.videoId).toMatch(/^[A-Za-z0-9_-]{11}$/);
-      expect(entry.title.length).toBeGreaterThan(0);
-      expect(entry.channel.length).toBeGreaterThan(0);
+      // Only ids ship (YouTube API data such as titles may not be stored long-term).
+      expect(Object.keys(entry).sort()).toEqual(['checkedAt', 'videoId']);
       expect(Number.isNaN(Date.parse(entry.checkedAt))).toBe(false);
       expect(EXERCISES[exerciseId as keyof typeof EXERCISES].videoId).toBe(entry.videoId);
     }

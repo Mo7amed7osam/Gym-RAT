@@ -42,7 +42,10 @@ for (const [exerciseId, candidate] of Object.entries(candidates)) {
     rejected.push([exerciseId, videoId, `not reviewed: "${body.title}" — ${body.author_name}`]);
     continue;
   }
-  verified[exerciseId] = { videoId, title: body.title, channel: body.author_name, checkedAt: new Date().toISOString() };
+  // Only the id ships: YouTube's policies limit how long API data such as titles may be stored, and the
+  // embedded player shows its own title and attribution. Titles are printed here for the review.
+  verified[exerciseId] = { videoId, checkedAt: new Date().toISOString() };
+  console.log(`  ✓ ${exerciseId} ${videoId}: "${body.title}" — ${body.author_name}`);
 }
 
 writeFileSync(join(root, 'data/youtubeVideos.json'), `${JSON.stringify(verified, null, 2)}\n`);
