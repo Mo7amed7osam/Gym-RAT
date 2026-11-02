@@ -1,0 +1,2 @@
+# Phase 7 QA report
+See `decisions/qa/phase7-private-auth.md` for the matrix. Summary: all automated gates green (Jest 345/345 + 4 snapshots, Vitest 30/30, tsc ×2, lint ×2, expo-doctor 20/20, Next production build, Release simulator build ×2, unsigned device archive). Manual flows verified on the Release simulator build and in Chrome; screenshots in `phase7-screenshots/`. Open: physical device, phone-width dashboard screenshot, SMTP path.

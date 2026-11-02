@@ -2,6 +2,8 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
+**Phase 7 (2026-11-02):** private members platform on `feature/phase7-private-auth @ 3fb949c` (worktree `../Gym RAT-phase7`, ADR-015/016). Implemented and verified; not merged. Report `reviews/2026-11-02-phase7-report.md`. IPA blocked on the owner accepting Apple's updated PLA.
+
 **Current phase:** Integration complete — Phase 3 + Phase 4 merged into `main` at `e510460` (2026-11-02; ADR-012; report `reviews/2026-11-02-integration-report.md`). Phase 5 / TestFlight need explicit authorization. Phase 3 (Smart Training) authorized by owner 2026-11-02 and implemented (W1–W6, commits `644cd30`…`cd19cc9`; report `reviews/2026-11-02-phase3-report.md`, 168 tests). Phase 2 authorized 2026-11-01 and implemented (W1–W7, commits after `e2466f7`). Phase 1 authorized by owner ("start", 2026-11-01). ADR-001…009 Accepted (ADR-006: extracted program is an ordinary template; schema v3). **Phase 1 complete; Phase 2 implemented and simulator-verified 2026-11-01 (report: reviews/2026-11-01-phase2-report.md, 133 tests).** Simulator verification run 2026-11-01 (owner chose simulator over a physical iPhone): kill test 10/10, rotation advance/repeat, pause, Arabic RTL, theme, Reset All Data, reboot all passed; two defects found and fixed (Library search focus, dialog label truncation). Physical-device rows still pending. Awaiting (Appendix D checklist in reviews/2026-11-01-phase1-report.md) and independent review before Phase 2.
 
 ## Phase tracking
@@ -84,3 +86,16 @@ Owner decisions open: backup inclusion (keep recommended), D11 video list, EAS l
 | Release simulator build + lifecycle | Done (4 builds; Live Activity visuals unverified) |
 | Physical iPhone | Not run |
 | TestFlight | **NO-GO** — see report blockers |
+
+---
+## Phase 7 — Private members platform (branch `feature/phase7-private-auth`, base `4a65663`)
+**Authorized:** owner brief 2026-11-02 (execute without stopping). ADR-015, ADR-016. Slug `phase7-private-auth`. Not merged. Report: `reviews/2026-11-02-phase7-report.md`.
+| Item | Status |
+|---|---|
+| App: login / forgot / legacy claim, session manager, lease, per-account SQLite, Settings account | Done (`603d946`, `3fb949c`) |
+| Server: schema + migration, auth API, admin API, TOTP, rate limits, audit | Done (`64f4b3c`) |
+| Admin dashboard + public pages + Docker/Caddy/backups | Done (`e39542a`) |
+| Tests | Jest 345/345 (+37), Vitest 30/30, tsc ×2, lint ×2, doctor 20/20, Next build |
+| Release simulator build / unsigned archive | Done |
+| Signed archive / IPA | Blocked: Apple PLA must be accepted by the owner (`release-artifacts/archive-signed.log`) |
+| Physical iPhone | Not run |
