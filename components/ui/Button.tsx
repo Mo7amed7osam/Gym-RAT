@@ -20,6 +20,8 @@ interface ButtonProps {
   icon?: LucideIcon;
   disabled?: boolean;
   accessibilityHint?: string;
+  /** Spoken label when the visible one is ambiguous out of context (repeated per row). Defaults to `label`. */
+  accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -30,6 +32,7 @@ export function Button({
   icon: Icon,
   disabled = false,
   accessibilityHint,
+  accessibilityLabel,
   style,
 }: ButtonProps) {
   const styles = useStyles();
@@ -38,7 +41,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled }}
       disabled={disabled}

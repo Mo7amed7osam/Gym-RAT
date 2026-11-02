@@ -259,7 +259,7 @@ function SectionTitle({ title, action, onAction }: { title: string; action: stri
       <Text style={styles.sectionTitle} accessibilityRole="header">
         {title}
       </Text>
-      <Text style={styles.link} onPress={onAction} accessibilityRole="button" suppressHighlighting>
+      <Text style={styles.link} onPress={onAction} accessibilityRole="button" accessibilityLabel={`${action}: ${title}`} suppressHighlighting>
         {action}
       </Text>
     </View>

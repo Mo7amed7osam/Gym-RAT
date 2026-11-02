@@ -19,7 +19,7 @@ export function Card({ title, action, onAction, children, style }: { title?: str
             {title}
           </Text>
           {action && onAction ? (
-            <Pressable onPress={onAction} accessibilityRole="button" hitSlop={10} style={styles.cardAction}>
+            <Pressable onPress={onAction} accessibilityRole="button" accessibilityLabel={title ? `${action}: ${title}` : action} hitSlop={10} style={styles.cardAction}>
               <Text style={styles.cardActionText}>{action}</Text>
             </Pressable>
           ) : null}

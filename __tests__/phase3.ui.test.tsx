@@ -84,7 +84,7 @@ describe('CoachCard', () => {
     await render(<CoachCard now={now} />);
     expect(screen.getByText('Not enough data yet')).toBeTruthy();
     await act(async () => {
-      await fireEvent.press(screen.getByLabelText('Dismiss'));
+      await fireEvent.press(screen.getByLabelText(/^Dismiss: /));
     });
     expect(useWorkoutStore.getState().settings.dismissedInsights.insufficient_data).toBe('2026-11-02T10:00:00.000Z');
     expect(screen.queryByText('Not enough data yet')).toBeNull();

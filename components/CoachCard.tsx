@@ -43,7 +43,7 @@ export function CoachCard({ now }: { now: number }) {
               <Text style={styles.rowTitle}>{t(`coach.insight.${insight.kind}`, params)}</Text>
               <Text style={styles.rowBody}>{t(`coach.insight.${insight.kind}Body`, params)}</Text>
             </View>
-            <Pressable onPress={() => dismissInsight(insight.key)} accessibilityRole="button" accessibilityLabel={t('coach.dismiss')} hitSlop={8} style={styles.dismiss}>
+            <Pressable onPress={() => dismissInsight(insight.key)} accessibilityRole="button" accessibilityLabel={`${t('coach.dismiss')}: ${t(`coach.insight.${insight.kind}`, params)}`} hitSlop={8} style={styles.dismiss}>
               <X size={16} color={theme.colors.labelSecondary} />
             </Pressable>
           </View>
