@@ -1,6 +1,6 @@
 # Phase 7 report — Private members platform
 
-**Date:** 2026-11-02 · **Branch:** `feature/phase7-private-auth` (worktree `../Gym RAT-phase7`) · **Base:** `main @ 4a65663` (Phase 6 merged) · **Tip:** `3fb949c` · **Not merged, not pushed, nothing deployed, nothing uploaded to Apple.**
+**Date:** 2026-11-02 · **Branch:** `feature/phase7-private-auth` (worktree `../Gym RAT-phase7`) · **Base:** `main @ 4a65663` (Phase 6 merged) · **Tip:** `06ebdc3` · **Not merged, not pushed, nothing deployed, nothing uploaded to Apple.**
 **ADRs:** 015 (auth, sessions, offline lease, backend), 016 (per-account local data, legacy claim). **Spec:** `specs/2026-11-02-phase7-private-members-design.md`. **Security review:** `reviews/2026-11-02-phase7-security-review.md`. **QA:** `reviews/2026-11-02-phase7-qa-report.md`.
 
 ## Parallel-session safety
