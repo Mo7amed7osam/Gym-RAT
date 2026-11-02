@@ -1,6 +1,7 @@
 import type { Equipment, Exercise, ExerciseContent, LocalizedText, MuscleGroup } from '@/types/workout';
 
 import { EXERCISE_CONTENT } from './exerciseContent';
+import { curatedVideo } from './youtubeVideos';
 
 /**
  * Built-in exercise seed (ADR-007). Names (EN + AR), muscles and equipment
@@ -34,7 +35,7 @@ function defineExercises<K extends string>(defs: Record<K, ExerciseInput>): Reco
       rangeOfMotion: content.rangeOfMotion,
       commonMistakes: content.commonMistakes,
       alternatives: content.alternatives,
-      videoId: null,
+      videoId: curatedVideo(id)?.videoId ?? null,
       imageUri: null,
       userNotes: '',
       userRestSeconds: null,

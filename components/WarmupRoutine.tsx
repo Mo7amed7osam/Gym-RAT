@@ -195,14 +195,16 @@ function StretchSession({ routine, completed, onToggle, embedded = false }: Stre
   const current = routine.moves[timer.index];
   const remainingSeconds = Math.max(0, Math.ceil(timer.remainingMs / 1000));
   const progress = 1 - timer.remainingMs / (current.holdSeconds * 1000);
+  // Absent in store builds (unlicensed artwork is stubbed out by metro.config.js).
+  const poster = routine.posterKey ? STRETCH_POSTERS[routine.posterKey] : undefined;
 
   return (
     <View style={[styles.session, !embedded && styles.sessionCard]}>
-      {routine.posterKey ? (
+      {routine.posterKey && poster ? (
         // Sized by the wrapper: react-native-web ignores aspectRatio on Image itself.
         <View style={[styles.poster, { aspectRatio: stretchPosterAspect(routine.posterKey) }]}>
           <Image
-            source={STRETCH_POSTERS[routine.posterKey]}
+            source={poster}
             style={styles.posterImage}
             resizeMode="contain"
             accessibilityLabel={t('warmup.posterA11y', { title: routine.title[locale] })}

@@ -407,4 +407,14 @@ export interface WorkoutSettings {
   hiddenRecordKinds: PersonalRecordKind[];
   /** Coach insights the user dismissed: key → ISO date dismissed. */
   dismissedInsights: Record<string, ISODateString>;
+  /** Keep the screen on during an active workout (never in Low Power Mode). */
+  keepScreenAwake: boolean;
+  /** Local notification when rest ends while the app is in the background. Turned on only after iOS permission. */
+  restNotificationsEnabled: boolean;
+  /** Lock Screen / Dynamic Island Live Activity for the active workout. */
+  liveActivityEnabled: boolean;
+  /** Save finished workouts to Apple Health. Turned on only after iOS permission. */
+  healthExportEnabled: boolean;
+  /** When Health export was turned on; workouts that started earlier are not exported. */
+  healthExportSince: ISODateString | null;
 }

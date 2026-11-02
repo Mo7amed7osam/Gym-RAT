@@ -1,0 +1,41 @@
+/** English strings for the Phase 5 iPhone integrations (notifications, Live Activity, Health, video). */
+export const iosEn = {
+  restAlert: {
+    title: 'Rest over',
+    body: 'Time for your next set.',
+  },
+  activity: {
+    rest: 'Rest',
+    restOver: 'Rest over',
+    paused: 'Paused',
+    workout: 'Workout',
+    setOf: 'Set %{n} of %{total}',
+    done: 'All sets done',
+  },
+  settings: {
+    section: 'iPhone',
+    keepAwakeTitle: 'Keep screen on',
+    keepAwakeDetail: 'During a workout. Turned off automatically in Low Power Mode.',
+    restAlertsTitle: 'Rest alerts',
+    restAlertsDetail: 'Notify when rest ends while Gym RAT is in the background or the phone is locked.',
+    restAlertsDenied: 'Notifications are off for Gym RAT in iOS Settings.',
+    liveActivityTitle: 'Live Activity',
+    liveActivityDetail: 'Lock Screen and Dynamic Island show the workout, current exercise and rest timer. No weights or body data.',
+    healthTitle: 'Apple Health',
+    healthDetail: 'Save finished workouts as strength training (start, end, pauses). Nothing is read from Health.',
+    healthDenied: 'Gym RAT cannot write to Health. Allow it in the Health app: Profile › Apps › Gym RAT.',
+    healthUnavailable: 'Apple Health is not available on this device.',
+    healthKept: 'Workouts already saved stay in Health; delete them there if you want.',
+    openSettings: 'Open iOS Settings',
+    privacyTitle: 'Privacy',
+    privacyDetail: 'Your workouts, body measurements and goals stay on this iPhone, protected by iOS file encryption. Gym RAT has no account, no analytics and no server.',
+  },
+  video: {
+    title: 'Video tutorial',
+    by: 'YouTube · %{channel}',
+    needsInternet: 'Video needs an internet connection. Everything else works offline.',
+    unavailable: 'This video can’t be played in the app right now.',
+    retry: 'Try again',
+    none: 'No tutorial video has been verified for this exercise yet.',
+  },
+};

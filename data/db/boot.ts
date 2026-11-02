@@ -4,11 +4,14 @@ import { AppState } from 'react-native';
 
 import { registerStrengthMetrics } from '@/domain/analytics/metrics';
 import { deleteAllCustomExercisePhotos } from '@/lib/customMedia';
+import { GymFileProtection } from '@/modules/gym-native';
+import { setHealthLedger } from '@/services/healthLedger';
 import { attachProgressPersistence, useProgressStore } from '@/store/useProgressStore';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, useWorkoutStore } from '@/store/useWorkoutStore';
 
 import { createExpoDriver } from './driver.expo';
 import type { Driver } from './driver';
+import { HealthExportRepository } from './healthExportRepository';
 import { importFromAsyncStorage } from './importer';
 import { SCHEMA_VERSION, getUserVersion, migrate } from './migrations';
 import { EMPTY_PROGRESS, ProgressRepository } from './progressRepository';
@@ -66,6 +69,8 @@ async function boot(): Promise<void> {
     driver.exec('PRAGMA foreign_keys = ON');
 
     await migrateWithBackup(db, driver);
+    protectDatabaseFiles();
+    setHealthLedger(new HealthExportRepository(driver));
 
     const repo = new WorkoutRepository(driver);
     const defaults = { restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS };
@@ -119,6 +124,7 @@ async function boot(): Promise<void> {
 export async function resetAllData(): Promise<void> {
   attachPersistence(null);
   attachProgressPersistence(null);
+  setHealthLedger(null);
   useProgressStore.getState().hydrate(EMPTY_PROGRESS);
   useWorkoutStore.getState().hydrate({
     exercises: [],
@@ -151,6 +157,24 @@ export async function resetAllData(): Promise<void> {
   await deleteAllCustomExercisePhotos();
   bootPromise = boot();
   await bootPromise;
+}
+
+/**
+ * Data protection (ADR-013): `NSFileProtectionCompleteUnlessOpen`. The app
+ * entitlement covers files created by this build; this upgrades the database,
+ * its WAL/SHM and backup from earlier builds, and the directory so new files
+ * inherit the class. Unless-open keeps the already-open database writable
+ * for the checkpoint that runs as the app goes to the background on lock.
+ * Best-effort: a failure is logged and the app keeps working.
+ */
+function protectDatabaseFiles(): void {
+  if (!GymFileProtection || !SQLite.defaultDatabaseDirectory) return;
+  try {
+    const changed = GymFileProtection.protectDirectory(String(SQLite.defaultDatabaseDirectory), 'completeUnlessOpen');
+    console.log(`[db] file protection: completeUnlessOpen on ${changed.length} items`);
+  } catch (error) {
+    console.warn('[db] file protection failed', error);
+  }
 }
 
 /**

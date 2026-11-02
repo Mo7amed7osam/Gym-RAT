@@ -1,8 +1,10 @@
+import { iosEn } from './ios.en';
 import { progressEn } from './progress.en';
 
 /** English UI strings. Keys are grouped by screen; `%{x}` are interpolations. */
 export const en = {
   progress: progressEn,
+  ios: iosEn,
   common: {
     cancel: 'Cancel',
     done: 'Done',
@@ -431,8 +433,6 @@ export const en = {
       never: 'Not logged yet',
       programmedIn: 'In your plan: %{days}',
       video: 'Video tutorial',
-      videoPending: 'The in-app video player arrives in a later update. Nothing opens outside the app.',
-      videoCurated: 'A tutorial is curated for this exercise.',
       edit: 'Edit exercise',
       archive: 'Archive exercise',
       unarchive: 'Restore exercise',

@@ -4,7 +4,8 @@ import { Platform } from 'react-native';
 
 /**
  * Haptic + sound feedback, as specified in the design system:
- * .success on set · .rigid on timer end (3 pulses) · .selection on steppers.
+ * .success on set, PR and finished workout · .rigid on timer end (3 pulses) ·
+ * .selection on steppers · .light impact on pause/resume.
  * All calls are fire-and-forget and never throw (haptics are unavailable on web / some Android devices).
  */
 
@@ -27,6 +28,14 @@ export function hapticSelection(): void {
 
 export function hapticSetCompleted(): void {
   if (canHaptic()) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(ignore);
+}
+
+export function hapticWorkoutFinished(): void {
+  if (canHaptic()) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(ignore);
+}
+
+export function hapticLight(): void {
+  if (canHaptic()) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(ignore);
 }
 
 export function hapticWarning(): void {

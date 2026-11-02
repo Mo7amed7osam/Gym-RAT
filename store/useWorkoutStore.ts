@@ -203,6 +203,11 @@ export const DEFAULT_SETTINGS: WorkoutSettings = {
   coachEnabled: true,
   hiddenRecordKinds: [],
   dismissedInsights: {},
+  keepScreenAwake: true,
+  restNotificationsEnabled: false,
+  liveActivityEnabled: true,
+  healthExportEnabled: false,
+  healthExportSince: null,
 };
 
 const MIN_REST_DURATION_MS = 5_000;

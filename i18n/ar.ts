@@ -1,4 +1,5 @@
 import type { Dictionary } from './en';
+import { iosAr } from './ios.ar';
 import { progressAr } from './progress.ar';
 
 /**
@@ -7,6 +8,7 @@ import { progressAr } from './progress.ar';
  */
 export const ar: Dictionary = {
   progress: progressAr,
+  ios: iosAr,
   common: {
     cancel: 'إلغاء',
     done: 'تم',
@@ -435,8 +437,6 @@ export const ar: Dictionary = {
       never: 'لم يُسجل بعد',
       programmedIn: 'في برنامجك: %{days}',
       video: 'فيديو تعليمي',
-      videoPending: 'مشغل الفيديو داخل التطبيق يأتي في تحديث لاحق. لا يُفتح شيء خارج التطبيق.',
-      videoCurated: 'يوجد فيديو مختار لهذا التمرين.',
       edit: 'تعديل التمرين',
       archive: 'أرشفة التمرين',
       unarchive: 'استعادة التمرين',

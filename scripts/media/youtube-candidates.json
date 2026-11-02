@@ -1,0 +1,157 @@
+{
+  "flat_barbell_bench_press": {
+    "videoId": "rT7DgCr-3pg",
+    "reviewed": true
+  },
+  "incline_dumbbell_bench_press": {
+    "videoId": "5iACxPVXKGg",
+    "reviewed": true
+  },
+  "pec_deck_fly": {
+    "videoId": "Dbly77Jgbo8",
+    "reviewed": true
+  },
+  "high_low_cable_fly": {
+    "videoId": "hhruLxo9yZU",
+    "reviewed": true
+  },
+  "overhead_dumbbell_press": {
+    "videoId": "HCFa5Eb03xQ",
+    "reviewed": true
+  },
+  "dumbbell_lateral_raise": {
+    "videoId": "ssAo_xwFt5c",
+    "reviewed": true
+  },
+  "dumbbell_skull_crusher": {
+    "videoId": "8ncEJDm7Cig",
+    "reviewed": true
+  },
+  "triceps_rope_pushdown": {
+    "videoId": "vPeQu_L-1n0",
+    "reviewed": true
+  },
+  "lying_leg_raise": {
+    "videoId": "SuIxXbKnwx4",
+    "reviewed": false,
+    "rejectedBecause": "Video is on the floor; this exercise is on a flat bench."
+  },
+  "dumbbell_bent_over_row": {
+    "videoId": "6TSP1TRMUzs",
+    "reviewed": true
+  },
+  "seated_close_grip_row": {
+    "videoId": "XaHV_8Nbyug",
+    "reviewed": true
+  },
+  "standing_lat_pushdown": {
+    "videoId": "wcVDItawocI",
+    "reviewed": true
+  },
+  "hammer_strength_lat_pulldown": {
+    "videoId": "YSXsKvYgSyw",
+    "reviewed": true
+  },
+  "dumbbell_front_raise": {
+    "videoId": "zkP0MsTcIVU",
+    "reviewed": true
+  },
+  "reverse_pec_deck": {
+    "videoId": "hmtnyIGgR9A",
+    "reviewed": true
+  },
+  "close_grip_ez_bar_curl": {
+    "videoId": "PpjxJq8qSok",
+    "reviewed": true
+  },
+  "dumbbell_hammer_curl": {
+    "videoId": "zC3nLlEvin4",
+    "reviewed": true
+  },
+  "dumbbell_deadlift": {
+    "videoId": "Ae7OC1bDZBA",
+    "reviewed": true
+  },
+  "leg_extension": {
+    "videoId": "3zWKiW9BBpo",
+    "reviewed": true
+  },
+  "lying_leg_curl": {
+    "videoId": "SbSNUXPRkc8",
+    "reviewed": true
+  },
+  "leg_press": {
+    "videoId": "90NY9tka1TQ",
+    "reviewed": true
+  },
+  "standing_calf_raise": {
+    "videoId": "yYBAQGtpIyM",
+    "reviewed": true
+  },
+  "seated_calf_raise": {
+    "videoId": "smyXy_dhXo8",
+    "reviewed": true
+  },
+  "hip_thrust": {
+    "videoId": "huIb360qhkY",
+    "reviewed": true
+  },
+  "flat_dumbbell_bench_press": {
+    "videoId": "YKbAPKcDIq0",
+    "reviewed": true
+  },
+  "hammer_strength_incline_press": {
+    "videoId": "xwK8Wd5F0Hk",
+    "reviewed": true
+  },
+  "wide_grip_lat_pulldown": {
+    "videoId": "j6KuKd_N8uU",
+    "reviewed": true
+  },
+  "seated_dumbbell_press": {
+    "videoId": "WKEl69bIGus",
+    "reviewed": true
+  },
+  "leaning_lateral_raise": {
+    "videoId": "AlGEsnIzWm4",
+    "reviewed": true
+  },
+  "barbell_skull_crusher": {
+    "videoId": "WgJ9gtvi-do",
+    "reviewed": true
+  },
+  "dumbbell_kickback": {
+    "videoId": "koxddbUMLzw",
+    "reviewed": true
+  },
+  "overhead_cable_curl": {
+    "videoId": "NUoI-eDwY0U",
+    "reviewed": false,
+    "rejectedBecause": "Video shows the two-arm overhead cable curl; this exercise is one-arm."
+  },
+  "straight_barbell_curl": {
+    "videoId": "dDI8ClxRS04",
+    "reviewed": true
+  },
+  "hack_squat": {
+    "videoId": "hglQExHCM9Q",
+    "reviewed": true
+  },
+  "dumbbell_lunge": {
+    "videoId": "K5NhC44yuR8",
+    "reviewed": true
+  },
+  "leg_press_calf_raise": {
+    "videoId": "sluiSitVePs",
+    "reviewed": true
+  },
+  "dumbbell_wrist_curl": {
+    "videoId": "yio7CGPjQ-8",
+    "reviewed": true
+  },
+  "forearm_barbell_curl": {
+    "videoId": "lA3QwdAn19Y",
+    "reviewed": false,
+    "rejectedBecause": "Video is a barbell wrist curl; this exercise is an overhand (reverse) barbell curl."
+  }
+}

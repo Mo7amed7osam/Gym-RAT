@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import { getRestRemainingMs, useWorkoutStore } from './useWorkoutStore';
 
+/** Countdowns noticed this late (app was suspended) skip the in-app alert. */
+const LATE_ALERT_MS = 2_000;
+
 export type RestTimerPhase = 'idle' | 'paused' | 'running' | 'warning' | 'overtime';
 
 export interface RestTimerCountdown {
@@ -53,7 +56,9 @@ export function useRestTimerCountdown(onElapsed?: () => void, tickMs: number = 2
     if (!onElapsedRef.current) return;
     if (timer.status === 'running' && timer.elapsedAt === null && remainingMs <= 0) {
       markRestTimerElapsed();
-      onElapsedRef.current();
+      // Rest that ran out while the app was suspended was announced by the
+      // rest notification (or is long over): a chime on return would be a late duplicate.
+      if (remainingMs > -LATE_ALERT_MS) onElapsedRef.current();
     }
   }, [timer.status, timer.elapsedAt, remainingMs, markRestTimerElapsed]);
 

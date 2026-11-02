@@ -2,6 +2,7 @@ import { ChevronRight, Pencil } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { ExerciseVideo } from '@/components/ExerciseVideo';
 import { ExerciseIllustration } from '@/components/ui/ExerciseIllustration';
 import { Chip } from '@/components/ui/Chip';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -9,6 +10,7 @@ import { SelectChip } from '@/components/ui/SelectChip';
 import { HIT } from '@/constants/theme';
 import { EQUIPMENT_LABELS, MUSCLE_LABELS } from '@/data/exercisesData';
 import { getExerciseMedia } from '@/data/media';
+import { curatedVideo } from '@/data/youtubeVideos';
 import { computeExerciseRecords } from '@/domain/records';
 import { rankSubstitutes } from '@/domain/substitution';
 import { intlLocale, useLocale, useT } from '@/i18n';
@@ -251,9 +253,7 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
 
       <View style={styles.section}>
         <SectionHeader title={t('library.detail.video')} />
-        <View style={styles.card}>
-          <Text style={[styles.secondary, styles.padded]}>{exercise.videoId ? t('library.detail.videoCurated') : t('library.detail.videoPending')}</Text>
-        </View>
+        <ExerciseVideo video={exercise.origin === 'builtin' ? curatedVideo(exercise.id) : null} />
       </View>
     </View>
   );

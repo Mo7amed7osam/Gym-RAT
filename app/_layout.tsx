@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { isRtlLocale, setCurrentLocale, useLocale } from '@/i18n';
+import { attachIntegrations } from '@/services/integrations';
 import { useStoreHydrated } from '@/store/useStoreHydrated';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { ThemeProvider, useTheme } from '@/theme';
@@ -37,7 +38,10 @@ export default function RootLayout() {
   const ready = hydrated && (fontsLoaded || fontError !== null);
 
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
+    if (!ready) return;
+    SplashScreen.hideAsync();
+    // Rest alerts, Live Activity and Health export follow the hydrated store (ADR-013).
+    attachIntegrations();
   }, [ready]);
 
   if (!ready) return null;
