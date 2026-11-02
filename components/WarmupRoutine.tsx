@@ -1,8 +1,7 @@
 import { Check, ChevronDown, ChevronUp, Pause, Play, SkipForward } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { STRETCH_POSTERS, stretchPosterAspect } from '@/assets/exercises';
 
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT } from '@/constants/theme';
@@ -198,18 +197,6 @@ function StretchSession({ routine, completed, onToggle, embedded = false }: Stre
 
   return (
     <View style={[styles.session, !embedded && styles.sessionCard]}>
-      {routine.posterKey ? (
-        // Sized by the wrapper: react-native-web ignores aspectRatio on Image itself.
-        <View style={[styles.poster, { aspectRatio: stretchPosterAspect(routine.posterKey) }]}>
-          <Image
-            source={STRETCH_POSTERS[routine.posterKey]}
-            style={styles.posterImage}
-            resizeMode="contain"
-            accessibilityLabel={t('warmup.posterA11y', { title: routine.title[locale] })}
-            accessibilityIgnoresInvertColors
-          />
-        </View>
-      ) : null}
       <View style={styles.nowCard}>
         <ProgressRing
           size={76}
@@ -418,18 +405,6 @@ const useStyles = createStyles((t) =>
   StyleSheet.create(  {
     container: {
       gap: t.spacing.lg,
-    },
-    poster: {
-      width: '100%',
-      // The A4 pre-workout sheet would otherwise be taller than the screen.
-      maxHeight: 360,
-      borderRadius: t.radii.tile,
-      backgroundColor: t.colors.photoBackground,
-      overflow: 'hidden',
-    },
-    posterImage: {
-      width: '100%',
-      height: '100%',
     },
     flex: {
       flex: 1,

@@ -121,7 +121,6 @@ export const STRETCH_ROUTINES: Record<StretchRoutineId, StretchRoutine> = {
     id: 'pre_workout_stretches',
     title: { en: 'Pre-workout stretches', ar: 'إطالات قبل التمرين' },
     description: { en: '10–20 seconds each.', ar: 'من 10 إلى 20 ثانية لكل حركة.' },
-    posterKey: 'pre_workout_stretches',
     moves: [
       {
         id: 'dynamic_chest',

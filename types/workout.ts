@@ -9,8 +9,6 @@
  * cleanly onto relational tables.
  */
 
-import type { StretchPosterKey } from '@/assets/exercises';
-
 // ─── Shared primitives ───────────────────────────────────────────────────────
 
 export interface LocalizedText {
@@ -186,8 +184,6 @@ export interface StretchRoutine {
   id: StretchRoutineId;
   title: LocalizedText;
   description: LocalizedText;
-  /** Reference poster from the PDF (see assets/exercises/stretches). */
-  posterKey?: StretchPosterKey;
   moves: StretchMove[];
 }
 
