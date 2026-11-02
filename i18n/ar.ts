@@ -574,6 +574,7 @@ export const ar: Dictionary = {
     acclimationLight: ' بوزن خفيف',
     optional: '%{title} (اختياري)',
     footnote: 'الإطالات الديناميكية تساعد على تجنب الإصابة. اجعل الإطالات الثابتة قصيرة قبل الرفع.',
+    posterA11y: 'ملصق مرجعي لـ %{title}',
     stretchOf: 'الإطالة %{n} من %{total}',
     side: '، الجانب %{side} من 2',
     pauseA11y: 'إيقاف %{name}',

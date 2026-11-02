@@ -570,6 +570,7 @@ export const en = {
     acclimationLight: ' light',
     optional: '%{title} (optional)',
     footnote: 'Dynamic stretches help prevent injury. Keep static holds short before lifting.',
+    posterA11y: '%{title} reference poster',
     stretchOf: 'Stretch %{n} of %{total}',
     side: ', side %{side} of 2',
     pauseA11y: 'Pause %{name}',

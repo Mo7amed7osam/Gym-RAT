@@ -62,7 +62,7 @@
 **Authorized:** owner brief 2026-11-02. ADR-013. Slug `phase5-ios`. Not merged.
 | Item | Status |
 |---|---|
-| Licensing: Neila Rey poster removed | Done (`7723ab5`) |
+| Licensing: Neila Rey poster removed | Done (`7723ab5`); **reversed by owner change**: restored for dev/internal builds, stubbed out of store builds (see report) |
 | Native module, iOS config, schema v10 | Done (`b986c5f`) |
 | Rest alerts, Live Activity, Health export, keep-awake, haptics, Settings | Done (`a6c26f2`) |
 | YouTube player + verified ids (35/38) | Done (`55b8572`) |

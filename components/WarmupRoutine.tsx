@@ -1,7 +1,8 @@
 import { Check, ChevronDown, ChevronUp, Pause, Play, SkipForward } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { STRETCH_POSTERS, stretchPosterAspect } from '@/assets/exercises';
 
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT } from '@/constants/theme';
@@ -194,9 +195,23 @@ function StretchSession({ routine, completed, onToggle, embedded = false }: Stre
   const current = routine.moves[timer.index];
   const remainingSeconds = Math.max(0, Math.ceil(timer.remainingMs / 1000));
   const progress = 1 - timer.remainingMs / (current.holdSeconds * 1000);
+  // Absent in store builds (unlicensed artwork is stubbed out by metro.config.js).
+  const poster = routine.posterKey ? STRETCH_POSTERS[routine.posterKey] : undefined;
 
   return (
     <View style={[styles.session, !embedded && styles.sessionCard]}>
+      {routine.posterKey && poster ? (
+        // Sized by the wrapper: react-native-web ignores aspectRatio on Image itself.
+        <View style={[styles.poster, { aspectRatio: stretchPosterAspect(routine.posterKey) }]}>
+          <Image
+            source={poster}
+            style={styles.posterImage}
+            resizeMode="contain"
+            accessibilityLabel={t('warmup.posterA11y', { title: routine.title[locale] })}
+            accessibilityIgnoresInvertColors
+          />
+        </View>
+      ) : null}
       <View style={styles.nowCard}>
         <ProgressRing
           size={76}
@@ -405,6 +420,18 @@ const useStyles = createStyles((t) =>
   StyleSheet.create(  {
     container: {
       gap: t.spacing.lg,
+    },
+    poster: {
+      width: '100%',
+      // The A4 pre-workout sheet would otherwise be taller than the screen.
+      maxHeight: 360,
+      borderRadius: t.radii.tile,
+      backgroundColor: t.colors.photoBackground,
+      overflow: 'hidden',
+    },
+    posterImage: {
+      width: '100%',
+      height: '100%',
     },
     flex: {
       flex: 1,

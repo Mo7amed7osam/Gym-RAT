@@ -46,7 +46,7 @@
 | 5 | Unavailable / offline | Done (Jest) | `embed_not_allowed`/`video_not_found`/network error/15 s timeout → fallback card + retry; "needs internet" note up front |
 | 5 | Never required | Done | Video only in exercise detail |
 | 6 | Data protection audit | Done | See below |
-| 6 | Neila Rey poster | Removed | `assets/exercises/` deleted (poster + unused hip_rehab sheet); guard test |
+| 6 | Neila Rey poster | Restored for development/internal testing only (owner change, 2026-11-02) | Byte-identical image from `b90ece9` (848×1200, same blob `ca3e047`), original placement and code path in `WarmupRoutine`; "© Neila Rey" / neilarey.com printed on the artwork kept. Store builds swap `assets/exercises/index.ts` for a stub via `metro.config.js` (EAS profile `production` or `GYMRAT_STORE_BUILD=1`). Verified: `expo export` dev bundle contains the JPEG (same SHA-1), store and production exports contain none; guard test. Simulator: renders in Light, Dark, True Black (`16`–`18-warmup-poster-*.png`). The unused hip_rehab sheet stays removed |
 | 6 | RepDB attribution | Kept | Settings › About + per-illustration line; guard test |
 | 6 | No tracking/analytics | Confirmed | No SDKs added; dependency list below |
 | 7 | Apple account safety | Done | No `eas` command run at all (not even `whoami`). See below |
@@ -121,4 +121,6 @@ Driven with AXe on the `GymRAT-Phase4` simulator (iPhone 16 Pro, iOS 26.3) with 
 - `lib/format` Arabic-Indic digits / "kg" on other tabs (carried from Phase 4).
 
 ## Phase 6 release blockers
+- **Neila Rey poster:** excluded from store builds automatically, but a TestFlight/App Store binary must be produced with the `production` EAS profile (or `GYMRAT_STORE_BUILD=1` for a local archive, Metro started with `--clear`). Shipping it requires documented redistribution rights or permission. A `preview` (internal) build includes it.
+
 Physical-device items above; owner EAS login and App ID capabilities; backup decision; D11 video approval; Arabic copy review; App Store privacy labels (YouTube network use, Health write); release checklist §9 lines not yet green (device sizes, VoiceOver, performance, production build).
