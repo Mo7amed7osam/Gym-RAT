@@ -39,3 +39,10 @@ jest.mock('expo-notifications', () => ({
   dismissNotificationAsync: async () => {},
 }));
 jest.mock('expo-widgets', () => ({ createLiveActivity: () => ({ start: () => ({}), getInstances: () => [] }) }));
+// The YouTube player is a WebView; render a placeholder that exposes its props.
+jest.mock('react-native-youtube-iframe', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const Player = (props) => React.createElement(View, { testID: 'youtube-player', ...props });
+  return { __esModule: true, default: Player };
+});

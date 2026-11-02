@@ -437,8 +437,6 @@ export const ar: Dictionary = {
       never: 'لم يُسجل بعد',
       programmedIn: 'في برنامجك: %{days}',
       video: 'فيديو تعليمي',
-      videoPending: 'مشغل الفيديو داخل التطبيق يأتي في تحديث لاحق. لا يُفتح شيء خارج التطبيق.',
-      videoCurated: 'يوجد فيديو مختار لهذا التمرين.',
       edit: 'تعديل التمرين',
       archive: 'أرشفة التمرين',
       unarchive: 'استعادة التمرين',

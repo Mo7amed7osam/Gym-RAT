@@ -433,8 +433,6 @@ export const en = {
       never: 'Not logged yet',
       programmedIn: 'In your plan: %{days}',
       video: 'Video tutorial',
-      videoPending: 'The in-app video player arrives in a later update. Nothing opens outside the app.',
-      videoCurated: 'A tutorial is curated for this exercise.',
       edit: 'Edit exercise',
       archive: 'Archive exercise',
       unarchive: 'Restore exercise',
