@@ -48,3 +48,7 @@ Sets Logging UI layout; rest timer model; `lib/workoutMath.ts`, `lib/parseNumber
 From architect/planning to SDE. Read ADR-011 (was 010 on the branch) and `decisions/*/phase4-analytics.md`. Task order A1→A8 in `decisions/engineering-manager/phase4-analytics.md`. Do not edit Phase 3 surfaces listed in `decisions/staff-engineer/phase4-analytics.md`.
 Implementation done (A1–A7): see `decisions/sde/phase4-analytics.md`, `decisions/dba/phase4-analytics.md`. QA focus: history edit recompute (edit early session → later PRs change), delete recompute, to-date period comparisons, schema v7 upgrade, Arabic RTL on charts/calendar.
 **2026-11-02 — Phase 4 verified (10x Phase 5 for this track).** QA report and security review in `reviews/2026-11-02-phase4-*`. Next role: whoever merges Phase 3 + 4 — follow `specs/2026-11-02-phase4-phase3-integration-handoff.md` (strength-engine registration, single summary builder, pr_cache rebuild inside `persistDiff`, migration 7/8/9 + reconcile). Phase 5 not started.
+
+---
+## Phase 5 track (2026-11-02) — `feature/phase5-ios`
+Read ADR-013 and `reviews/2026-11-02-phase5-report.md`. Side effects live in `services/` and follow the store; Health is a reconciler over `health_exports` (v10). Next: owner review + merge decision, then physical-device checklist (report §Physical-device-only). Do not run EAS with the current CLI login.

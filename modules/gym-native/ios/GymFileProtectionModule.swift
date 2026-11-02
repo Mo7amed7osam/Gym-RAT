@@ -55,6 +55,6 @@ public final class GymFileProtectionModule: Module {
   }
 }
 
-final class UnknownProtectionException: Exception {
+final class UnknownProtectionException: Exception, @unchecked Sendable {
   override var reason: String { "Unknown file protection level" }
 }

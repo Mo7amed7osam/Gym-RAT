@@ -106,10 +106,10 @@ struct WorkoutInput: Record {
   @Field var pauses: [PauseInput] = []
 }
 
-final class HealthUnavailableException: Exception {
+final class HealthUnavailableException: Exception, @unchecked Sendable {
   override var reason: String { "Health data is not available on this device" }
 }
 
-final class InvalidWorkoutException: Exception {
+final class InvalidWorkoutException: Exception, @unchecked Sendable {
   override var reason: String { "The workout has no valid time range" }
 }

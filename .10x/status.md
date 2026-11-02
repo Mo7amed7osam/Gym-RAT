@@ -56,3 +56,16 @@
 | A7 sub-screens | Done (`42394fe`) |
 | A8 verification | Done on the branch: Jest 223/223, 6 time zones, tsc 0, lint clean; simulator tap-through in Arabic RTL; QA + security reviews (`reviews/2026-11-02-phase4-*`) |
 | Integration readiness | Handoff `specs/2026-11-02-phase4-phase3-integration-handoff.md`; integrated on `integration/phase3-phase4` (`reviews/2026-11-02-integration-report.md`) |
+
+---
+## Phase 5 — iOS Integrations (branch `feature/phase5-ios`, base `b90ece9`)
+**Authorized:** owner brief 2026-11-02. ADR-013. Slug `phase5-ios`. Not merged.
+| Item | Status |
+|---|---|
+| Licensing: Neila Rey poster removed | Done (`7723ab5`) |
+| Native module, iOS config, schema v10 | Done (`b986c5f`) |
+| Rest alerts, Live Activity, Health export, keep-awake, haptics, Settings | Done (`a6c26f2`) |
+| YouTube player + verified ids (35/38) | Done (`55b8572`) |
+| Verification | Jest 296/296, tsc 0, lint clean, simulator build + flows; report `reviews/2026-11-02-phase5-report.md` |
+| Physical iPhone | Not run |
+Owner decisions open: backup inclusion (keep recommended), D11 video list, EAS login + App ID capabilities. Phase 6 / TestFlight not authorized.
