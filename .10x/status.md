@@ -71,3 +71,16 @@
 | Merge + verification on main | Jest 297/297, 4 snapshots, tsc 0, lint clean, store export without poster |
 | Physical iPhone | Not run |
 Owner decisions open: backup inclusion (keep recommended), D11 video list, EAS login + App ID capabilities. Poster rights. Phase 6 / TestFlight not authorized.
+
+---
+## Phase 6 — Release readiness (branch `release/phase6`, base `a51141c`)
+**Authorized:** owner brief 2026-11-02. ADR-014. Slug `phase6-release`. Not merged. Report: `reviews/2026-11-02-phase6-release-readiness.md`.
+| Item | Status |
+|---|---|
+| Native config reproducible, prebuild, expo-doctor 20/20 | Done (`823bfb8`) |
+| Poster fail-safe exclusion (ADR-014) | Done (`823bfb8`); EAS artifact check pending |
+| D8 digits/units, e1RM unification, records formatting, grouping | Done (`b15b457`, `a2228b0`, `895dd5b`) |
+| Photo file protection, rest-alert dismissal defect | Done (`d2790d8`, `1f86723`) |
+| Release simulator build + lifecycle | Done (4 builds; Live Activity visuals unverified) |
+| Physical iPhone | Not run |
+| TestFlight | **NO-GO** — see report blockers |
