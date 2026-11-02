@@ -7,6 +7,9 @@ import { afterAll, beforeAll } from "vitest";
 import { setDbForTests } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { setEnvForTests } from "@/lib/env";
+import { setMailSenderForTests } from "@/lib/mail";
+
+import { outbox } from "./helpers";
 
 /**
  * Every test file gets a fresh in-memory PostgreSQL (PGlite) migrated with
@@ -28,9 +31,17 @@ beforeAll(async () => {
     ADMIN_SESSION_HOURS: 12,
     ADMIN_IDLE_MINUTES: 60,
     TRUST_PROXY: "1",
-    SMTP_URL: undefined,
-    SMTP_FROM: undefined,
+    // Outbound mail is configured but captured (see tests/helpers.ts `outbox`).
+    SMTP_HOST: "smtp.gymrat.test",
+    SMTP_PORT: 587,
+    SMTP_SECURE: "0",
+    SMTP_USER: undefined,
+    SMTP_PASSWORD: undefined,
+    SMTP_FROM: "Gym RAT <no-reply@gymrat.test>",
     APP_NAME: "Gym RAT",
+  });
+  setMailSenderForTests(async (message) => {
+    outbox.push(message);
   });
   pglite = new PGlite();
   const db = drizzle(pglite, { schema });

@@ -92,8 +92,8 @@ export function MemberDetailView({ id }: { id: string }) {
         {member ? (
           <div className="flex flex-wrap gap-2">
             {canInvite ? (
-              <Button variant="tinted" loading={busy === "link"} onClick={() => void run("link", async () => setLink(await api<IssuedLink>(`/api/admin/members/${id}/links`, { body: { kind: "invite" } })), "New invitation link issued")}>
-                <Link2 className="size-4" aria-hidden /> New invitation link
+              <Button variant="tinted" loading={busy === "link"} onClick={() => void run("link", async () => setLink(await api<IssuedLink>(`/api/admin/members/${id}/links`, { body: { kind: "invite" } })), "Invitation resent")}>
+                <Link2 className="size-4" aria-hidden /> Resend invitation
               </Button>
             ) : null}
             {canReset ? (
@@ -224,7 +224,7 @@ export function MemberDetailView({ id }: { id: string }) {
             </CardBody>
           </Card>
           <Card>
-            <CardHeader title="Pending links" description="Unused invitation or reset links." />
+            <CardHeader title="Pending links" description="Unused invitation or reset links and whether their email was delivered to the mail server." />
             <CardBody>
               {!data ? (
                 <Skeleton className="h-5" />
@@ -235,7 +235,12 @@ export function MemberDetailView({ id }: { id: string }) {
                   {data.pendingLinks.map((item) => (
                     <li key={`${item.kind}-${item.createdAt}`} className="flex items-center justify-between gap-2">
                       <Badge tone={item.kind === "reset" ? "info" : "warning"}>{item.kind === "reset" ? "Reset" : "Invitation"}</Badge>
-                      <span className="text-fg-muted">expires {formatRelative(item.expiresAt).replace(" ago", "")}</span>
+                      <span className="flex min-w-0 flex-col items-end text-right">
+                        <span className={item.emailStatus === "failed" ? "font-semibold text-danger" : "text-fg-muted"}>
+                          {item.emailStatus === "sent" ? "Emailed" : item.emailStatus === "failed" ? "Email failed" : item.emailStatus === "sending" ? "Sending…" : "Shared by hand"} · expires {formatRelative(item.expiresAt).replace(" ago", "")}
+                        </span>
+                        {item.emailError ? <span className="max-w-[260px] truncate text-[12px] text-fg-muted" title={item.emailError}>{item.emailError}</span> : null}
+                      </span>
                     </li>
                   ))}
                 </ul>

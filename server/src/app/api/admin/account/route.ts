@@ -8,6 +8,7 @@ import { hashPassword, passwordProblems, verifyPassword } from "@/lib/auth/passw
 import { getDb } from "@/lib/db";
 import { adminSessions, users } from "@/lib/db/schema";
 import { env } from "@/lib/env";
+import { mailConfig } from "@/lib/mail";
 import { HttpError, json, parseBody, requestContext } from "@/lib/http";
 
 /** The admin's own account: sessions, recovery codes left, password change, mail status. */
@@ -20,7 +21,7 @@ export const GET = withAdmin(async (_request, auth) => {
   return json({
     user: { id: auth.user.id, email: auth.user.email, displayName: auth.user.displayName, lastLoginAt: auth.user.lastLoginAt?.toISOString() ?? null },
     recoveryCodesLeft: await recoveryCodesLeft(auth.user.id),
-    mailConfigured: Boolean(env().SMTP_URL),
+    mailConfigured: mailConfig() !== null,
     publicOrigin: env().PUBLIC_ORIGIN,
     leaseDays: env().OFFLINE_LEASE_DAYS,
     inviteHours: env().INVITE_TTL_HOURS,

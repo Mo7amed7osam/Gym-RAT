@@ -28,7 +28,8 @@ export function NewMember() {
     try {
       const result = await api<{ member: MemberSummary; link: IssuedLink }>("/api/admin/members", { body: { email, displayName } });
       setCreated(result);
-      toast.success("Member created", `${result.member.displayName} can set a password with the link.`);
+      if (result.link.emailStatus === "failed") toast.error("Invitation email failed", result.link.emailError ?? "The mail server refused the message.");
+      else toast.success("Invitation emailed", `${result.member.displayName} will get a link to set a password.`);
     } catch (cause) {
       setError(describeError(cause));
     } finally {
@@ -38,7 +39,7 @@ export function NewMember() {
 
   return (
     <>
-      <PageHeader eyebrow="Members" title="New member" description="You create the account; the member chooses the password through a one-time link. You never see or store it." />
+      <PageHeader eyebrow="Members" title="New member" description="You create the account; the member gets an email with a one-time link to choose the password. You never see the link or the password." />
       <div className="fade-up grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,560px)_1fr]">
         <Card>
           <CardBody className="pt-5">
@@ -77,7 +78,7 @@ export function NewMember() {
                 ) : null}
                 <div className="flex items-center gap-2 pt-1">
                   <Button type="submit" size="lg" loading={busy} disabled={!email || !displayName.trim()}>
-                    Create and get link
+                    Create and email invitation
                   </Button>
                   <Button variant="ghost" size="lg">
                     <Link href="/members">Cancel</Link>
@@ -94,10 +95,11 @@ export function NewMember() {
             <li>Workouts stored only on their iPhone; nothing is uploaded here.</li>
             <li>Seven days of offline use before the app asks them to connect again.</li>
           </ul>
-          <h2 className="eyebrow mt-6">Invitation links</h2>
+          <h2 className="eyebrow mt-6">Invitations</h2>
           <ul className="mt-3 space-y-2">
-            <li>Valid for 72 hours, usable once, stored only as a hash.</li>
-            <li>Without outbound email configured, you share the link yourself.</li>
+            <li>Sent by email automatically. Valid for 72 hours by default (INVITE_TTL_HOURS), usable once, stored only as a hash.</li>
+            <li>No password is ever emailed; the member chooses it through the link.</li>
+            <li>If the server has no email settings, members cannot be created; if sending fails, the member page shows why and lets you resend.</li>
           </ul>
         </aside>
       </div>

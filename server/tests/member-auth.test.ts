@@ -13,7 +13,7 @@ import { revokeAllMemberSessions } from "@/lib/auth/member-sessions";
 import { getDb } from "@/lib/db";
 import { auditEvents, passwordResetRequests, users } from "@/lib/db/schema";
 
-import { STRONG, body, params, req, seedUser } from "./helpers";
+import { STRONG, body, params, req, seedUser, lastMailedLink } from "./helpers";
 
 /**
  * Member API through the real route handlers against PGlite: login success
@@ -165,8 +165,9 @@ describe("invitations and password reset", () => {
   it("an invitation link previews the member, enforces the password policy, activates the account once", async () => {
     const user = await seedUser({ email: "new@example.com", status: "invited", displayName: "New Member" });
     const link = await issueActionLink(user, "invite", { id: null, type: "system" }, ctx);
-    expect(link.delivery).toBe("manual");
-    const token = link.url.split("/").pop()!;
+    expect(link).toMatchObject({ delivery: "email", emailStatus: "sent" });
+    expect(link.url).toBeUndefined();
+    const { token } = lastMailedLink("new@example.com");
 
     const preview = await linkGet(req(`/api/auth/links/${token}`), params({ token }));
     expect(preview.status).toBe(200);
@@ -192,15 +193,15 @@ describe("invitations and password reset", () => {
 
   it("issuing a new link invalidates the previous one; links expire", async () => {
     const user = await seedUser({ email: "relink@example.com", status: "invited" });
-    const first = await issueActionLink(user, "invite", { id: null, type: "system" }, ctx);
-    const second = await issueActionLink(user, "invite", { id: null, type: "system" }, ctx);
-    const t1 = first.url.split("/").pop()!;
-    const t2 = second.url.split("/").pop()!;
+    await issueActionLink(user, "invite", { id: null, type: "system" }, ctx);
+    const t1 = lastMailedLink("relink@example.com").token;
+    await issueActionLink(user, "invite", { id: null, type: "system" }, ctx);
+    const t2 = lastMailedLink("relink@example.com").token;
     expect((await linkGet(req(`/api/auth/links/${t1}`), params({ token: t1 }))).status).toBe(404);
     expect((await linkGet(req(`/api/auth/links/${t2}`), params({ token: t2 }))).status).toBe(200);
 
-    const expired = await issueActionLink(user, "invite", { id: null, type: "system" }, ctx, new Date(Date.now() - 100 * 3_600_000));
-    const t3 = expired.url.split("/").pop()!;
+    await issueActionLink(user, "invite", { id: null, type: "system" }, ctx, new Date(Date.now() - 100 * 3_600_000));
+    const t3 = lastMailedLink("relink@example.com").token;
     expect((await linkGet(req(`/api/auth/links/${t3}`), params({ token: t3 }))).status).toBe(404);
   });
 
@@ -208,7 +209,8 @@ describe("invitations and password reset", () => {
     const user = await seedUser({ email: "reset@example.com", password: STRONG });
     const session = await body<{ accessToken: string }>(await login(req("/api/auth/login", { body: { email: "reset@example.com", password: STRONG } })));
     const link = await issueActionLink(user, "reset", { id: null, type: "system" }, ctx);
-    const token = link.url.split("/").pop()!;
+    expect(link).toMatchObject({ delivery: "email", emailStatus: "sent" });
+    const { token } = lastMailedLink("reset@example.com");
     const newPassword = "a brand new passphrase 99";
     expect((await linkPost(req(`/api/auth/links/${token}`, { body: { password: newPassword } }), params({ token }))).status).toBe(200);
     expect((await me(req("/api/auth/me", { headers: { authorization: `Bearer ${session.accessToken}` } }))).status).toBe(401);

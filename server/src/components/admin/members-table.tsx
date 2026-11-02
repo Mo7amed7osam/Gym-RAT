@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import { PageHeader } from "@/components/admin/shell";
 import { Avatar } from "@/components/ui/avatar";
-import { StatusBadge } from "@/components/ui/badge";
+import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -123,7 +123,16 @@ export function MembersTable() {
                     </Link>
                   </TD>
                   <TD>
-                    <StatusBadge status={member.status} />
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <StatusBadge status={member.status} />
+                      {member.invitation?.emailStatus === "failed" ? (
+                        <Badge tone="danger" title={member.invitation.emailError ?? undefined}>
+                          Invite email failed
+                        </Badge>
+                      ) : member.invitation?.expired ? (
+                        <Badge tone="warning">Invite expired</Badge>
+                      ) : null}
+                    </span>
                   </TD>
                   <TD className="tnum hidden md:table-cell">{member.activeSessions}</TD>
                   <TD className="hidden text-fg-muted sm:table-cell" title={formatDateTime(member.lastLoginAt)}>

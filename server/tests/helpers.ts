@@ -52,3 +52,15 @@ export async function currentTotp(userId: string, at = Date.now()): Promise<stri
 }
 
 export const STRONG = "correct horse battery staple 2026";
+
+/** Messages "sent" by the server during the tests (captured instead of SMTP). */
+export const outbox: { to: string; from: string; subject: string; text: string }[] = [];
+
+/** The one-time link in the latest email to `to`. */
+export function lastMailedLink(to: string): { url: string; token: string; text: string } {
+  const message = [...outbox].reverse().find((item) => item.to === to);
+  if (!message) throw new Error(`no email to ${to}`);
+  const url = message.text.match(/https:\/\/\S+\/(invite|reset|setup)\/\S+/)?.[0];
+  if (!url) throw new Error("no link in email");
+  return { url, token: url.split("/").pop()!, text: message.text };
+}

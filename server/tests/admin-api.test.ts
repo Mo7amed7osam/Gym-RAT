@@ -19,7 +19,10 @@ import { GET as statsGet } from "@/app/api/admin/stats/route";
 import { getDb } from "@/lib/db";
 import { actionTokens, users } from "@/lib/db/schema";
 
-import { STRONG, body, browserReq, cookieFrom, currentTotp, params, req, seedUser } from "./helpers";
+import { STRONG, body, browserReq, cookieFrom, currentTotp, lastMailedLink, params, req, seedUser } from "./helpers";
+import { setEnvForTests, env } from "@/lib/env";
+import { setMailSenderForTests } from "@/lib/mail";
+import { outbox } from "./helpers";
 
 /**
  * Admin dashboard API: cookie session + mandatory TOTP, CSRF origin check,
@@ -123,17 +126,23 @@ describe("member management", () => {
   let memberId = "";
   let inviteToken = "";
 
-  it("creates a member and returns a one-time invitation link (manual delivery without SMTP)", async () => {
+  it("creates a member and emails a one-time invitation; the admin never sees the link", async () => {
     const res = await membersPost(browserReq("/api/admin/members", { body: { email: "Nour@Example.com", displayName: "Nour" }, cookie: adminCookie }), {});
     expect(res.status).toBe(201);
-    const created = await body<{ member: { id: string; email: string; status: string; role: string }; link: { url: string; delivery: string; kind: string } }>(res);
+    const created = await body<{ member: { id: string; email: string; status: string; role: string }; link: { url?: string; delivery: string; kind: string; emailStatus: string } }>(res);
     expect(created.member).toMatchObject({ email: "nour@example.com", status: "invited", role: "member" });
-    expect(created.link).toMatchObject({ delivery: "manual", kind: "invite" });
-    expect(created.link.url).toMatch(/^https:\/\/admin\.gymrat\.test\/invite\//);
+    expect(created.link).toMatchObject({ delivery: "email", kind: "invite", emailStatus: "sent" });
+    expect(created.link.url).toBeUndefined();
     memberId = created.member.id;
-    inviteToken = created.link.url.split("/").pop()!;
+    const mail = lastMailedLink("nour@example.com");
+    expect(mail.url).toMatch(/^https:\/\/admin\.gymrat\.test\/invite\/[A-Za-z0-9_-]{43}$/);
+    expect(mail.text).toMatch(/expires at/);
+    expect(mail.text).not.toMatch(/password:/i);
+    inviteToken = mail.token;
     const stored = await getDb().select().from(actionTokens).where(eq(actionTokens.userId, memberId));
     expect(stored[0].tokenHash).not.toContain(inviteToken);
+    expect(stored[0].tokenHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(stored[0]).toMatchObject({ delivery: "email", emailStatus: "sent", emailError: null });
 
     const dup = await membersPost(browserReq("/api/admin/members", { body: { email: "nour@example.com", displayName: "Dup" }, cookie: adminCookie }), {});
     expect(dup.status).toBe(409);
@@ -188,7 +197,8 @@ describe("member management", () => {
     expect((await memberLinks(browserReq(`/api/admin/members/${memberId}/links`, { body: { kind: "invite" }, cookie: adminCookie }), params({ id: memberId }))).status).toBe(400);
     const reset = await memberLinks(browserReq(`/api/admin/members/${memberId}/links`, { body: { kind: "reset" }, cookie: adminCookie }), params({ id: memberId }));
     expect(reset.status).toBe(201);
-    expect((await body<{ url: string }>(reset)).url).toMatch(/\/reset\//);
+    expect(await body(reset)).toMatchObject({ kind: "reset", delivery: "email", emailStatus: "sent" });
+    expect(lastMailedLink("nour@example.com").url).toMatch(/\/reset\//);
   });
 
   it("revoke sessions (one family, then all) signs devices out", async () => {
@@ -231,7 +241,7 @@ describe("member management", () => {
   it("admin account: info, password change with current password, and revoking other browser sessions", async () => {
     const info = await body<{ recoveryCodesLeft: number; mailConfigured: boolean; sessions: { current: boolean }[] }>(await accountGet(req("/api/admin/account", { cookie: adminCookie }), {}));
     expect(info.recoveryCodesLeft).toBe(10);
-    expect(info.mailConfigured).toBe(false);
+    expect(info.mailConfigured).toBe(true);
     expect(info.sessions.some((row) => row.current)).toBe(true);
 
     const wrong = await accountPatch(browserReq("/api/admin/account", { method: "PATCH", body: { currentPassword: "nope-nope-nope", newPassword: "another strong passphrase 7" }, cookie: adminCookie }), {});
@@ -242,5 +252,59 @@ describe("member management", () => {
     expect(others.status).toBe(200);
     // Still signed in on this session.
     expect((await statsGet(req("/api/admin/stats", { cookie: adminCookie }), {})).status).toBe(200);
+  });
+});
+
+describe("email invitations (owner decision: automatic email, no manual fallback)", () => {
+  it("refuses to create or re-invite members when SMTP is not configured, without creating anything", async () => {
+    const saved = env();
+    setEnvForTests({ ...saved, SMTP_HOST: undefined, SMTP_FROM: undefined });
+    try {
+      const sentBefore = outbox.length;
+      const res = await membersPost(browserReq("/api/admin/members", { body: { email: "nosmtp@example.com", displayName: "No SMTP" }, cookie: adminCookie }), {});
+      expect(res.status).toBe(503);
+      expect(await body(res)).toMatchObject({ error: "email_not_configured" });
+      expect(await getDb().select().from(users).where(eq(users.email, "nosmtp@example.com"))).toHaveLength(0);
+      expect(outbox.length).toBe(sentBefore);
+      const account = await body<{ mailConfigured: boolean }>(await accountGet(req("/api/admin/account", { cookie: adminCookie }), {}));
+      expect(account.mailConfigured).toBe(false);
+    } finally {
+      setEnvForTests(saved);
+    }
+  });
+
+  it("records an SMTP failure on the invitation, shows it to the admin, never returns the link, and a resend works", async () => {
+    setMailSenderForTests(async () => {
+      throw Object.assign(new Error("Invalid login: 535 5.7.8 Authentication failed"), { code: "EAUTH", responseCode: 535 });
+    });
+    let memberId = "";
+    try {
+      const res = await membersPost(browserReq("/api/admin/members", { body: { email: "bounce@example.com", displayName: "Bounce" }, cookie: adminCookie }), {});
+      expect(res.status).toBe(201);
+      const created = await body<{ member: { id: string }; link: { url?: string; emailStatus: string; emailError: string } }>(res);
+      memberId = created.member.id;
+      expect(created.link.url).toBeUndefined();
+      expect(created.link.emailStatus).toBe("failed");
+      expect(created.link.emailError).toMatch(/EAUTH · SMTP 535/);
+
+      const detail = await body<{ pendingLinks: { kind: string; delivery: string; emailStatus: string; emailError: string | null }[]; audit: { action: string; success: boolean }[] }>(
+        await memberGet(req(`/api/admin/members/${memberId}`, { cookie: adminCookie }), params({ id: memberId })),
+      );
+      expect(detail.pendingLinks[0]).toMatchObject({ kind: "invite", delivery: "email", emailStatus: "failed" });
+      expect(detail.audit.find((event) => event.action === "link.issued.invite")?.success).toBe(false);
+      const list = await body<{ items: { id: string; invitation: { emailStatus: string } | null }[] }>(await membersGet(req("/api/admin/members?q=bounce", { cookie: adminCookie }), {}));
+      expect(list.items[0].invitation).toMatchObject({ emailStatus: "failed" });
+    } finally {
+      setMailSenderForTests(async (message) => {
+        outbox.push(message);
+      });
+    }
+
+    const resend = await memberLinks(browserReq(`/api/admin/members/${memberId}/links`, { body: { kind: "invite" }, cookie: adminCookie }), params({ id: memberId }));
+    expect(resend.status).toBe(201);
+    expect(await body(resend)).toMatchObject({ kind: "invite", delivery: "email", emailStatus: "sent" });
+    const { token } = lastMailedLink("bounce@example.com");
+    expect((await linkPost(req(`/api/auth/links/${token}`, { body: { password: STRONG } }), params({ token }))).status).toBe(200);
+    expect((await getDb().select().from(users).where(eq(users.id, memberId)))[0].status).toBe("active");
   });
 });

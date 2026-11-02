@@ -95,8 +95,12 @@ export const actionTokens = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     usedAt: timestamp("used_at", { withTimezone: true }),
     createdBy: uuid("created_by"),
-    /** How the link left the server: emailed, or shown to the admin to share by hand. */
+    /** How the link left the server: emailed, or shown to the admin to share by hand (resets only; invitations are always emailed). */
     delivery: text("delivery", { enum: ["email", "manual"] }).notNull().default("manual"),
+    /** Email outcome when delivery is "email": sending, sent or failed (with a credential-free reason). */
+    emailStatus: text("email_status", { enum: ["sending", "sent", "failed"] }),
+    emailError: text("email_error"),
+    emailAttemptedAt: timestamp("email_attempted_at", { withTimezone: true }),
   },
   (table) => [uniqueIndex("action_tokens_token_idx").on(table.tokenHash), index("action_tokens_user_idx").on(table.userId, table.kind)],
 );

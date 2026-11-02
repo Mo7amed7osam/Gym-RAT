@@ -127,18 +127,40 @@ entry to `db`. Example with ufw: `ufw default deny incoming; ufw allow 22; ufw a
 - Audit: `audit_events` (actor, action, target, IP, user agent, success, metadata) — never
   passwords, tokens or codes.
 
-### Sharing links manually (no SMTP)
+### Email (SMTP) — invitations
 
-Without `SMTP_URL`, invitation and reset links are shown to the admin once, to share by hand.
-Implications:
+Invitations are emailed automatically (owner decision, 2026-11-02). There is no manual
+fallback: without email settings the dashboard refuses to create or re-invite members
+(`503 email_not_configured`), and a send that fails is recorded on the invitation and shown
+on the members list and the member page ("Invite email failed" + the mail server's reason),
+with **Resend invitation** to try again once fixed. The link itself is never shown to the
+admin.
 
-- Whoever opens a link first sets the password. Send it over a channel you trust (in person,
-  an end-to-end encrypted message), not a shared group chat.
-- Links are single-use and expire (invitations 72 h, resets 60 min); issuing a new one cancels
-  the old one, which is the remedy if a link may have leaked.
-- Only the SHA-256 of a link is stored; the dashboard cannot show an old link again.
-- Set `SMTP_URL`/`SMTP_FROM` to have the server email links instead; the member page then
-  says "emailed" and the link is still shown as a fallback.
+Set these in `server/.env` on the VPS (never in the iPhone app):
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `SMTP_HOST` | yes | SMTP relay host of your mail provider |
+| `SMTP_PORT` | no (587) | 587 for STARTTLS, 465 for implicit TLS |
+| `SMTP_SECURE` | no (`0`) | `1` = implicit TLS (465); `0` = STARTTLS, which is then required |
+| `SMTP_USER` / `SMTP_PASSWORD` | together, or neither | relay credentials |
+| `SMTP_FROM` | yes | sender, e.g. `Gym RAT <no-reply@your-domain>`; must be allowed by the relay (SPF/DKIM for the domain) |
+| `INVITE_TTL_HOURS` | no (72) | invitation lifetime |
+
+`docker compose up -d` after editing `.env`; Settings in the dashboard then shows
+"Outbound email: Configured". Failure reasons stored and displayed are stripped of the SMTP
+user and password.
+
+Invitation security: 32 random bytes (base64url) per link; only the SHA-256 is stored; single
+use; expires after `INVITE_TTL_HOURS`; issuing a new one cancels the previous. The email
+contains only the link and its expiry, never a password; the member chooses the password on
+the link page (Argon2id).
+
+### Password-reset links
+
+Reset links are emailed the same way when SMTP works. If it is not configured or the send
+fails, the reset link is shown to the admin once to share over a channel you trust (this is
+unchanged from Phase 7; only invitations are email-only).
 
 ## API contract used by the app
 

@@ -21,6 +21,7 @@ export type ErrorCode =
   | "mfa_required"
   | "weak_password"
   | "csrf"
+  | "email_not_configured"
   | "server_error";
 
 export class HttpError extends Error {

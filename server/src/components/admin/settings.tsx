@@ -115,7 +115,7 @@ export function SettingsView() {
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <Fact icon={Globe} label="Public origin" value={data.publicOrigin} />
-                <Fact icon={Mail} label="Outbound email" value={data.mailConfigured ? "Configured: links are emailed" : "Not configured: share links by hand"} tone={data.mailConfigured ? "success" : "warning"} />
+                <Fact icon={Mail} label="Outbound email" value={data.mailConfigured ? "Configured: invitations are emailed" : "Not configured: members cannot be invited until SMTP is set"} tone={data.mailConfigured ? "success" : "warning"} />
                 <Fact icon={Timer} label="Offline lease" value={`${data.leaseDays} days`} />
                 <Fact icon={KeyRound} label="Link lifetimes" value={`Invitations ${data.inviteHours} h · resets ${data.resetMinutes} min`} />
               </div>

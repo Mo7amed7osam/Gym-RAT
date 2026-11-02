@@ -5,7 +5,7 @@ import { getDb } from "@/lib/db";
 import { actionTokens, passwordResetRequests, users, type ActionToken, type User } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { HttpError } from "@/lib/http";
-import { sendMail } from "@/lib/mail";
+import { MailDeliveryError, mailConfig, sendMail } from "@/lib/mail";
 
 import { randomToken, sha256 } from "./crypto";
 import { revokeAllMemberSessions } from "./member-sessions";
@@ -16,18 +16,47 @@ import { LIMITS, consumeRateLimit } from "./rate-limit";
  * One-time links (ADR-015): invitations let a new member choose their first
  * password; resets let an existing member replace theirs. The server stores
  * only the SHA-256 of the token. Issuing a new link of the same kind
- * invalidates older unused ones. If SMTP is configured the link is emailed;
- * otherwise it is returned once so the admin can share it by hand
- * (see server/README.md "Sharing links manually").
+ * invalidates older unused ones.
+ *
+ * Invitations are always emailed (owner decision 2026-11-02): without SMTP
+ * configuration they are refused, and a failed send is recorded on the link
+ * (email_status = failed + reason) for the dashboard; the URL is never handed
+ * to the admin instead. Reset links keep the earlier behaviour: emailed when
+ * SMTP works, otherwise returned once for the admin to share by hand.
  */
 
 export type ActionKind = ActionToken["kind"];
 
 export interface IssuedLink {
-  url: string;
+  /** Present only for manual delivery (reset links without working email). Never for invitations. */
+  url?: string;
   expiresAt: string;
   delivery: "email" | "manual";
   kind: ActionKind;
+  /** For emailed links: whether the SMTP server accepted the message. */
+  emailStatus: "sent" | "failed" | null;
+  emailError: string | null;
+}
+
+/** Refuses an invitation up front when the server cannot email it. */
+export function assertInvitationsDeliverable(): void {
+  if (!mailConfig()) {
+    throw new HttpError(503, "email_not_configured", "Outbound email is not configured on the server (SMTP_HOST, SMTP_FROM). Members are invited by email only; set it up before inviting.");
+  }
+}
+
+function linkEmail(kind: ActionKind, user: User, url: string, expiresAt: Date): { subject: string; text: string } {
+  const app = env().APP_NAME;
+  if (kind === "reset") {
+    return {
+      subject: `${app}: reset your password`,
+      text: `Hi ${user.displayName},\n\nUse this link to choose a new ${app} password. It works once and expires at ${expiresAt.toISOString()}.\n\n${url}\n\nIf you did not ask for this, ignore this email.`,
+    };
+  }
+  return {
+    subject: `${app}: set up your account`,
+    text: `Hi ${user.displayName},\n\nAn account was created for you in ${app}. Open this link to choose your password. It works once and expires at ${expiresAt.toISOString()}.\n\n${url}\n\nNobody else knows or receives your password. If you were not expecting this, ignore this email.`,
+  };
 }
 
 const ttlMs = (kind: ActionKind): number => {
@@ -38,6 +67,7 @@ const ttlMs = (kind: ActionKind): number => {
 const pathFor = (kind: ActionKind): string => (kind === "reset" ? "/reset" : kind === "invite" ? "/invite" : "/setup");
 
 export async function issueActionLink(user: User, kind: ActionKind, actor: { id: string | null; type: "admin" | "system" }, ctx: RequestContext, now = new Date()): Promise<IssuedLink> {
+  if (kind === "invite") assertInvitationsDeliverable();
   const db = getDb();
   await db
     .update(actionTokens)
@@ -46,21 +76,47 @@ export async function issueActionLink(user: User, kind: ActionKind, actor: { id:
   const raw = randomToken();
   const expiresAt = new Date(now.getTime() + ttlMs(kind));
   const url = `${env().PUBLIC_ORIGIN}${pathFor(kind)}/${raw}`;
-  let delivery: "email" | "manual" = "manual";
-  if (env().SMTP_URL) {
-    const sent = await sendMail({
-      to: user.email,
-      subject: kind === "reset" ? `${env().APP_NAME}: reset your password` : `${env().APP_NAME}: set up your account`,
-      text:
-        kind === "reset"
-          ? `Hi ${user.displayName},\n\nUse this link to choose a new ${env().APP_NAME} password. It works once and expires at ${expiresAt.toISOString()}.\n\n${url}\n\nIf you did not ask for this, ignore this email.`
-          : `Hi ${user.displayName},\n\nYour ${env().APP_NAME} account is ready. Choose your password here (the link works once and expires at ${expiresAt.toISOString()}):\n\n${url}`,
-    });
-    if (sent) delivery = "email";
+  const emailed = kind === "invite" || mailConfig() !== null;
+  const inserted = await db
+    .insert(actionTokens)
+    .values({
+      userId: user.id,
+      kind,
+      tokenHash: sha256(raw),
+      createdAt: now,
+      expiresAt,
+      createdBy: actor.id,
+      delivery: emailed ? "email" : "manual",
+      emailStatus: emailed ? "sending" : null,
+      emailAttemptedAt: emailed ? now : null,
+    })
+    .returning({ id: actionTokens.id });
+
+  let emailStatus: "sent" | "failed" | null = null;
+  let emailError: string | null = null;
+  if (emailed) {
+    try {
+      await sendMail({ to: user.email, ...linkEmail(kind, user, url, expiresAt) });
+      emailStatus = "sent";
+    } catch (error) {
+      emailStatus = "failed";
+      emailError = error instanceof MailDeliveryError ? error.message : "Unknown email error";
+    }
+    await db.update(actionTokens).set({ emailStatus, emailError }).where(eq(actionTokens.id, inserted[0].id));
   }
-  await db.insert(actionTokens).values({ userId: user.id, kind, tokenHash: sha256(raw), createdAt: now, expiresAt, createdBy: actor.id, delivery });
-  await audit({ ...ctx, actorType: actor.type, actorId: actor.id, action: `link.issued.${kind}`, targetUserId: user.id, metadata: { delivery, expiresAt: expiresAt.toISOString() } });
-  return { url, expiresAt: expiresAt.toISOString(), delivery, kind };
+  // A reset link whose email failed is still shown once to the admin (unchanged behaviour); an invitation never is.
+  const delivery: "email" | "manual" = kind !== "invite" && emailStatus !== "sent" ? "manual" : "email";
+  if (delivery === "manual" && emailed) await db.update(actionTokens).set({ delivery: "manual" }).where(eq(actionTokens.id, inserted[0].id));
+  await audit({
+    ...ctx,
+    actorType: actor.type,
+    actorId: actor.id,
+    action: `link.issued.${kind}`,
+    targetUserId: user.id,
+    success: emailStatus !== "failed" || kind !== "invite",
+    metadata: { delivery, emailStatus, emailError, expiresAt: expiresAt.toISOString() },
+  });
+  return { ...(delivery === "manual" ? { url } : {}), expiresAt: expiresAt.toISOString(), delivery, kind, emailStatus, emailError };
 }
 
 export interface TokenPreview {
@@ -131,7 +187,7 @@ export async function requestPasswordReset(email: string, ctx: RequestContext, n
     .values({ userId: user && user.status === "active" ? user.id : null, email: email.toLowerCase(), requestedAt: now, ip: ctx.ip })
     .returning({ id: passwordResetRequests.id });
   await audit({ ...ctx, actorType: "anonymous", action: "member.forgot.requested", targetUserId: user?.id ?? null, metadata: { email, known: Boolean(user) } });
-  if (user && user.status === "active" && env().SMTP_URL) {
+  if (user && user.status === "active" && mailConfig()) {
     const link = await issueActionLink(user, "reset", { id: null, type: "system" }, ctx, now);
     if (link.delivery === "email") await db.update(passwordResetRequests).set({ handledAt: now }).where(eq(passwordResetRequests.id, inserted[0].id));
   }

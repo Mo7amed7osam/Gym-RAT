@@ -1,7 +1,7 @@
-import { and, count, desc, eq, gte, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 
 import { audit, type RequestContext } from "@/lib/audit";
-import { issueActionLink, type IssuedLink } from "@/lib/auth/action-tokens";
+import { assertInvitationsDeliverable, issueActionLink, type IssuedLink } from "@/lib/auth/action-tokens";
 import { revokeAllMemberSessions, revokeFamily } from "@/lib/auth/member-sessions";
 import { getDb } from "@/lib/db";
 import { actionTokens, auditEvents, passwordResetRequests, refreshTokens, users, type User } from "@/lib/db/schema";
@@ -21,6 +21,16 @@ export interface MemberSummary {
   lastLoginAt: string | null;
   createdAt: string;
   activeSessions: number;
+  /** Latest unused invitation of an invited member: was the email accepted by the mail server? */
+  invitation: InvitationState | null;
+}
+
+export interface InvitationState {
+  emailStatus: "sending" | "sent" | "failed" | null;
+  emailError: string | null;
+  sentAt: string;
+  expiresAt: string;
+  expired: boolean;
 }
 
 export interface MemberListQuery {
@@ -30,7 +40,7 @@ export interface MemberListQuery {
   pageSize?: number;
 }
 
-const toSummary = (row: User, activeSessions: number): MemberSummary => ({
+const toSummary = (row: User, activeSessions: number, invitation: InvitationState | null = null): MemberSummary => ({
   id: row.id,
   email: row.email,
   displayName: row.displayName,
@@ -39,7 +49,30 @@ const toSummary = (row: User, activeSessions: number): MemberSummary => ({
   lastLoginAt: row.lastLoginAt?.toISOString() ?? null,
   createdAt: row.createdAt.toISOString(),
   activeSessions,
+  invitation: row.status === "invited" ? invitation : null,
 });
+
+/** Latest unused invitation per invited member (delivery status for the dashboard). */
+async function invitationsFor(userIds: string[], now = new Date()): Promise<Map<string, InvitationState>> {
+  if (userIds.length === 0) return new Map();
+  const rows = await getDb()
+    .select()
+    .from(actionTokens)
+    .where(and(inArray(actionTokens.userId, userIds), eq(actionTokens.kind, "invite"), isNull(actionTokens.usedAt)))
+    .orderBy(desc(actionTokens.createdAt));
+  const out = new Map<string, InvitationState>();
+  for (const row of rows) {
+    if (out.has(row.userId)) continue;
+    out.set(row.userId, {
+      emailStatus: row.emailStatus,
+      emailError: row.emailError,
+      sentAt: (row.emailAttemptedAt ?? row.createdAt).toISOString(),
+      expiresAt: row.expiresAt.toISOString(),
+      expired: row.expiresAt.getTime() <= now.getTime(),
+    });
+  }
+  return out;
+}
 
 export async function listMembers(query: MemberListQuery): Promise<{ items: MemberSummary[]; total: number; page: number; pageSize: number }> {
   const db = getDb();
@@ -60,7 +93,8 @@ export async function listMembers(query: MemberListQuery): Promise<{ items: Memb
         .groupBy(refreshTokens.userId)
     : [];
   const byUser = new Map(sessions.map((row) => [row.userId, Number(row.n)]));
-  return { items: rows.map((row) => toSummary(row, byUser.get(row.id) ?? 0)), total: Number(totals[0]?.n ?? 0), page, pageSize };
+  const invites = await invitationsFor(rows.filter((row) => row.status === "invited").map((row) => row.id));
+  return { items: rows.map((row) => toSummary(row, byUser.get(row.id) ?? 0, invites.get(row.id) ?? null)), total: Number(totals[0]?.n ?? 0), page, pageSize };
 }
 
 export interface Stats {
@@ -112,7 +146,7 @@ export async function getMember(id: string): Promise<User> {
 export interface MemberDetail {
   member: MemberSummary;
   sessions: { familyId: string; deviceName: string | null; ip: string | null; createdAt: string; lastSeenAt: string; expiresAt: string }[];
-  pendingLinks: { kind: string; expiresAt: string; delivery: string; createdAt: string }[];
+  pendingLinks: { kind: string; expiresAt: string; delivery: string; createdAt: string; emailStatus: string | null; emailError: string | null }[];
   audit: { id: number; at: string; action: string; actorType: string; ip: string | null; success: boolean; metadata: Record<string, unknown> }[];
   openResetRequests: number;
 }
@@ -133,15 +167,17 @@ export async function memberDetail(id: string, now = new Date()): Promise<Member
   const events = await db.select().from(auditEvents).where(eq(auditEvents.targetUserId, id)).orderBy(desc(auditEvents.at)).limit(50);
   const resets = await db.select({ n: count() }).from(passwordResetRequests).where(and(eq(passwordResetRequests.userId, id), isNull(passwordResetRequests.handledAt)));
   return {
-    member: toSummary(user, live.length),
+    member: toSummary(user, live.length, (await invitationsFor([user.id], now)).get(user.id) ?? null),
     sessions: live.map((row) => ({ familyId: row.familyId, deviceName: row.deviceName, ip: row.ip, createdAt: row.createdAt.toISOString(), lastSeenAt: row.lastSeenAt.toISOString(), expiresAt: row.expiresAt.toISOString() })),
-    pendingLinks: links.map((row) => ({ kind: row.kind, expiresAt: row.expiresAt.toISOString(), delivery: row.delivery, createdAt: row.createdAt.toISOString() })),
+    pendingLinks: links.map((row) => ({ kind: row.kind, expiresAt: row.expiresAt.toISOString(), delivery: row.delivery, createdAt: row.createdAt.toISOString(), emailStatus: row.emailStatus, emailError: row.emailError })),
     audit: events.map((row) => ({ id: row.id, at: row.at.toISOString(), action: row.action, actorType: row.actorType, ip: row.ip, success: row.success, metadata: row.metadata })),
     openResetRequests: Number(resets[0]?.n ?? 0),
   };
 }
 
 export async function createMember(input: { email: string; displayName: string }, admin: { id: string }, ctx: RequestContext, now = new Date()): Promise<{ member: MemberSummary; link: IssuedLink }> {
+  // Invitations are emailed only: refuse before creating anything when the server cannot send mail.
+  assertInvitationsDeliverable();
   const db = getDb();
   const existing = await db.select({ id: users.id }).from(users).where(sql`lower(${users.email}) = ${input.email.toLowerCase()}`).limit(1);
   if (existing.length > 0) throw new HttpError(409, "conflict", "An account with this email already exists");
