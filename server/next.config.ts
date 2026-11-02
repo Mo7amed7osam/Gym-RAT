@@ -5,12 +5,16 @@ import type { NextConfig } from "next";
  * and every API answer is per-request, so Cache Components is off: nothing
  * here should ever be prerendered or cached.
  */
+// React dev tooling needs eval(); production never does.
+const scriptSrc = process.env.NODE_ENV === "development" ? "'self' 'unsafe-inline' 'unsafe-eval'" : "'self' 'unsafe-inline'";
+
 const nextConfig: NextConfig = {
   cacheComponents: false,
   output: "standalone",
   poweredByHeader: false,
   serverExternalPackages: ["@node-rs/argon2", "postgres"],
   turbopack: {
+    root: __dirname,
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],
@@ -29,7 +33,7 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+            value: `default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src ${scriptSrc}; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`,
           },
         ],
       },

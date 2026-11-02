@@ -349,6 +349,15 @@ const ACTIONS: Record<string, string> = {
   "link.issued.reset": "Reset link issued",
   "link.redeemed.invite": "Password set via invitation",
   "link.redeemed.reset": "Password reset completed",
+  "link.redeemed.admin_setup": "Admin password set",
+  "admin.login.password_ok": "Admin password accepted (MFA pending)",
+  "admin.login": "Admin signed in",
+  "admin.login.failed": "Failed admin sign-in",
+  "admin.totp.enrolled": "Authenticator enrolled",
+  "admin.totp.failed": "Wrong authenticator code",
+  "admin.totp.confirm_failed": "Authenticator enrolment code rejected",
+  "admin.password.changed": "Admin password changed",
+  "admin.sessions.revoked_others": "Other admin sessions signed out",
 };
 
 export const describeAction = (action: string): string => ACTIONS[action] ?? action;
