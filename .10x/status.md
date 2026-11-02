@@ -103,3 +103,5 @@ Owner decisions open: backup inclusion (keep recommended), D11 video list, EAS l
 | Release simulator build / unsigned archive | Done |
 | Signed archive / IPA | Blocked: Apple PLA must be accepted by the owner (`release-artifacts/archive-signed.log`) |
 | Physical iPhone | Not run |
+
+**2026-11-03 — Phase 7 + Egyptian Arabic integrated into main** (`7079715`, `--no-ff` of `integration/phase7-l10n`; pre-merge main tagged `backup/main-before-phase7-integration` = `7d34a49`; `feature/phase7-private-auth`, `l10n/egyptian-arabic` kept). Owner decisions applied: device backup kept, email-only invitations over configurable SMTP (ADR-017). Verified on main: app Jest 41 suites / 360 tests, 4 protected snapshots, tsc, lint, expo-doctor 20/20, server Vitest 35/35 + tsc + eslint, Release simulator build (poster check passed). Not deployed; no invitations sent; no EAS; no TestFlight.
