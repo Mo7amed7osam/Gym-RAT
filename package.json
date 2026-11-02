@@ -22,6 +22,7 @@
     "expo-localization": "~58.0.5",
     "expo-notifications": "~58.1.7",
     "expo-router": "~58.0.29",
+    "expo-secure-store": "~58.0.2",
     "expo-splash-screen": "~58.0.12",
     "expo-sqlite": "~58.0.15",
     "expo-status-bar": "~58.0.4",
@@ -72,10 +73,15 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/server/",
-      "/ios/"
+      "/ios/",
+      "/release-artifacts/"
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|lucide-react-native)"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/server/",
+      "<rootDir>/release-artifacts/"
     ]
   }
 }

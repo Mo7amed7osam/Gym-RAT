@@ -46,3 +46,16 @@ jest.mock('react-native-youtube-iframe', () => {
   const Player = (props) => React.createElement(View, { testID: 'youtube-player', ...props });
   return { __esModule: true, default: Player };
 });
+// Phase 7: the Keychain is an in-memory map in tests; the auth tests inject their own storage anyway.
+jest.mock('expo-secure-store', () => {
+  const items = new Map();
+  return {
+    AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 1,
+    WHEN_UNLOCKED_THIS_DEVICE_ONLY: 2,
+    isAvailableAsync: async () => true,
+    getItemAsync: async (key) => items.get(key) ?? null,
+    setItemAsync: async (key, value) => void items.set(key, value),
+    deleteItemAsync: async (key) => void items.delete(key),
+    __items: items,
+  };
+});

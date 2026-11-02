@@ -5,6 +5,7 @@ import { AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, Vie
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import appConfig from '@/app.json';
+import { AccountSection } from '@/components/settings/AccountSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { resetAllData } from '@/data/db/boot';
 import { SCHEMA_VERSION } from '@/data/db/migrations';
@@ -366,6 +367,8 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+
+        <AccountSection />
 
         <View style={styles.section}>
           <SectionHeader title={t('settings.yourData')} />

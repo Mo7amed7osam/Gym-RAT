@@ -1,0 +1,4 @@
+# DBA — phase7-private-auth
+**Server (PostgreSQL, Drizzle):** `users` (unique on `lower(email)`), `admin_totp`, `admin_sessions`, `refresh_tokens` (indexes on token hash, user, family), `action_tokens`, `password_reset_requests`, `audit_events` (bigserial, indexes on `at` and target), `rate_limits` (PK key, upsert). Migration `drizzle/0000_init.sql` applied by `scripts/migrate.ts` at container start and by the Vitest setup on PGlite. All tokens hashed; cascading deletes from `users`.
+**Growth:** `audit_events` and `refresh_tokens` grow with use; prune rows older than a year with a cron `DELETE` when needed (not automated in this phase). `rate_limits` has `pruneRateLimits()`.
+**Device (SQLite):** schema v10 unchanged. One file per account (`gymrat.u-<uuid>.db` + backup), legacy `gymrat.db` renamed to `gymrat.legacy-claimed.db` after a verified claim. Existing migration/backup/restore code reused per file.

@@ -8,14 +8,30 @@ import { Directory, File, Paths } from 'expo-file-system';
 
 const DIR_NAME = 'exercise-media';
 
-/** Where custom photos live (may not exist yet). */
+/**
+ * Photos are stored per account (ADR-016): `exercise-media/<userId>/`.
+ * The legacy folder `exercise-media/` (no account) is kept for photos
+ * referenced by a claimed legacy database. Set by the database boot.
+ */
+let scopeUserId: string | null = null;
+
+export function setCustomMediaScope(userId: string | null): void {
+  scopeUserId = userId;
+}
+
+function scopedDirectory(userId: string | null): Directory {
+  const root = new Directory(Paths.document, DIR_NAME);
+  return userId ? new Directory(root, userId) : root;
+}
+
+/** Where custom photos live for the current account (may not exist yet). */
 export function customMediaDirectoryUri(): string {
-  return new Directory(Paths.document, DIR_NAME).uri;
+  return scopedDirectory(scopeUserId).uri;
 }
 
 function mediaDirectory(): Directory {
-  const dir = new Directory(Paths.document, DIR_NAME);
-  if (!dir.exists) dir.create();
+  const dir = scopedDirectory(scopeUserId);
+  if (!dir.exists) dir.create({ intermediates: true });
   return dir;
 }
 
@@ -39,11 +55,17 @@ export async function deleteCustomExercisePhoto(uri: string | null): Promise<voi
   }
 }
 
-/** Removes every custom photo (Reset All Data). */
-export async function deleteAllCustomExercisePhotos(): Promise<void> {
+/** Removes every custom photo of one account (Reset All Data, Remove my data). `null` = the legacy folder's loose files only. */
+export async function deleteAllCustomExercisePhotos(userId: string | null = scopeUserId): Promise<void> {
   try {
-    const dir = new Directory(Paths.document, DIR_NAME);
-    if (dir.exists) await dir.delete();
+    const dir = scopedDirectory(userId);
+    if (!dir.exists) return;
+    if (userId) {
+      await dir.delete();
+      return;
+    }
+    // Legacy folder: other accounts' sub-folders live inside it, so delete files only.
+    for (const entry of dir.list()) if (entry instanceof File) await entry.delete();
   } catch (error) {
     console.warn('[media] directory delete failed', error);
   }

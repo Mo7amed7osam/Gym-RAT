@@ -1,0 +1,41 @@
+# HTTPS reverse proxy for the Gym RAT auth server. Caddy obtains and renews
+# the Let's Encrypt certificate for SITE_ADDRESS automatically.
+{
+	email {$ACME_EMAIL}
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy same-origin
+		-Server
+	}
+
+	# Per-IP request shaping at the edge (the app rate-limits logins itself).
+	@api path /api/*
+	request_body @api {
+		max_size 64KB
+	}
+
+	reverse_proxy app:3000 {
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Real-IP {remote_host}
+		health_uri /api/health
+		health_interval 30s
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 20MiB
+			roll_keep 5
+		}
+		format json
+	}
+}

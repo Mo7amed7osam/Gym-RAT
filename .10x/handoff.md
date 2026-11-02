@@ -1,5 +1,9 @@
 # Handoff
 
+**2026-11-02 — Phase 7 private members platform** on `feature/phase7-private-auth @ 3fb949c` (worktree `../Gym RAT-phase7`). Read `reviews/2026-11-02-phase7-report.md`, ADR-015/016, `server/README.md`. Next, in order: owner accepts the Apple PLA and re-runs the archive/export commands in the report; owner provides VPS + domain and follows the README deploy; owner approves merge into `main` (then regenerate the main checkout's `ios/`, since `expo-secure-store` added a native module); physical-iPhone checklist. Do not merge, push, deploy or upload without the owner's word. Local demo stack: Postgres container on 5433 (running), `npm run dev` in `server/` for the dashboard, simulator `GymRAT-Phase7`.
+
+# Handoff
+
 **2026-11-02 — Phase 3 + Phase 4 integration** on `integration/phase3-phase4` (`reviews/2026-11-02-integration-report.md`, ADR-012). Schema v9 = 7 Phase 3 column, 8 Phase 4 tables, 9 reconcile; `migrate()` reconciles on every launch. One strength engine (`domain/records`) behind `domain/analytics/metrics`. Ten simulator scenarios performed with AXe (simulator-scoped input; no desktop mouse). Both feature branches and the Phase 4 worktree preserved; merged into `main`. Next: owner review; Phase 5 only on authorization; no TestFlight.
 
 **2026-11-02 — Phase 3 implemented and partly simulator-verified** (`reviews/2026-11-02-phase3-report.md`). Next: owner runs the checklist in §6 of that report, then authorizes Phase 4 (analytics) or Phase 5 (iOS integrations). Do not start either, or TestFlight, without the owner's word. Open: RPE/RIR entry UI, Arabic copy review, README, curated YouTube ids, Developer Mode on the iPhone, owner's own EAS login. Simulator driving: use `tap` only when the owner is not using the Mac; points = px × 874 / image height.
