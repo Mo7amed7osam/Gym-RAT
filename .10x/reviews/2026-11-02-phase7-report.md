@@ -1,6 +1,6 @@
 # Phase 7 report — Private members platform
 
-**Date:** 2026-11-02 · **Branch:** `feature/phase7-private-auth` (worktree `../Gym RAT-phase7`) · **Base:** `main @ 4a65663` (Phase 6 merged) · **Tip:** `06ebdc3` · **Not merged, not pushed, nothing deployed, nothing uploaded to Apple.**
+**Date:** 2026-11-02 · **Branch:** `feature/phase7-private-auth` (worktree `../Gym RAT-phase7`) · **Base:** `main @ 4a65663` (Phase 6 merged) · **Tip:** see `git log` (state commit after `3c1c8a0`) · **Not merged, not pushed, nothing deployed, nothing uploaded to Apple.**
 **ADRs:** 015 (auth, sessions, offline lease, backend), 016 (per-account local data, legacy claim). **Spec:** `specs/2026-11-02-phase7-private-members-design.md`. **Security review:** `reviews/2026-11-02-phase7-security-review.md`. **QA:** `reviews/2026-11-02-phase7-qa-report.md`.
 
 ## Parallel-session safety
@@ -15,6 +15,8 @@ Inspected before touching anything: `main` already contained the Phase 6 merge (
 | `e39542a` | Server: admin dashboard, public link pages, Docker/Compose/Caddy, backup scripts |
 | `e65a5c1` | Server: dev CSP, Turbopack root, audit labels; dashboard screenshots |
 | `3fb949c` | App: Arabic eyebrow, brand glow; state files, README, screenshots |
+| `06ebdc3`, `b31301b` | State files, report |
+| `3c1c8a0` | App: legacy-data route reachable before onboarding, offer delayed past the iOS save-password sheet; server CLI bundled for Docker; fixture claim test |
 259 files changed (+20 693 / −1 001), of which ~110 are the new `server/` application.
 
 ## What was delivered (brief §12)
@@ -34,17 +36,18 @@ Inspected before touching anything: `main` already contained the Phase 6 merge (
 ## Test results
 | Check | Result |
 |---|---|
-| App Jest | 37 suites, **345 / 345** (37 new); 4 protected snapshots unchanged |
+| App Jest | 38 suites, **347 / 347** (39 new); 4 protected snapshots unchanged |
 | App `tsc` / `expo lint` / `expo-doctor` | 0 errors / clean / 20 / 20 |
 | Server Vitest (PGlite + real migration) | **30 / 30** (member auth 15, admin API 15) |
 | Server `tsc` / `eslint` / `next build` | 0 / clean / green (standalone output) |
+| Docker image (`docker build`, 424 MB) run against the dev Postgres | ✓ entrypoint applied migrations, `/api/health` ok, Docker healthcheck `healthy`, `dist/cli/bootstrap-admin.mjs` works inside the container, `/login` 200, login API answers; Caddyfile validated with `caddy validate` |
 | Release simulator build (arm64, Xcode 27) | **BUILD SUCCEEDED** ×2 (`release-artifacts/simulator-release-build*.log`) |
 | Unsigned device archive | **ARCHIVE SUCCEEDED** → `release-artifacts/GymRAT-unsigned.xcarchive` (zip + `SHA256SUMS.txt`) |
 | Signed archive / IPA | **Blocked** (below) |
-| End-to-end | Dashboard: setup → TOTP enrol → create members → invite → activate. App (Release simulator): sign-in → onboarding → Today → Settings account → sign-out → relaunch restore; Arabic RTL in light + true black. Server audit shows every step. |
+| End-to-end | Dashboard: setup → TOTP enrol → create members → invite → activate. App (Release simulator): sign-in → onboarding → Today → Settings account → sign-out → relaunch restore; Arabic RTL in light + true black. **Legacy claim:** the Phase 3 v7 fixture planted as `gymrat.db`, first sign-in as a new member offered the claim before onboarding, *Attach* copied it into `gymrat.u-<id>.db`, migrated 7 → 10 with a backup, renamed the original to `gymrat.legacy-claimed.db`, left the other account's file at 0 sessions, and Today showed the fixture's history (`ios-11`, `ios-12`). Server audit shows every step. |
 
 ## Screenshots (`reviews/phase7-screenshots/`)
-iOS: `ios-01-login-en`, `ios-02-login-filled`, `ios-04-today-after-login`, `ios-05-settings-account`, `ios-06-relaunch`, `ios-07-sign-out-confirm`, `ios-08-signed-out`, `ios-09-login-ar`, `ios-10-login-ar-true-black`. Admin: `admin-02-totp-enrol`, `admin-03-recovery-codes`, `admin-04-overview`, `admin-05-members`, `admin-06-member-detail` (with the simulator's device), `admin-07-security`, `admin-08-audit`, `admin-09-settings`, `admin-10-new-member`, `admin-11-members-light`, `admin-12-members-true-black`, `public-01-invitation`.
+iOS: `ios-01-login-en`, `ios-02-login-filled`, `ios-04-today-after-login`, `ios-05-settings-account`, `ios-06-relaunch`, `ios-07-sign-out-confirm`, `ios-08-signed-out`, `ios-09-login-ar`, `ios-10-login-ar-true-black`, `ios-11-legacy-claim`, `ios-12-after-claim`. Admin: `admin-02-totp-enrol`, `admin-03-recovery-codes`, `admin-04-overview`, `admin-05-members`, `admin-06-member-detail` (with the simulator's device), `admin-07-security`, `admin-08-audit`, `admin-09-settings`, `admin-10-new-member`, `admin-11-members-light`, `admin-12-members-true-black`, `public-01-invitation`.
 
 ## Backend startup (local)
 ```bash
@@ -93,5 +96,6 @@ xcodebuild -exportArchive -archivePath release-artifacts/GymRAT-signed.xcarchive
 ## Environment left behind
 - Worktree `../Gym RAT-phase7`, branch `feature/phase7-private-auth @ 3fb949c`; `main` untouched.
 - Docker container `gymrat-auth-dev-db-1` (Postgres on 127.0.0.1:5433) running with the demo data; Next dev server stopped.
-- Simulator `GymRAT-Phase7` (F0457793-D6F9-4BFA-B660-DF5BB8D8C8E1) booted, English, light, app signed out.
+- Simulator `GymRAT-Phase7` (F0457793-D6F9-4BFA-B660-DF5BB8D8C8E1) booted, English, light; signed in as the demo member who claimed the fixture history.
+- Docker image `gymrat-auth:phase7` built locally (test container removed).
 - `release-artifacts/` (gitignored): simulator build logs, unsigned archive + zip + checksums, device DerivedData, `archive-signed.log`.
