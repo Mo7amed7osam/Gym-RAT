@@ -90,7 +90,7 @@ Language and theme were switched by editing `kv.settings` in the database betwee
 No item threatens data integrity. The poster rights item is the only legal blocker for release.
 
 ## 7. Merge decision
-All required gates pass on the integration branch: typecheck, lint, the full Jest suite, the protected snapshots, the migration tests, the Release simulator build, and the ten simulator scenarios. No data-loss risk is open: every upgrade path is tested, the real simulator database upgraded in place with its backup written, and every history change replays records in one transaction. The branch is merged into `main` with `--no-ff`; `feature/phase4-analytics`, `main`'s pre-merge state (`phase3-complete`) and the Phase 4 worktree are preserved.
+All required gates pass on the integration branch: typecheck, lint, the full Jest suite, the protected snapshots, the migration tests, the Release simulator build, and the ten simulator scenarios. No data-loss risk is open: every upgrade path is tested, the real simulator database upgraded in place with its backup written, and every history change replays records in one transaction. The branch is merged into `main` with `--no-ff` (merge commit `e510460`); no Phase 4 commits after `ed268bb` existed at merge time; `feature/phase4-analytics`, `main`'s pre-merge state (`phase3-complete`) and the Phase 4 worktree are preserved.
 
 **Simulator container note:** the app container on the iPhone 18 Pro simulator is at schema v9. The Phase 3 build (`cd19cc9`) cannot open it (its `verifySchema` rejects version 9); do not reinstall that build over this container. Pre-upgrade copies: `test/fixtures/sim-phase3-v7.db` (committed) and `gymrat.backup.db` inside the container.
 
