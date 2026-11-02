@@ -50,6 +50,10 @@ describe('bundled media licensing', () => {
     }
     // Development and internal (preview) builds keep it.
     expect(storeResolver({ EAS_BUILD_PROFILE: 'preview' })).toBeFalsy();
+    // The store profile also sets the explicit flag, in case the profile name never reaches Metro.
+    const eas = JSON.parse(readFileSync(join(root, 'eas.json'), 'utf8'));
+    expect(eas.build.production.env).toMatchObject({ GYMRAT_STORE_BUILD: '1' });
+    expect(eas.build.preview.env?.GYMRAT_STORE_BUILD).toBeUndefined();
   });
 
   it('bundles only RepDB stills that the manifest records with a license', () => {

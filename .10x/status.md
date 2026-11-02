@@ -59,7 +59,7 @@
 
 ---
 ## Phase 5 — iOS Integrations (branch `feature/phase5-ios`, base `b90ece9`)
-**Authorized:** owner brief 2026-11-02. ADR-013. Slug `phase5-ios`. Not merged.
+**Authorized:** owner brief 2026-11-02. ADR-013. Slug `phase5-ios`. **Merged into main 2026-11-02** (`--no-ff`, branch tip `ed724ed`; owner-requested). Phase 6 handoff: `specs/2026-11-02-phase6-handoff.md`.
 | Item | Status |
 |---|---|
 | Licensing: Neila Rey poster removed | Done (`7723ab5`); **reversed by owner change**: restored for dev/internal builds, stubbed out of store builds (see report) |
@@ -67,5 +67,7 @@
 | Rest alerts, Live Activity, Health export, keep-awake, haptics, Settings | Done (`a6c26f2`) |
 | YouTube player + verified ids (35/38) | Done (`55b8572`) |
 | Verification | Jest 296/296, tsc 0, lint clean, simulator build + flows; report `reviews/2026-11-02-phase5-report.md` |
+| Poster restored (dev/internal only, store-stubbed) | Done (`ed724ed`) |
+| Merge + verification on main | Jest 297/297, 4 snapshots, tsc 0, lint clean, store export without poster |
 | Physical iPhone | Not run |
-Owner decisions open: backup inclusion (keep recommended), D11 video list, EAS login + App ID capabilities. Phase 6 / TestFlight not authorized.
+Owner decisions open: backup inclusion (keep recommended), D11 video list, EAS login + App ID capabilities. Poster rights. Phase 6 / TestFlight not authorized.

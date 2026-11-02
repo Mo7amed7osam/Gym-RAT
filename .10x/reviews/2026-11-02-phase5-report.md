@@ -1,6 +1,6 @@
 # Phase 5 report — iOS Integrations & Native Experience
 
-**Date:** 2026-11-02 · **Branch:** `feature/phase5-ios` (worktree `../Gym RAT-phase5`) · **Base:** `main @ b90ece9` · **ADR:** 013 · Not merged to main.
+**Date:** 2026-11-02 · **Branch:** `feature/phase5-ios` (worktree `../Gym RAT-phase5`) · **Base:** `main @ b90ece9` · **ADR:** 013 · Merged into main 2026-11-02 (branch tip `ed724ed`); Phase 6 handoff `specs/2026-11-02-phase6-handoff.md`.
 
 ## Baseline (verified before any change)
 `main` = `b90ece9`, clean. Jest 30 suites / 265 tests / 4 snapshots pass; `tsc` 0 errors; `expo lint` clean.
