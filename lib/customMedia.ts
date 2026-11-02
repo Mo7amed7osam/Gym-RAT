@@ -8,6 +8,11 @@ import { Directory, File, Paths } from 'expo-file-system';
 
 const DIR_NAME = 'exercise-media';
 
+/** Where custom photos live (may not exist yet). */
+export function customMediaDirectoryUri(): string {
+  return new Directory(Paths.document, DIR_NAME).uri;
+}
+
 function mediaDirectory(): Directory {
   const dir = new Directory(Paths.document, DIR_NAME);
   if (!dir.exists) dir.create();
