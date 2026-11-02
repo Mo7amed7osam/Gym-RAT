@@ -1,3 +1,7 @@
+import { ar } from '@/i18n/ar';
+import { arabicPluralForm, setCurrentLocale, translate } from '@/i18n';
+import { iosAr } from '@/i18n/ios.ar';
+import { progressAr } from '@/i18n/progress.ar';
 import { localName, secondaryName } from '@/lib/exerciseName';
 import { groupRange } from '@/components/GroupExercisesSheet';
 import { seedPlans } from '@/data/db/seed';
@@ -83,5 +87,24 @@ describe('exercise names follow the UI language', () => {
     expect([localName(custom, 'ar'), secondaryName(custom, 'ar')]).toEqual(['Sled Push', null]);
     expect(localName({ en: 'Row', ar: '' }, 'ar')).toBe('Row');
     expect(localName(undefined, 'ar', 'fallback-id')).toBe('fallback-id');
+  });
+});
+
+describe('Arabic plurals and wording', () => {
+  afterEach(() => setCurrentLocale('en'));
+
+  it('uses the CLDR Arabic plural categories', () => {
+    expect([0, 1, 2, 3, 10, 11, 99, 100, 102, 111, 2.5].map(arabicPluralForm)).toEqual(['zero', 'one', 'two', 'few', 'few', 'many', 'many', 'other', 'other', 'many', 'other']);
+    setCurrentLocale('ar');
+    expect([1, 2, 5, 12, 100].map((count) => translate('progress.workoutsCount', { count }))).toEqual(['تمرين واحد', 'تمرينان', '5 تمارين', '12 تمرينًا', '100 تمرين']);
+    expect(translate('progress.calendar.weeksValue', { count: 2 })).toBe('أسبوعان');
+    setCurrentLocale('en');
+    expect([1, 2].map((count) => translate('progress.workoutsCount', { count }))).toEqual(['1 workout', '2 workouts']);
+  });
+
+  it('keeps Western percent signs and digits in every Arabic string', () => {
+    const strings = JSON.stringify([ar, progressAr, iosAr]);
+    expect(strings).not.toMatch(/[٠-٩۰-۹٪]/);
+    expect(strings).not.toMatch(/سِت|دورتك'|راحة-توقف|أقصى تكرار مقدّر/);
   });
 });

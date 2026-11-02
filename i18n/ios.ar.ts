@@ -1,6 +1,5 @@
 import type { iosEn } from './ios.en';
-
-type DeepStrings<T> = { [K in keyof T]: T[K] extends string ? string : DeepStrings<T[K]> };
+import type { DeepStrings } from './en';
 
 /** Arabic strings for the Phase 5 iPhone integrations. Machine-authored; owner review pending (D8). */
 export const iosAr: DeepStrings<typeof iosEn> = {
@@ -24,7 +23,7 @@ export const iosAr: DeepStrings<typeof iosEn> = {
     restAlertsDetail: 'تنبيه عند انتهاء الراحة إذا كان Gym RAT في الخلفية أو الهاتف مقفلًا.',
     restAlertsDenied: 'الإشعارات متوقفة لـ Gym RAT في إعدادات iOS.',
     liveActivityTitle: 'النشاط المباشر',
-    liveActivityDetail: 'تعرض شاشة القفل والجزيرة الديناميكية التمرين والتمرين الحالي ومؤقت الراحة. بلا أوزان أو بيانات جسم.',
+    liveActivityDetail: 'تعرض شاشة القفل والجزيرة الديناميكية الجلسة والتمرين الحالي ومؤقت الراحة. بلا أوزان أو بيانات جسم.',
     healthTitle: 'تطبيق صحتي',
     healthDetail: 'حفظ التمارين المنتهية كتمارين قوة (البداية والنهاية والتوقفات). لا يُقرأ شيء من تطبيق صحتي.',
     healthDenied: 'لا يستطيع Gym RAT الكتابة في تطبيق صحتي. اسمح بذلك من تطبيق صحتي: الملف الشخصي › التطبيقات › Gym RAT.',

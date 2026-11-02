@@ -597,5 +597,7 @@ export const en = {
   },
 };
 
-type DeepStrings<T> = { [K in keyof T]: T[K] extends string ? string : DeepStrings<T[K]> };
+/** CLDR plural forms; English uses one/other, Arabic all six (registered in i18n/index.ts). */
+export type PluralForms = { zero?: string; one: string; two?: string; few?: string; many?: string; other: string };
+export type DeepStrings<T> = { [K in keyof T]: T[K] extends string ? string : T[K] extends { one: string; other: string } ? PluralForms : DeepStrings<T[K]> };
 export type Dictionary = DeepStrings<typeof en>;

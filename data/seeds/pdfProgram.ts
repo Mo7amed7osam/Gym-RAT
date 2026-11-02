@@ -127,7 +127,7 @@ export const PDF_PROGRAM_INFO = {
   name: { en: 'Push / Pull / Legs + Upper / Lower v5.0', ar: 'دفع / سحب / رجل + علوي / سفلي 5.0' },
   description: {
     en: 'Push, pull and leg days for strength, then upper and lower days for hypertrophy. Five workouts per rotation.',
-    ar: 'فكرة البرنامج تعتمد على تقسيم عضلات الجسم على ثلاث أيام ما بين عضلات الدفع والسحب والرجل ثم تكرارها مرة ثانية على يومين لعضلات الجزء العلوي والسفلي',
+    ar: 'فكرة البرنامج تعتمد على تقسيم عضلات الجسم على ثلاثة أيام ما بين عضلات الدفع والسحب والرجل ثم تكرارها مرة ثانية على يومين لعضلات الجزء العلوي والسفلي',
   },
   focusLabels: {
     strength: { en: 'Strength', ar: 'قوة' },
