@@ -8,9 +8,10 @@ import { ExerciseDetail } from '@/components/ExerciseDetail';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HIT } from '@/constants/theme';
-import { useT } from '@/i18n';
+import { useT, useLocale } from '@/i18n';
 import { useExercise, useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
+import { localName } from '@/lib/exerciseName';
 
 /** Library → exercise detail route (`/exercise/[id]`). */
 export default function ExerciseDetailScreen() {
@@ -19,6 +20,7 @@ export default function ExerciseDetailScreen() {
   const styles = useStyles();
   const theme = useTheme();
   const t = useT();
+  const locale = useLocale();
   const insets = useSafeAreaInsets();
   const exercise = useExercise(id);
   const setExerciseArchived = useWorkoutStore((state) => state.setExerciseArchived);
@@ -34,7 +36,7 @@ export default function ExerciseDetailScreen() {
           <ChevronLeft size={24} color={theme.colors.label} />
         </Pressable>
         <Text style={styles.toolbarTitle} numberOfLines={1}>
-          {exercise?.name.en ?? ''}
+          {localName(exercise?.name, locale, '')}
         </Text>
         <View style={styles.iconButton} />
       </View>
@@ -62,7 +64,7 @@ export default function ExerciseDetailScreen() {
       </ScrollView>
       <ConfirmDialog
         visible={confirmArchive}
-        title={t('library.detail.archiveTitle', { name: exercise?.name.en ?? '' })}
+        title={t('library.detail.archiveTitle', { name: localName(exercise?.name, locale, '') })}
         message={t('library.detail.archiveMessage')}
         confirmLabel={t('library.detail.archiveConfirm')}
         onCancel={() => setConfirmArchive(false)}

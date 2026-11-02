@@ -14,6 +14,7 @@ import { formatRestTime } from '@/store/useRestTimerCountdown';
 import { useExercise, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { StretchMove, StretchRoutine, WarmupStage } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
+import { localName } from '@/lib/exerciseName';
 
 // ─── Checklist ids & progress ────────────────────────────────────────────────
 
@@ -105,7 +106,7 @@ function WarmupStages({
         const done = isStageDone(stage, completed);
         const detail =
           stage.id === 'acclimation_sets' && firstExercise
-            ? t('warmup.acclimation', { name: firstExercise.name.en, weight: acclimationKg ? t('warmup.acclimationAt', { kg: acclimationKg }) : t('warmup.acclimationLight') })
+            ? t('warmup.acclimation', { name: localName(firstExercise.name, locale), weight: acclimationKg ? t('warmup.acclimationAt', { kg: acclimationKg }) : t('warmup.acclimationLight') })
             : stage.detail[locale];
 
         return (
@@ -262,7 +263,7 @@ function StretchSession({ routine, completed, onToggle, embedded = false }: Stre
                 onPress={() => onToggle(id)}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: done }}
-                accessibilityLabel={move.name.en}
+                accessibilityLabel={localName(move.name, locale)}
                 hitSlop={6}
                 style={styles.moveCheck}
               >

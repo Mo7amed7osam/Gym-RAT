@@ -1,3 +1,4 @@
+import { localName, secondaryName } from '@/lib/exerciseName';
 import { groupRange } from '@/components/GroupExercisesSheet';
 import { seedPlans } from '@/data/db/seed';
 import { restSecondsAfter, setGroup } from '@/domain/session/reducer';
@@ -68,5 +69,19 @@ describe('giant-set multi-select', () => {
     expect(restSecondsAfter(grouped, a, a.sets[0], options)).toBe(0);
     const lastRound = { ...grouped, exercises: grouped.exercises.map((item) => ({ ...item, sets: item.sets.map((s) => ({ ...s, completed: true })) })) };
     expect(restSecondsAfter(lastRound, c, c.sets[0], options)).toBe(120);
+  });
+});
+
+describe('exercise names follow the UI language', () => {
+  const builtin = { en: 'Leg Press', ar: 'مكبس' };
+  const custom = { en: 'Sled Push', ar: 'Sled Push' };
+  it('shows the UI language first and the other language underneath', () => {
+    expect([localName(builtin, 'en'), secondaryName(builtin, 'en')]).toEqual(['Leg Press', 'مكبس']);
+    expect([localName(builtin, 'ar'), secondaryName(builtin, 'ar')]).toEqual(['مكبس', 'Leg Press']);
+  });
+  it('falls back to English and never repeats the same name', () => {
+    expect([localName(custom, 'ar'), secondaryName(custom, 'ar')]).toEqual(['Sled Push', null]);
+    expect(localName({ en: 'Row', ar: '' }, 'ar')).toBe('Row');
+    expect(localName(undefined, 'ar', 'fallback-id')).toBe('fallback-id');
   });
 });

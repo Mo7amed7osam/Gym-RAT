@@ -9,10 +9,11 @@ import { ExerciseThumb } from '@/components/ui/ExerciseThumb';
 import { SelectChip } from '@/components/ui/SelectChip';
 import { HIT } from '@/constants/theme';
 import { EQUIPMENT_LABELS, MUSCLE_GROUPS, MUSCLE_LABELS } from '@/data/exercisesData';
-import { useLocale, useT } from '@/i18n';
+import { useLocale, useT, type Locale } from '@/i18n';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 import type { Equipment, Exercise, MuscleGroup } from '@/types/workout';
+import { localName, secondaryName } from '@/lib/exerciseName';
 
 type Scope = 'all' | 'custom' | 'archived';
 const EQUIPMENT_FILTERS: Equipment[] = ['barbell', 'ez_bar', 'dumbbell', 'cable', 'machine', 'bodyweight', 'kettlebell', 'band'];
@@ -21,6 +22,7 @@ const EQUIPMENT_FILTERS: Equipment[] = ['barbell', 'ez_bar', 'dumbbell', 'cable'
 export function filterLibrary(
   exercises: readonly Exercise[],
   filters: { query: string; muscle: MuscleGroup | null; equipment: Equipment | null; scope: Scope },
+  locale: Locale = 'en',
 ): Exercise[] {
   const q = filters.query.trim().toLowerCase();
   const raw = filters.query.trim();
@@ -34,9 +36,10 @@ export function filterLibrary(
         !q ||
         exercise.name.en.toLowerCase().includes(q) ||
         exercise.name.ar.includes(raw) ||
-        [...exercise.primaryMuscles, ...exercise.secondaryMuscles].some((m) => MUSCLE_LABELS[m].en.toLowerCase().includes(q)),
+        [...exercise.primaryMuscles, ...exercise.secondaryMuscles].some((m) => MUSCLE_LABELS[m].en.toLowerCase().includes(q) || MUSCLE_LABELS[m].ar.includes(raw)),
     )
-    .sort((a, b) => a.name.en.localeCompare(b.name.en));
+    // Sorted by the name shown first, in the UI language's collation.
+    .sort((a, b) => localName(a.name, locale).localeCompare(localName(b.name, locale), locale));
 }
 
 /** Library tab: searchable, filterable catalogue of built-in and custom exercises. */
@@ -53,7 +56,7 @@ export default function LibraryScreen() {
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [scope, setScope] = useState<Scope>('all');
 
-  const visible = useMemo(() => filterLibrary(exercises, { query, muscle, equipment, scope }), [exercises, query, muscle, equipment, scope]);
+  const visible = useMemo(() => filterLibrary(exercises, { query, muscle, equipment, scope }, locale), [exercises, query, muscle, equipment, scope, locale]);
   const hasFilters = muscle !== null || equipment !== null || scope !== 'all';
 
   return (
@@ -145,20 +148,20 @@ function ExerciseRow({ exercise, onPress }: { exercise: Exercise; onPress: () =>
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${exercise.name.en}, ${muscles}`}
+      accessibilityLabel={`${localName(exercise.name, locale)}, ${muscles}`}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <ExerciseThumb exerciseId={exercise.id} size={56} />
       <View style={styles.flex}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={2}>
-            {exercise.name.en}
+            {localName(exercise.name, locale)}
           </Text>
           {exercise.origin === 'custom' ? <Chip label={t('library.customBadge')} tone="link" /> : null}
         </View>
-        {exercise.name.ar && exercise.name.ar !== exercise.name.en ? (
-          <Text style={styles.arabic} accessibilityLanguage="ar" numberOfLines={1}>
-            {exercise.name.ar}
+{secondaryName(exercise.name, locale) ? (
+          <Text style={styles.arabic} accessibilityLanguage={locale === 'ar' ? 'en' : 'ar'} numberOfLines={1}>
+            {secondaryName(exercise.name, locale)}
           </Text>
         ) : null}
         <Text style={styles.secondary} numberOfLines={1}>

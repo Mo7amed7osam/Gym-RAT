@@ -9,11 +9,12 @@ import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT } from '@/constants/theme';
 import { hapticSelection, restCompleteFeedback } from '@/lib/feedback';
 import { formatSet, getPreviousSetAt } from '@/lib/workoutMath';
-import { useT } from '@/i18n';
+import { useT, useLocale } from '@/i18n';
 import { formatRestTime, useRestTimerCountdown, type RestTimerPhase } from '@/store/useRestTimerCountdown';
 import { selectPreviousExercise, useWorkoutStore, useExercise } from '@/store/useWorkoutStore';
 import type { ExerciseSet, SessionExercise } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
+import { localName } from '@/lib/exerciseName';
 
 const MAX_RING_SIZE = 248;
 const PHASE_KEY: Record<RestTimerPhase, string> = {
@@ -49,6 +50,7 @@ interface RestTimerModalProps {
  */
 export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
   const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -71,7 +73,7 @@ export function RestTimerModal({ visible, onMinimize }: RestTimerModalProps) {
   const previousExercise = useWorkoutStore(selectPreviousExercise(exercise?.exerciseId ?? ''));
 
   const exerciseRecord = useExercise(exercise?.exerciseId);
-  const exerciseName = exercise ? exerciseRecord?.name.en ?? exercise.exerciseId : t('rest.rest');
+  const exerciseName = exercise ? localName(exerciseRecord?.name, locale, exercise.exerciseId) : t('rest.rest');
   const ringColor = theme.restPhaseColors[countdown.phase];
   const isPaused = countdown.phase === 'paused';
   // Ring drains as rest runs out; full red once in overtime.

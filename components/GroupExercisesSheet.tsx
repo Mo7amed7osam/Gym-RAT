@@ -5,10 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { HIT } from '@/constants/theme';
-import { useT } from '@/i18n';
+import { useT, useLocale } from '@/i18n';
 import { useExerciseMap } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 import type { SessionExercise } from '@/types/workout';
+import { localName } from '@/lib/exerciseName';
 
 /**
  * Picks neighbouring exercises to perform back to back: two make a superset,
@@ -37,6 +38,7 @@ interface GroupExercisesSheetProps {
 
 export function GroupExercisesSheet({ visible, exercises, initialIndex, onConfirm, onClose }: GroupExercisesSheetProps) {
   const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -70,7 +72,7 @@ export function GroupExercisesSheet({ visible, exercises, initialIndex, onConfir
           <ScrollView style={styles.list} bounces={false}>
             {exercises.map((exercise, index) => {
               const selected = inRange.has(index);
-              const name = exerciseMap.get(exercise.exerciseId)?.name.en ?? exercise.exerciseId;
+              const name = localName(exerciseMap.get(exercise.exerciseId)?.name, locale, exercise.exerciseId);
               return (
                 <Pressable
                   key={exercise.id}

@@ -40,6 +40,7 @@ import { useLocale, useT } from '@/i18n';
 import { selectIsWorkoutPaused, selectNextDay, useWorkoutStore, useExerciseMap } from '@/store/useWorkoutStore';
 import type { PersonalRecord, SessionExercise, WorkoutSession } from '@/types/workout';
 import { CHROME_MAX_FONT_SCALE, createStyles, useTheme } from '@/theme';
+import { localName } from '@/lib/exerciseName';
 
 type Stage = 'warmup' | 'exercises';
 
@@ -94,6 +95,7 @@ const isExerciseDone = (exercise: SessionExercise) => exercise.sets.length > 0 &
 
 function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFinished: (session: WorkoutSession) => void }) {
   const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const router = useRouter();
@@ -337,7 +339,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                       accessibilityState={{ selected }}
                       accessibilityLabel={t('workout.exerciseA11y', {
                         n: i + 1,
-                        name: exerciseMap.get(exercise.exerciseId)?.name.en ?? '',
+                        name: localName(exerciseMap.get(exercise.exerciseId)?.name, locale, ''),
                         done: done ? t('workout.doneSuffix') : '',
                         skipped: exercise.skipped ? t('workout.skippedSuffix') : '',
                       })}
@@ -370,7 +372,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
                   <View style={styles.flex}>
                     <Text style={styles.upNextLabel}>{t('common.upNext')}</Text>
                     <Text style={styles.upNextName} numberOfLines={1}>
-                      {exerciseMap.get(next.exerciseId)?.name.en}
+                      {localName(exerciseMap.get(next.exerciseId)?.name, locale)}
                     </Text>
                   </View>
                   <Text style={styles.upNextMeta}>
@@ -476,7 +478,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
           onClose={() => setGrouping(false)}
         />
       ) : null}
-      <ExerciseOptionsSheet visible={optionsOpen} title={current ? (exerciseMap.get(current.exerciseId)?.name.en ?? '') : ''} actions={optionActions} onClose={() => setOptionsOpen(false)} />
+      <ExerciseOptionsSheet visible={optionsOpen} title={current ? (localName(exerciseMap.get(current.exerciseId)?.name, locale, '')) : ''} actions={optionActions} onClose={() => setOptionsOpen(false)} />
       <SessionTargetsSheet
         exercise={session.exercises.find((item) => item.id === targetsFor) ?? null}
         canSaveToPlan={canSaveToPlan}
@@ -500,7 +502,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
       />
       <ConfirmDialog
         visible={confirm === 'remove'}
-        title={t('workout.removeExerciseTitle', { name: current ? (exerciseMap.get(current.exerciseId)?.name.en ?? '') : '' })}
+        title={t('workout.removeExerciseTitle', { name: current ? (localName(exerciseMap.get(current.exerciseId)?.name, locale, '')) : '' })}
         message={t('workout.removeExerciseMessage')}
         confirmLabel={t('plan.editor.remove')}
         destructive

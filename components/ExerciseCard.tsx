@@ -15,6 +15,7 @@ import { formatRestTime } from '@/store/useRestTimerCountdown';
 import { selectPreviousExercise, useExercise, useWorkoutStore, type SetValues } from '@/store/useWorkoutStore';
 import type { RestPeriod, SessionExercise } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
+import { localName, secondaryName } from '@/lib/exerciseName';
 
 function formatRest(rest: RestPeriod): string {
   return rest.minSeconds === rest.maxSeconds
@@ -56,7 +57,7 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenGuide, on
   const activeSetId = sets.find((item) => !item.completed)?.id ?? null;
   const firstIncompleteWorkingSet = sets.find((item) => !item.completed && item.type === 'working');
 
-  const name = exercise?.name.en ?? sessionExercise.exerciseId;
+  const name = localName(exercise?.name, locale, sessionExercise.exerciseId);
   const cues = exercise?.instructions.slice(0, 2).map((step) => step[locale] || step.en) ?? [];
   const muscles = exercise ? [...exercise.primaryMuscles, ...exercise.secondaryMuscles].slice(0, 3) : [];
 
@@ -85,9 +86,9 @@ export function ExerciseCard({ sessionExercise, position, total, onOpenGuide, on
         <Text style={styles.title} accessibilityRole="header">
           {name}
         </Text>
-        {exercise ? (
-          <Text style={styles.arabic} accessibilityLanguage="ar">
-            {exercise.name.ar}
+{secondaryName(exercise?.name, locale) ? (
+          <Text style={styles.arabic} accessibilityLanguage={locale === 'ar' ? 'en' : 'ar'}>
+            {secondaryName(exercise?.name, locale)}
           </Text>
         ) : null}
         <View style={styles.chips}>

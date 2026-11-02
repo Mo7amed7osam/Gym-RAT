@@ -22,7 +22,7 @@ import {
   type GoalEvaluation,
   type GoalTarget,
 } from '@/domain/analytics/goals';
-import { useT } from '@/i18n';
+import { useT, useLocale } from '@/i18n';
 import { formatDayMonthYear } from '@/lib/analyticsFormat';
 import { parseWeight } from '@/lib/parseNumber';
 import { useFocusNow } from '@/lib/useFocusNow';
@@ -32,6 +32,7 @@ import { createStyles, useTheme } from '@/theme';
 import { BODY_METRIC_KINDS, GOAL_KINDS, type BodyMetricKind, type Goal, type GoalKind } from '@/types/progress';
 
 import { formatGoalValue, goalTitle, goalValueText } from './goalText';
+import { localName } from '@/lib/exerciseName';
 
 const DEADLINE_WEEKS = [null, 4, 8, 12, 26] as const;
 const MEASUREMENTS = BODY_METRIC_KINDS.filter((kind) => kind !== 'bodyweight');
@@ -214,6 +215,7 @@ function NewGoalForm({
   const styles = useStyles();
   const theme = useTheme();
   const t = useT();
+  const locale = useLocale();
   const exerciseMap = useExerciseMap();
   const [kind, setKind] = useState<GoalKind>('exercise_e1rm');
   const [exerciseId, setExerciseId] = useState<string | null>(null);
@@ -269,7 +271,7 @@ function NewGoalForm({
         <Pressable onPress={() => setPicking(true)} accessibilityRole="button" style={styles.pickRow}>
           <Dumbbell size={18} color={theme.colors.tint} />
           <Text style={[styles.pickText, styles.flex]} numberOfLines={1}>
-            {exerciseId ? (exerciseMap.get(exerciseId)?.name.en ?? exerciseId) : t('progress.goals.chooseExercise')}
+            {exerciseId ? (localName(exerciseMap.get(exerciseId)?.name, locale, exerciseId)) : t('progress.goals.chooseExercise')}
           </Text>
         </Pressable>
       ) : null}

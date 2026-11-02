@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { SelectChip } from '@/components/ui/SelectChip';
 import { HIT } from '@/constants/theme';
 import { exerciseOutcome } from '@/domain/session/reducer';
-import { useT } from '@/i18n';
+import { useT, useLocale } from '@/i18n';
 import { formatTime } from '@/lib/format';
 import { useExerciseMap, useWorkoutStore, type FinishMode } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
 import type { WorkoutSession } from '@/types/workout';
+import { localName } from '@/lib/exerciseName';
 
 interface WorkoutReviewModalProps {
   session: WorkoutSession | null;
@@ -37,6 +38,7 @@ function ReviewContent({ session, onCancel, onFinish }: { session: WorkoutSessio
   const styles = useStyles();
   const theme = useTheme();
   const t = useT();
+  const locale = useLocale();
   const exercises = useExerciseMap();
   const setSessionNotes = useWorkoutStore((state) => state.setSessionNotes);
   const setEndedAtOverride = useWorkoutStore((state) => state.setEndedAtOverride);
@@ -75,7 +77,7 @@ function ReviewContent({ session, onCancel, onFinish }: { session: WorkoutSessio
               <View key={exercise.id} style={[styles.row, index < session.exercises.length - 1 && styles.divider]}>
                 <Icon size={18} color={color} strokeWidth={2.5} />
                 <Text style={[styles.rowName, styles.flex]} numberOfLines={1}>
-                  {exercises.get(exercise.exerciseId)?.name.en ?? exercise.exerciseId}
+                  {localName(exercises.get(exercise.exerciseId)?.name, locale, exercise.exerciseId)}
                 </Text>
                 <Text style={styles.rowMeta}>
                   {done}/{exercise.sets.length}

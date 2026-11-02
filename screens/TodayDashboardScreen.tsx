@@ -21,6 +21,7 @@ import { useLocale, useT } from '@/i18n';
 import { selectActivePlan, selectNextDay, selectPreviewedDay, useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Plan, PlanDay, WorkoutSession } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
+import { localName } from '@/lib/exerciseName';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -408,6 +409,7 @@ function ExerciseList({
   const styles = useStyles();
   const theme = useTheme();
   const t = useT();
+  const locale = useLocale();
   const exerciseMap = useExerciseMap();
   return (
     <View style={styles.group}>
@@ -420,13 +422,13 @@ function ExerciseList({
             key={`${item.exerciseId}-${index}`}
             onPress={() => onOpen(item.exerciseId)}
             accessibilityRole="button"
-            accessibilityLabel={t('today.exerciseA11y', { name: exercise?.name.en ?? item.exerciseId, sets: item.sets, reps })}
+            accessibilityLabel={t('today.exerciseA11y', { name: localName(exercise?.name, locale, item.exerciseId), sets: item.sets, reps })}
             style={({ pressed }) => [styles.exerciseRow, index < day.exercises.length - 1 && styles.divider, pressed && styles.pressed]}
           >
             <ExerciseThumb exerciseId={item.exerciseId} />
             <View style={[styles.flex, styles.exerciseText]}>
               <Text style={styles.exerciseName} numberOfLines={2}>
-                {exercise?.name.en ?? item.exerciseId}
+                {localName(exercise?.name, locale, item.exerciseId)}
               </Text>
               <View style={styles.exerciseMeta}>
                 <Text style={styles.secondaryNums}>
