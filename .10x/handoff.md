@@ -58,3 +58,5 @@ Read ADR-013 and `reviews/2026-11-02-phase5-report.md`. Side effects live in `se
 ---
 ## Phase 6 track (2026-11-02) — `release/phase6`
 Read ADR-014 and `reviews/2026-11-02-phase6-release-readiness.md`. Recommendation NO-GO for TestFlight. Next, in order: owner review + merge decision; regenerate the main checkout's `ios/` after merge; owner logs into their own Expo account and confirms team/App IDs; physical-iPhone checklist; first EAS build (owner-approved) and `scripts/release/check-unlicensed-assets.sh` on its artifact; owner decisions (Arabic review, D4 starter, illustration waiver, privacy policy URL, backup, D11).
+
+**2026-11-02 — Phase 6 merged; final fixes on `release/phase6-fixes`.** Next: owner authorizes merging the fixes branch; owner-only gates unchanged (own Expo login, App IDs/capabilities, device checklist, first EAS build + `scripts/release/check-unlicensed-assets.sh` on the artifact, Arabic review of product terms, media waiver for 13 placeholders, privacy policy URL).

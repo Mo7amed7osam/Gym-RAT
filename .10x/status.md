@@ -84,3 +84,5 @@ Owner decisions open: backup inclusion (keep recommended), D11 video list, EAS l
 | Release simulator build + lifecycle | Done (4 builds; Live Activity visuals unverified) |
 | Physical iPhone | Not run |
 | TestFlight | **NO-GO** — see report blockers |
+
+**2026-11-02 — Phase 6 merged into main** (`4a65663`, `--no-ff`, `release/phase6` kept); main re-verified (Jest 308/308, tsc, lint, doctor 20/20, Release simulator build) and its `ios/` regenerated. Final release fixes on `release/phase6-fixes` (not merged): YouTube link compliance, starter "(draft)" removed, media audit (25/38), RPE/RIR entry, Dynamic Type chrome cap, giant-set multi-select, UI-language exercise names, Arabic plurals/terminology, VoiceOver context labels. Report: `reviews/2026-11-02-phase6-final-fixes.md`. TestFlight still NO-GO.
