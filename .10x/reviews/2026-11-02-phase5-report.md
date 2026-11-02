@@ -26,7 +26,7 @@
 | 1 | No upload | Done | No network code; writes go only to the on-device Health store |
 | 2 | Live Activity for workout + rest | Done (simulator, log-level) | `widgets/WorkoutActivity.tsx` via `expo-widgets` |
 | 2 | Useful info, no sensitive details | Done | Day code, current exercise, "Set n of m", active time, rest countdown. No weights, reps, notes or body data (asserted in Jest) |
-| 2 | Lock Screen + Dynamic Island | Implemented; **visual check pending device** | SpringBoard log: activity started at workout start, system-aperture element created (`preferredLayoutMode = compact`), updated on set/rest/pause/resume, stale at rest end, removed on finish and on discard. Simulator screenshots do not capture the aperture/lock screen here |
+| 2 | Lock Screen + Dynamic Island | Implemented; **visual check pending device** | SpringBoard log: activity started at workout start, system-aperture element created (`preferredLayoutMode = compact`), updated on set/rest/pause/resume, stale at rest end, removed on finish and on discard. Widget extension log: 9 successful render batches, no runtime errors. Rendered appearance unverified: the one capture while backgrounded showed the island as an empty outline |
 | 2 | Pause, resume, timer completion, finish, termination | Done | Pause/resume freeze/restart the SwiftUI timers (`pauseTime`); `staleDate` = rest end → "Rest over"; killed mid-workout and relaunched: same activity id updated, no second start |
 | 2 | Unsupported devices | Done (Jest) | Start/listing failures → no activity, no retries until the workout ends |
 | 3 | Configurable rest notifications | Done | Settings › iPhone › Rest alerts (off by default) |
@@ -39,10 +39,10 @@
 | 4 | Low Power Mode | Done; **device-pending** | `expo-battery` `useLowPowerMode` releases the lock (always false on simulator) |
 | 4 | Persistence / rotation unchanged | Done | Jest suites for persistence, rotation and session engine unchanged and green |
 | 4 | Protected Sets Logging UI | Preserved | `SetRow`/`ExerciseCard` untouched; 4 snapshots unchanged |
-| — | Late duplicate chime | Fixed | A countdown first seen > 2 s late (app suspended) marks rest elapsed silently (simulator: `elapsedAt` set 39 s after `endsAt`, no chime) |
+| — | Late duplicate chime | Fixed | A countdown first seen > 2 s late (app suspended) marks rest elapsed silently (simulator: `elapsedAt` set 39 s after `endsAt`; absence of the chime follows from the code path, not heard) |
 | 5 | Optional embedded YouTube | Done | `components/ExerciseVideo.tsx`; nothing loads until tapped; plays inline on simulator (`11-video-player.png`, `12-video-playing.png`) |
 | 5 | Official embedding, policy | Done | YouTube IFrame Player API, ≥ 200 pt, no overlays, origin `https://com.gymrat.app`, page generated locally (no third-party host), navigation away blocked |
-| 5 | Verified ids only | Done | `scripts/media/check-youtube.mjs`: oEmbed 200 (public + embeddable) **and** reviewed title. 35/38 verified (`data/youtubeVideos.json`, `checkedAt`); 3 rejected for wrong variant (one-arm vs two-arm cable curl, bench vs floor leg raise, wrist curl vs reverse curl). Review was by title/channel; **owner approval of the list (D11) pending** |
+| 5 | Verified ids only | Done | `scripts/media/check-youtube.mjs`: oEmbed 200 (public + embeddable) **and** reviewed title. 35/38 verified (`data/youtubeVideos.json`, `checkedAt`); in-app playback confirmed on the simulator for one id (Leg Press); 3 rejected for wrong variant (one-arm vs two-arm cable curl, bench vs floor leg raise, wrist curl vs reverse curl). Review was by title/channel; **owner approval of the list (D11) pending** |
 | 5 | Unavailable / offline | Done (Jest) | `embed_not_allowed`/`video_not_found`/network error/15 s timeout → fallback card + retry; "needs internet" note up front |
 | 5 | Never required | Done | Video only in exercise detail |
 | 6 | Data protection audit | Done | See below |
@@ -113,6 +113,10 @@ Driven with AXe on the `GymRAT-Phase4` simulator (iPhone 16 Pro, iOS 26.3) with 
 - Live Activity follows the **system** language/direction, not the in-app language override.
 - Arabic strings (including Health usage text) are machine-authored; owner review pending.
 - YouTube list reviewed by title/channel only; owner approval (D11) pending; 3 exercises have no video.
+- Keep-awake is held only while the workout screen is mounted; minimising the workout to another tab lets the screen sleep (by design).
+- Custom exercise photos created before this build keep their old protection class (new files inherit the entitlement).
+- The HealthKit sheet and usage text follow the system language, like the Live Activity.
+- Blocking of "Watch on YouTube"/logo navigation is verified in Jest only, not tapped on the simulator.
 - Simulator taps via AXe need `--tap-style physical` on this setup (tooling, not app).
 - `lib/format` Arabic-Indic digits / "kg" on other tabs (carried from Phase 4).
 
