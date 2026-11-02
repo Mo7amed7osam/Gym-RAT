@@ -8,7 +8,7 @@
 ## Results now
 | Check | Result |
 |---|---|
-| Jest | 34 suites, 296 tests, all pass; 4 protected snapshots unchanged |
+| Jest | 33 suites, 296 tests, all pass; 4 protected snapshots unchanged |
 | `npx tsc --noEmit` | 0 errors |
 | `npx expo lint` | clean |
 | iOS simulator build (`expo run:ios`, then `xcodebuild` after the last native edit) | BUILD SUCCEEDED; main app + `ExpoWidgetsTarget` extension; no warnings from `gym-native` |
