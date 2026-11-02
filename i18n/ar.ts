@@ -1,4 +1,5 @@
 import type { Dictionary } from './en';
+import { iosAr } from './ios.ar';
 import { progressAr } from './progress.ar';
 
 /**
@@ -7,6 +8,7 @@ import { progressAr } from './progress.ar';
  */
 export const ar: Dictionary = {
   progress: progressAr,
+  ios: iosAr,
   common: {
     cancel: 'إلغاء',
     done: 'تم',

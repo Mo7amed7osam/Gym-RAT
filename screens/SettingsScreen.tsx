@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
-import { useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import appConfig from '@/app.json';
@@ -11,6 +11,8 @@ import { SCHEMA_VERSION } from '@/data/db/migrations';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { SelectChip } from '@/components/ui/SelectChip';
 import { HIT } from '@/constants/theme';
+import type { HealthAuthorization } from '@/services/healthExport';
+import { healthAccess, notificationAccess, requestHealthAccess, requestNotificationAccess, type NotificationAccess } from '@/services/permissions';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { applyLayoutDirection, resolveLocale, useT } from '@/i18n';
 import { ACCENTS, ACCENT_IDS, createStyles, useTheme } from '@/theme';
@@ -204,6 +206,8 @@ export default function SettingsScreen() {
             ))}
           </View>
         </View>
+
+        <IntegrationsSection />
 
         <View style={styles.section}>
           <SectionHeader title={t('settings.restWarning')} />
@@ -404,6 +408,126 @@ export default function SettingsScreen() {
           });
         }}
       />
+    </View>
+  );
+}
+
+/**
+ * Phase 5 iPhone integrations. Each permission is requested only when its
+ * switch is turned on here; a refusal leaves the switch off and says where
+ * to change it. Statuses refresh when the app returns from iOS Settings.
+ */
+function IntegrationsSection() {
+  const t = useT();
+  const styles = useStyles();
+  const theme = useTheme();
+  const settings = useWorkoutStore((state) => state.settings);
+  const updateSettings = useWorkoutStore((state) => state.updateSettings);
+  const [notifications, setNotifications] = useState<NotificationAccess | null>(null);
+  const [health, setHealth] = useState<HealthAuthorization>(() => healthAccess());
+
+  useEffect(() => {
+    const refresh = () => {
+      void notificationAccess().then(setNotifications);
+      setHealth(healthAccess());
+    };
+    refresh();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
+    });
+    return () => subscription.remove();
+  }, []);
+
+  const toggleRestAlerts = async (value: boolean) => {
+    if (!value) {
+      updateSettings({ restNotificationsEnabled: false });
+      return;
+    }
+    const access = notifications === 'granted' ? 'granted' : await requestNotificationAccess();
+    setNotifications(access);
+    updateSettings({ restNotificationsEnabled: access === 'granted' });
+  };
+
+  const toggleHealth = async (value: boolean) => {
+    if (!value) {
+      updateSettings({ healthExportEnabled: false });
+      return;
+    }
+    const status = await requestHealthAccess();
+    setHealth(status);
+    if (status === 'authorized') {
+      updateSettings({ healthExportEnabled: true, healthExportSince: settings.healthExportSince ?? new Date().toISOString() });
+    }
+  };
+
+  const switchProps = { trackColor: { true: theme.colors.tint, false: theme.colors.surfaceHigh }, thumbColor: theme.colors.label };
+  const notificationsBlocked = notifications === 'denied';
+  const healthBlocked = health === 'denied';
+
+  return (
+    <View style={styles.section}>
+      <SectionHeader title={t('ios.settings.section')} />
+      <View style={styles.group}>
+        <View style={[styles.row, styles.divider]}>
+          <View style={styles.flex}>
+            <Text style={styles.rowTitle}>{t('ios.settings.keepAwakeTitle')}</Text>
+            <Text style={styles.rowDetail}>{t('ios.settings.keepAwakeDetail')}</Text>
+          </View>
+          <Switch {...switchProps} value={settings.keepScreenAwake} onValueChange={(value) => updateSettings({ keepScreenAwake: value })} accessibilityLabel={t('ios.settings.keepAwakeTitle')} />
+        </View>
+
+        <View style={[styles.row, styles.divider]}>
+          <View style={styles.flex}>
+            <Text style={styles.rowTitle}>{t('ios.settings.restAlertsTitle')}</Text>
+            <Text style={styles.rowDetail}>{t('ios.settings.restAlertsDetail')}</Text>
+            {notificationsBlocked ? <Text style={styles.errorText}>{t('ios.settings.restAlertsDenied')}</Text> : null}
+            {notificationsBlocked ? (
+              <Pressable onPress={() => void Linking.openSettings()} accessibilityRole="link" hitSlop={8}>
+                <Text style={styles.link}>{t('ios.settings.openSettings')}</Text>
+              </Pressable>
+            ) : null}
+          </View>
+          <Switch
+            {...switchProps}
+            value={settings.restNotificationsEnabled && !notificationsBlocked}
+            onValueChange={(value) => void toggleRestAlerts(value)}
+            disabled={notificationsBlocked}
+            accessibilityLabel={t('ios.settings.restAlertsTitle')}
+          />
+        </View>
+
+        <View style={[styles.row, styles.divider]}>
+          <View style={styles.flex}>
+            <Text style={styles.rowTitle}>{t('ios.settings.liveActivityTitle')}</Text>
+            <Text style={styles.rowDetail}>{t('ios.settings.liveActivityDetail')}</Text>
+          </View>
+          <Switch {...switchProps} value={settings.liveActivityEnabled} onValueChange={(value) => updateSettings({ liveActivityEnabled: value })} accessibilityLabel={t('ios.settings.liveActivityTitle')} />
+        </View>
+
+        <View style={[styles.row, styles.divider]}>
+          <View style={styles.flex}>
+            <Text style={styles.rowTitle}>{t('ios.settings.healthTitle')}</Text>
+            <Text style={styles.rowDetail}>{t('ios.settings.healthDetail')}</Text>
+            {health === 'unavailable' ? <Text style={styles.rowDetail}>{t('ios.settings.healthUnavailable')}</Text> : null}
+            {healthBlocked ? <Text style={styles.errorText}>{t('ios.settings.healthDenied')}</Text> : null}
+            {settings.healthExportSince && !settings.healthExportEnabled ? <Text style={styles.rowDetail}>{t('ios.settings.healthKept')}</Text> : null}
+          </View>
+          <Switch
+            {...switchProps}
+            value={settings.healthExportEnabled && health === 'authorized'}
+            onValueChange={(value) => void toggleHealth(value)}
+            disabled={health === 'unavailable'}
+            accessibilityLabel={t('ios.settings.healthTitle')}
+          />
+        </View>
+
+        <View style={styles.row}>
+          <View style={styles.flex}>
+            <Text style={styles.rowTitle}>{t('ios.settings.privacyTitle')}</Text>
+            <Text style={styles.rowDetail}>{t('ios.settings.privacyDetail')}</Text>
+          </View>
+        </View>
+      </View>
     </View>
   );
 }

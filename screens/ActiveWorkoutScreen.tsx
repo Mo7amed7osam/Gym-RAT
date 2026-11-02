@@ -19,10 +19,11 @@ import { ExerciseGuideModal } from '@/components/ExerciseGuideModal';
 import { ExerciseOptionsSheet, type SheetAction } from '@/components/ExerciseOptionsSheet';
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
 import { SessionTargetsSheet } from '@/components/SessionTargetsSheet';
+import { WorkoutKeepAwake } from '@/components/WorkoutKeepAwake';
 import { WorkoutReviewModal } from '@/components/WorkoutReviewModal';
 import { detectSetRecords } from '@/domain/records';
 import { lastActivityMs } from '@/domain/session/reducer';
-import { hapticSetCompleted } from '@/lib/feedback';
+import { hapticLight, hapticSetCompleted, hapticWorkoutFinished } from '@/lib/feedback';
 import { WarmupRoutine, getRoutineProgress } from '@/components/WarmupRoutine';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -148,6 +149,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
   const finish = (mode: 'advance' | 'repeat') => {
     setReviewing(false);
     const result = finishWorkout(mode);
+    if (result && useWorkoutStore.getState().settings.hapticsEnabled) hapticWorkoutFinished();
     if (result) onFinished(result);
   };
 
@@ -248,7 +250,11 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
           <ElapsedLabel session={session} completed={completed} total={total} />
         </View>
         <Pressable
-          onPress={paused ? resumeWorkout : pauseWorkout}
+          onPress={() => {
+            if (useWorkoutStore.getState().settings.hapticsEnabled) hapticLight();
+            if (paused) resumeWorkout();
+            else pauseWorkout();
+          }}
           accessibilityRole="button"
           accessibilityLabel={paused ? t('workout.resume') : t('workout.pause')}
           style={styles.iconButton}
@@ -442,6 +448,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         ) : null}
       </View>
 
+      <WorkoutKeepAwake paused={paused} />
       <RestTimerModal visible={restSheetVisible} onMinimize={() => setDismissedRestKey(restKey)} />
       <ExerciseGuideModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
       <WorkoutReviewModal session={reviewing ? session : null} onCancel={() => setReviewing(false)} onFinish={finish} />

@@ -1,8 +1,10 @@
+import { iosEn } from './ios.en';
 import { progressEn } from './progress.en';
 
 /** English UI strings. Keys are grouped by screen; `%{x}` are interpolations. */
 export const en = {
   progress: progressEn,
+  ios: iosEn,
   common: {
     cancel: 'Cancel',
     done: 'Done',
