@@ -464,16 +464,18 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
       <RestTimerModal visible={restSheetVisible} onMinimize={() => setDismissedRestKey(restKey)} />
       <ExerciseGuideModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
       <WorkoutReviewModal session={reviewing ? session : null} onCancel={() => setReviewing(false)} onFinish={finish} />
-      <GroupExercisesSheet
-        visible={grouping}
-        exercises={session.exercises}
-        initialIndex={index}
-        onConfirm={(ids) => {
-          setGrouping(false);
-          groupSessionExercises(ids);
-        }}
-        onClose={() => setGrouping(false)}
-      />
+      {grouping ? (
+        <GroupExercisesSheet
+          visible
+          exercises={session.exercises}
+          initialIndex={index}
+          onConfirm={(ids) => {
+            setGrouping(false);
+            groupSessionExercises(ids);
+          }}
+          onClose={() => setGrouping(false)}
+        />
+      ) : null}
       <ExerciseOptionsSheet visible={optionsOpen} title={current ? (exerciseMap.get(current.exerciseId)?.name.en ?? '') : ''} actions={optionActions} onClose={() => setOptionsOpen(false)} />
       <SessionTargetsSheet
         exercise={session.exercises.find((item) => item.id === targetsFor) ?? null}

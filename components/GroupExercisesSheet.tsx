@@ -1,5 +1,5 @@
 import { Check, X } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -29,7 +29,7 @@ export function groupRange(picked: ReadonlySet<number>): number[] {
 interface GroupExercisesSheetProps {
   visible: boolean;
   exercises: readonly SessionExercise[];
-  /** Pre-selected exercise (the one whose options were opened). */
+  /** Pre-selected exercise (the one whose options were opened). Mount the sheet per use so the pick resets. */
   initialIndex: number;
   onConfirm: (sessionExerciseIds: string[]) => void;
   onClose: () => void;
@@ -42,10 +42,6 @@ export function GroupExercisesSheet({ visible, exercises, initialIndex, onConfir
   const insets = useSafeAreaInsets();
   const exerciseMap = useExerciseMap();
   const [picked, setPicked] = useState<Set<number>>(() => new Set([initialIndex]));
-
-  useEffect(() => {
-    if (visible) setPicked(new Set([initialIndex]));
-  }, [visible, initialIndex]);
 
   const range = groupRange(picked);
   const inRange = new Set(range);
