@@ -11,7 +11,7 @@ import { addDays } from '@/domain/analytics/dates';
 import { PROGRESSION_METRICS, exerciseProgression, metricValue, type ProgressionMetric } from '@/domain/analytics/progression';
 import { trendOf } from '@/domain/analytics/trends';
 import { useT } from '@/i18n';
-import { formatDayMonth, formatDayMonthYear, formatNumber, formatSigned, ltr } from '@/lib/analyticsFormat';
+import { formatDayMonth, formatDayMonthYear, formatNumber, formatSigned, isolate } from '@/lib/analyticsFormat';
 import { formatKg } from '@/lib/format';
 import { useFocusNow } from '@/lib/useFocusNow';
 import { useExercise, useWorkoutStore } from '@/store/useWorkoutStore';
@@ -109,7 +109,7 @@ export default function ExerciseProgressScreen() {
                   title={formatDayMonth(point.at)}
                   subtitle={t('progress.exercise.sessionMeta', {
                     count: point.workingSets,
-                    best: point.bestSet ? ltr(`${formatNumber(point.bestSet.weightKg)} × ${point.bestSet.reps}`) : '—',
+                    best: point.bestSet ? isolate(`${formatNumber(point.bestSet.weightKg)} × ${point.bestSet.reps}`) : '—',
                   })}
                   value={format(metricValue(point, metric))}
                   isLast={index === list.length - 1}

@@ -22,7 +22,7 @@ import {
 } from '@/domain/history/edit';
 import { endTimeMs } from '@/domain/session/reducer';
 import { useLocale, useT } from '@/i18n';
-import { formatDayMonthYear, formatHoursMinutes, formatLongDateLatin, formatNumber, formatTimeLatin, ltr, parseTimeInput, toTimeInput } from '@/lib/analyticsFormat';
+import { formatDayMonthYear, formatHoursMinutes, formatLongDateLatin, formatNumber, formatTimeLatin, isolate, parseTimeInput, toTimeInput } from '@/lib/analyticsFormat';
 import { formatKg } from '@/lib/format';
 import { RECORD_KIND_LABEL_KEY, formatRecordPrevious, formatRecordValue } from '@/lib/recordFormat';
 import { formatInputNumber, parseReps, parseWeight } from '@/lib/parseNumber';
@@ -177,7 +177,7 @@ export default function SessionDetailScreen() {
                   </Text>
                   <Text style={styles.recordValue}>
                     {formatRecordValue(record.kind, record.value, record.weightKg)}
-                    {record.previous !== null ? <Text style={styles.caption}> {t('progress.session.was', { value: ltr(formatRecordPrevious(record.kind, record.previous)) })}</Text> : null}
+                    {record.previous !== null ? <Text style={styles.caption}> {t('progress.session.was', { value: isolate(formatRecordPrevious(record.kind, record.previous)) })}</Text> : null}
                   </Text>
                 </View>
               ))}

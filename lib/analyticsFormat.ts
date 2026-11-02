@@ -74,10 +74,12 @@ export const formatLongDateLatin = (date: Date): string => latinDigits(formatLon
 export const formatTimeLatin = (iso: string): string => latinDigits(formatTime(iso));
 
 /**
- * Wraps a left-to-right run ("95 kg", "72.5 × 8") in Unicode directional
- * isolates so it stays intact inside an Arabic sentence ("(كان 95 kg)" was
- * rendering as "(95 كان kg)"). Invisible in English.
+ * Wraps a value ("95 kg", "72.5 × 8", "95 كجم") in a first-strong Unicode
+ * isolate so it stays intact inside a sentence of the other direction ("(كان
+ * 95 kg)" was rendering as "(95 كان kg)"). The direction comes from the
+ * value itself: Latin or digits-only runs stay left-to-right, a value with an
+ * Arabic unit reads right-to-left. Invisible in English.
  */
-export function ltr(text: string): string {
-  return `⁦${text}⁩`;
+export function isolate(text: string): string {
+  return `\u2068${text}\u2069`;
 }
