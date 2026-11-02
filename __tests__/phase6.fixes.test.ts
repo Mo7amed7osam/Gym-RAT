@@ -90,14 +90,15 @@ describe('exercise names follow the UI language', () => {
   });
 });
 
-describe('Arabic plurals and wording', () => {
+describe('Egyptian Arabic plurals and the owner-approved glossary', () => {
   afterEach(() => setCurrentLocale('en'));
 
   it('uses the CLDR Arabic plural categories', () => {
     expect([0, 1, 2, 3, 10, 11, 99, 100, 102, 111, 2.5].map(arabicPluralForm)).toEqual(['zero', 'one', 'two', 'few', 'few', 'many', 'many', 'other', 'other', 'many', 'other']);
     setCurrentLocale('ar');
-    expect([1, 2, 5, 12, 100].map((count) => translate('progress.workoutsCount', { count }))).toEqual(['تمرين واحد', 'تمرينان', '5 تمارين', '12 تمرينًا', '100 تمرين']);
-    expect(translate('progress.calendar.weeksValue', { count: 2 })).toBe('أسبوعان');
+    expect([1, 2, 5, 12, 100].map((count) => translate('progress.workoutsCount', { count }))).toEqual(['تمرينة واحدة', 'تمرينتين', '5 تمرينات', '12 تمرينة', '100 تمرينة']);
+    expect(translate('progress.calendar.weeksValue', { count: 2 })).toBe('أسبوعين');
+    expect([1, 2, 4, 15].map((count) => translate('progress.history.setsCount', { count }))).toEqual(['سِت واحد', 'سِتّين', '4 سِتات', '15 سِت']);
     setCurrentLocale('en');
     expect([1, 2].map((count) => translate('progress.workoutsCount', { count }))).toEqual(['1 workout', '2 workouts']);
   });
@@ -105,6 +106,12 @@ describe('Arabic plurals and wording', () => {
   it('keeps Western percent signs and digits in every Arabic string', () => {
     const strings = JSON.stringify([ar, progressAr, iosAr]);
     expect(strings).not.toMatch(/[٠-٩۰-۹٪]/);
-    expect(strings).not.toMatch(/سِت|دورتك'|راحة-توقف|أقصى تكرار مقدّر/);
+    // Glossary (owner decision, 2026-11-02): سِت / عدّة / تمرينة / البرنامج / تسخين / اللفّة; PR, Volume and set types in English.
+    expect(strings).not.toMatch(/مجموعة|مجموعات|تكرار|إحماء|الدورة التدريبية|دورتك|رقم قياسي|أرقام قياسية|سوبر سيت|جاينت سيت|دروب سيت|ريست-بوز|أقصى تكرار مقدّر/);
+    expect(strings).toMatch(/سِت/);
+    expect(strings).toMatch(/عدّة|عدّات/);
+    expect(strings).toMatch(/تمرينة/);
+    expect(strings).toMatch(/اللفّة/);
+    expect(strings).toMatch(/التسخين/);
   });
 });

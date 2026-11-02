@@ -26,7 +26,7 @@ const arFlat = flatten(ar as unknown as Tree);
 // Arabic plurals use the extra CLDR categories (zero/two/few/many) on top of en's one/other.
 const ARABIC_ONLY_PLURAL = /\.(zero|two|few|many)$/;
 const isArabicPluralExtra = (key: string) => ARABIC_ONLY_PLURAL.test(key) && `${key.replace(ARABIC_ONLY_PLURAL, '')}.other` in enFlat;
-// Singular/dual forms may spell the number out ("تمرين واحد", "تمرينان") instead of %{count}.
+// Singular/dual forms may spell the number out ("تمرينة واحدة", "تمرينتين") instead of %{count}.
 const withoutCount = (list: string[]) => list.filter((p) => p !== '%{count}');
 
 describe('dictionaries', () => {
