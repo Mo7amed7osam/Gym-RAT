@@ -157,10 +157,10 @@ describe('LoginScreen', () => {
       await useAuthStore.getState().restore();
     });
     await render(<LoginScreen />);
-    expect(screen.getByText('أهلًا بعودتك')).toBeTruthy();
+    expect(screen.getByText('أهلًا بيك تاني')).toBeTruthy();
     expect(screen.getByLabelText('البريد الإلكتروني')).toBeTruthy();
     expect(screen.getByLabelText('كلمة المرور')).toBeTruthy();
-    expect(screen.getByLabelText('إظهار كلمة المرور')).toBeTruthy();
+    expect(screen.getByLabelText('اظهر كلمة المرور')).toBeTruthy();
     await fireEvent.press(screen.getByText('نسيت كلمة المرور؟'));
     expect(mockPush).toHaveBeenCalledWith('/auth/forgot');
   });
