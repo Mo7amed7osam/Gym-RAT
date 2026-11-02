@@ -1,5 +1,7 @@
 # Handoff
 
+**2026-11-02 — Phase 3 + Phase 4 integration** on `integration/phase3-phase4` (`reviews/2026-11-02-integration-report.md`, ADR-012). Schema v9 = 7 Phase 3 column, 8 Phase 4 tables, 9 reconcile; `migrate()` reconciles on every launch. One strength engine (`domain/records`) behind `domain/analytics/metrics`. Ten simulator scenarios performed with AXe (simulator-scoped input; no desktop mouse). Both feature branches and the Phase 4 worktree preserved; merged into `main`. Next: owner review; Phase 5 only on authorization; no TestFlight.
+
 **2026-11-02 — Phase 3 implemented and partly simulator-verified** (`reviews/2026-11-02-phase3-report.md`). Next: owner runs the checklist in §6 of that report, then authorizes Phase 4 (analytics) or Phase 5 (iOS integrations). Do not start either, or TestFlight, without the owner's word. Open: RPE/RIR entry UI, Arabic copy review, README, curated YouTube ids, Developer Mode on the iPhone, owner's own EAS login. Simulator driving: use `tap` only when the owner is not using the Mac; points = px × 874 / image height.
 
 **2026-11-01 — Phase 2 implemented and simulator-verified** (`reviews/2026-11-01-phase2-report.md`). Next: owner review. Phase 3 (PR engine, recommendations, coach, smart targets, substitution suggestions) needs explicit authorization. Open: RPE/RIR entry UI, curated YouTube ids (unverified), Arabic review of all Phase 2 strings, D8 digits, physical-device run.
@@ -40,3 +42,9 @@
 
 ## Protected
 Sets Logging UI layout; rest timer model; `lib/workoutMath.ts`, `lib/parseNumber.ts`, `lib/feedback.ts`; theme tokens; Barlow Condensed; PDF program data as reference seed.
+
+---
+## Phase 4 track (2026-11-02) — `feature/phase4-analytics`
+From architect/planning to SDE. Read ADR-011 (was 010 on the branch) and `decisions/*/phase4-analytics.md`. Task order A1→A8 in `decisions/engineering-manager/phase4-analytics.md`. Do not edit Phase 3 surfaces listed in `decisions/staff-engineer/phase4-analytics.md`.
+Implementation done (A1–A7): see `decisions/sde/phase4-analytics.md`, `decisions/dba/phase4-analytics.md`. QA focus: history edit recompute (edit early session → later PRs change), delete recompute, to-date period comparisons, schema v7 upgrade, Arabic RTL on charts/calendar.
+**2026-11-02 — Phase 4 verified (10x Phase 5 for this track).** QA report and security review in `reviews/2026-11-02-phase4-*`. Next role: whoever merges Phase 3 + 4 — follow `specs/2026-11-02-phase4-phase3-integration-handoff.md` (strength-engine registration, single summary builder, pr_cache rebuild inside `persistDiff`, migration 7/8/9 + reconcile). Phase 5 not started.

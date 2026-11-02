@@ -2,13 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SQLite from 'expo-sqlite';
 import { AppState } from 'react-native';
 
+import { registerStrengthMetrics } from '@/domain/analytics/metrics';
 import { deleteAllCustomExercisePhotos } from '@/lib/customMedia';
+import { attachProgressPersistence, useProgressStore } from '@/store/useProgressStore';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, useWorkoutStore } from '@/store/useWorkoutStore';
 
 import { createExpoDriver } from './driver.expo';
 import type { Driver } from './driver';
 import { importFromAsyncStorage } from './importer';
 import { SCHEMA_VERSION, getUserVersion, migrate } from './migrations';
+import { EMPTY_PROGRESS, ProgressRepository } from './progressRepository';
 import { WorkoutRepository } from './repository';
 import { BACKUP_DATABASE_NAME, DATABASE_NAME } from './schema';
 import { seedExercises, seedPlans } from './seed';
@@ -78,6 +81,13 @@ async function boot(): Promise<void> {
     }
     useWorkoutStore.getState().hydrate(seeded);
     attachPersistence({ persist: (prev, next) => repo.persistDiff(prev, next) });
+    // One strength engine for live finishes, history replays and charts (ADR-012).
+    registerStrengthMetrics((exerciseId) => useWorkoutStore.getState().exercises.find((item) => item.id === exerciseId)?.weightType ?? 'total');
+
+    // Phase 4: body measurements and goals (ADR-011). Tables guaranteed by migrate() (ADR-012).
+    const progressRepo = new ProgressRepository(driver);
+    useProgressStore.getState().hydrate(progressRepo.loadAll());
+    attachProgressPersistence({ persist: (prev, next) => progressRepo.persistDiff(prev, next) });
 
     if (!appStateSubscribed) {
       appStateSubscribed = true;
@@ -108,6 +118,8 @@ async function boot(): Promise<void> {
  */
 export async function resetAllData(): Promise<void> {
   attachPersistence(null);
+  attachProgressPersistence(null);
+  useProgressStore.getState().hydrate(EMPTY_PROGRESS);
   useWorkoutStore.getState().hydrate({
     exercises: [],
     plans: [],
@@ -147,14 +159,15 @@ export async function resetAllData(): Promise<void> {
  */
 async function migrateWithBackup(db: SQLite.SQLiteDatabase, driver: Driver): Promise<void> {
   const from = getUserVersion(driver);
+  const onRepair = (repaired: string[]) => console.warn(`[db] reconciled schema: added ${repaired.join(', ')}`);
   if (from >= SCHEMA_VERSION) {
-    migrate(driver); // no-op apart from verification
+    migrate(driver, { onRepair }); // no steps; reconcile + verification only
     return;
   }
   const backedUp = from > 0;
   if (backedUp) await copyDatabase(db, BACKUP_DATABASE_NAME);
   try {
-    const result = migrate(driver);
+    const result = migrate(driver, { onRepair });
     if (result.applied.length > 0) console.log(`[db] migrated ${result.from} → ${result.to}`);
   } catch (error) {
     if (backedUp) await restoreBackup(db);

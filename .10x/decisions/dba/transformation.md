@@ -29,3 +29,8 @@ Schema v1 as planned (`data/db/schema.ts`). `title_json`, `prescription_json`, `
 - Schema v5 (2026-11-01): `ALTER TABLE plans ADD COLUMN archived INTEGER NOT NULL DEFAULT 0`. Test in `__tests__/plan.editor.test.ts`.
 - Schema v6 (2026-11-01): `sets.set_kind TEXT NOT NULL DEFAULT 'normal'`, `sets.rpe REAL`, `sets.rir INTEGER`, `session_exercises.group_id TEXT`, `session_exercises.group_kind TEXT`. Test in `__tests__/session.engine.test.ts`.
 - Schema v7 (2026-11-02): `ALTER TABLE session_exercises ADD COLUMN recommendation_json TEXT`. Records are not cached (ADR-010).
+
+## 2026-11-02 — Integration of Phase 3 and Phase 4 schemas (ADR-012)
+- Canonical steps: 7 = `recommendation_json` (conditional ALTER), 8 = `body_metrics` + `goals` (`IF NOT EXISTS`), 9 = `reconcileSchema`. `SCHEMA_VERSION = 9`.
+- `migrate()` runs the reconcile on every launch of a non-empty database and `verifySchema` checks `REQUIRED_COLUMNS`; `data/db/progressSchema.ts` removed.
+- Evidence: `__tests__/db.integration-migrations.test.ts` (fresh, v6, Phase 3 v7, Phase 4 v7, relaunches, overstated version, failing step + retry, populated data), `__tests__/integration.metrics.test.ts` (captured simulator file `test/fixtures/sim-phase3-v7.db`), and the simulator itself: 7 → 9 with 3 sessions / 54 sets / 1 decision intact and `gymrat.backup.db` written.

@@ -1,7 +1,6 @@
 import {
   buildSessionSummary,
   countSets,
-  detectPersonalRecords,
   estimateOneRepMax,
   formatSet,
   getExerciseBests,
@@ -139,31 +138,6 @@ describe('history lookups', () => {
 
 describe('personal records', () => {
   const prior = session('2026-10-24T18:00:00.000Z', [exercise('bench', [logged(60, 12)])]);
-
-  it('never awards a PR the first time an exercise is logged', () => {
-    const first = session('2026-10-31T18:00:00.000Z', [exercise('bench', [logged(100, 10)])]);
-    expect(detectPersonalRecords(first, [])).toEqual([]);
-  });
-
-  it('awards top-weight and estimated-1RM records that beat all prior history', () => {
-    const today = session('2026-10-31T18:00:00.000Z', [exercise('bench', [logged(62.5, 12), logged(65, 6)])]);
-    const records = detectPersonalRecords(today, [prior]);
-    const kinds = records.map((r) => r.kind).sort();
-    expect(kinds).toEqual(['estimated_1rm', 'top_weight']);
-    const top = records.find((r) => r.kind === 'top_weight')!;
-    expect(top.value).toBe(65);
-    expect(top.previous).toBe(60);
-    const e1rm = records.find((r) => r.kind === 'estimated_1rm')!;
-    expect(e1rm.value).toBe(87.5); // 62.5 × (1 + 12/30) = 87.5
-    expect(e1rm.previous).toBe(84);
-  });
-
-  it('ignores warm-up sets and equal performances', () => {
-    const today = session('2026-10-31T18:00:00.000Z', [
-      exercise('bench', [logged(80, 10, { type: 'warmup' }), logged(60, 12)]),
-    ]);
-    expect(detectPersonalRecords(today, [prior])).toEqual([]);
-  });
 
   it('builds a summary with duration and records', () => {
     const today = session('2026-10-31T18:00:00.000Z', [exercise('bench', [logged(65, 10), set({})])]);

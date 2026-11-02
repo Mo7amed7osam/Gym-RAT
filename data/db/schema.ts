@@ -131,7 +131,18 @@ CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions (status);
 CREATE INDEX IF NOT EXISTS idx_sessions_plan_day ON sessions (plan_day_id);
 `;
 
-export const REQUIRED_TABLES = ['sessions', 'session_exercises', 'sets', 'kv', 'plans', 'plan_days', 'plan_exercises', 'exercises'] as const;
+export const REQUIRED_TABLES = ['sessions', 'session_exercises', 'sets', 'kv', 'plans', 'plan_days', 'plan_exercises', 'exercises', 'body_metrics', 'goals'] as const;
+
+/**
+ * Columns whose presence is checked on every launch, not inferred from
+ * `user_version` (ADR-012): Phase 3 and Phase 4 both shipped a step 7, so a
+ * database can report a version while missing the other branch's change.
+ */
+export const REQUIRED_COLUMNS: readonly (readonly [table: string, column: string])[] = [
+  ['sets', 'set_kind'],
+  ['session_exercises', 'group_id'],
+  ['session_exercises', 'recommendation_json'],
+];
 
 /** Keys inside the `kv` table. */
 export const KV = {
@@ -191,4 +202,37 @@ ALTER TABLE session_exercises ADD COLUMN group_kind TEXT;
 /** v7: progressive-overload decision per session exercise (Phase 3, ADR-010). */
 export const SCHEMA_V7 = `
 ALTER TABLE session_exercises ADD COLUMN recommendation_json TEXT;
+`;
+
+/**
+ * v8: Phase 4 body measurements and goals (ADR-011; was step 7 on the Phase 4
+ * branch). `IF NOT EXISTS` keeps the step a no-op on databases that already
+ * got these tables from that branch. Kinds are validated in the app, not by
+ * CHECK, so new kinds need no rebuild.
+ */
+export const SCHEMA_V8 = `
+CREATE TABLE IF NOT EXISTS body_metrics (
+  id TEXT PRIMARY KEY NOT NULL,
+  kind TEXT NOT NULL,
+  value REAL NOT NULL CHECK (value > 0),
+  measured_at TEXT NOT NULL,
+  note TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_body_metrics_kind_time ON body_metrics (kind, measured_at);
+CREATE TABLE IF NOT EXISTS goals (
+  id TEXT PRIMARY KEY NOT NULL,
+  kind TEXT NOT NULL,
+  exercise_id TEXT,
+  body_metric TEXT,
+  target_value REAL NOT NULL CHECK (target_value > 0),
+  baseline_value REAL,
+  deadline TEXT,
+  achieved_at TEXT,
+  archived INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_goals_archived ON goals (archived, created_at);
 `;

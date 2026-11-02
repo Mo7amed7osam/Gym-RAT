@@ -3,6 +3,7 @@ import { migrate } from '@/data/db/migrations';
 import { WorkoutRepository } from '@/data/db/repository';
 import { KV } from '@/data/db/schema';
 import { seedPlans } from '@/data/db/seed';
+import { deleteHistorySession } from '@/store/historyActions';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER, attachPersistence, useWorkoutStore } from '@/store/useWorkoutStore';
 
 const defaults = { restTimer: IDLE_REST_TIMER, settings: DEFAULT_SETTINGS };
@@ -78,7 +79,7 @@ describe('WorkoutRepository with the store attached', () => {
     expect(repo.counts().sessions).toBe(1);
 
     // Delete history → rows gone.
-    store.deleteSession(finished.id);
+    expect(deleteHistorySession(finished.id)).toBe(true);
     expect(repo.counts()).toEqual({ sessions: 0, exercises: 0, sets: 0, plans: 3, library: 0 });
 
     // A fresh store hydrated from the DB equals the current store.
