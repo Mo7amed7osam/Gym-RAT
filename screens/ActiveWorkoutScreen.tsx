@@ -18,6 +18,7 @@ import { RestTimerModal, RestTimerPill } from '@/components/RestTimerModal';
 import { ExerciseGuideModal } from '@/components/ExerciseGuideModal';
 import { ExerciseOptionsSheet, type SheetAction } from '@/components/ExerciseOptionsSheet';
 import { ExercisePickerModal } from '@/components/ExercisePickerModal';
+import { GroupExercisesSheet } from '@/components/GroupExercisesSheet';
 import { SessionTargetsSheet } from '@/components/SessionTargetsSheet';
 import { WorkoutKeepAwake } from '@/components/WorkoutKeepAwake';
 import { WorkoutReviewModal } from '@/components/WorkoutReviewModal';
@@ -104,6 +105,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
   const [videoExerciseId, setVideoExerciseId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<'discard' | 'remove' | null>(null);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [grouping, setGrouping] = useState(false);
   const [targetsFor, setTargetsFor] = useState<string | null>(null);
   const [picker, setPicker] = useState<'substitute' | 'add' | null>(null);
   const [reviewing, setReviewing] = useState(false);
@@ -226,6 +228,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
         current.groupId
           ? { key: 'ungroup', label: t('workout.ungroup'), onPress: () => { setOptionsOpen(false); ungroupSessionExercise(current.id); } }
           : { key: 'superset', label: t('workout.supersetWithNext'), disabled: !nextExerciseInSession, onPress: () => { setOptionsOpen(false); if (nextExerciseInSession) groupSessionExercises([current.id, nextExerciseInSession.id]); } },
+        { key: 'group', label: t('workout.groupExercises'), detail: t('workout.groupExercisesDetail'), disabled: session.exercises.length < 2, onPress: () => { setOptionsOpen(false); setGrouping(true); } },
         { key: 'add', label: t('workout.addExerciseAfter'), onPress: () => { setOptionsOpen(false); setPicker('add'); } },
         { key: 'remove', label: t('workout.removeExercise'), destructive: true, onPress: () => { setOptionsOpen(false); setConfirm('remove'); } },
       ]
@@ -461,6 +464,16 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
       <RestTimerModal visible={restSheetVisible} onMinimize={() => setDismissedRestKey(restKey)} />
       <ExerciseGuideModal exerciseId={videoExerciseId} onClose={() => setVideoExerciseId(null)} />
       <WorkoutReviewModal session={reviewing ? session : null} onCancel={() => setReviewing(false)} onFinish={finish} />
+      <GroupExercisesSheet
+        visible={grouping}
+        exercises={session.exercises}
+        initialIndex={index}
+        onConfirm={(ids) => {
+          setGrouping(false);
+          groupSessionExercises(ids);
+        }}
+        onClose={() => setGrouping(false)}
+      />
       <ExerciseOptionsSheet visible={optionsOpen} title={current ? (exerciseMap.get(current.exerciseId)?.name.en ?? '') : ''} actions={optionActions} onClose={() => setOptionsOpen(false)} />
       <SessionTargetsSheet
         exercise={session.exercises.find((item) => item.id === targetsFor) ?? null}

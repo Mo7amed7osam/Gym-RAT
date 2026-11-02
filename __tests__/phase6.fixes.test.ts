@@ -1,4 +1,7 @@
+import { groupRange } from '@/components/GroupExercisesSheet';
 import { seedPlans } from '@/data/db/seed';
+import { restSecondsAfter, setGroup } from '@/domain/session/reducer';
+import { exercise, local, session, set } from '@/test/fixtures/sessions';
 import { clonePlan } from '@/data/plans';
 import { LEGACY_STARTER_NAME_EN, STARTER_PLAN_ID, buildStarterTemplate } from '@/data/seeds/starterPlan';
 import { DEFAULT_SETTINGS, IDLE_REST_TIMER } from '@/store/useWorkoutStore';
@@ -45,5 +48,25 @@ describe('Full Body Starter without the "(draft)" label', () => {
     expect(mine).toBe(renamedByUser);
     // Idempotent: a second boot changes nothing.
     expect(seedPlans(next)).toBe(next);
+  });
+});
+
+describe('giant-set multi-select', () => {
+  it('always covers the whole range between the first and last pick', () => {
+    expect(groupRange(new Set([3]))).toEqual([3]);
+    expect(groupRange(new Set([1, 3]))).toEqual([1, 2, 3]);
+    expect(groupRange(new Set([4, 2, 5]))).toEqual([2, 3, 4, 5]);
+    expect(groupRange(new Set())).toEqual([]);
+  });
+
+  it('groups three exercises into a giant set that rests only after the last member', () => {
+    const base = session(local(2026, 11, 2), [exercise('a', [set({ reps: 10 })]), exercise('b', [set({ reps: 10 })]), exercise('c', [set({ reps: 10 })])], { status: 'in_progress' });
+    const grouped = setGroup(base, base.exercises.map((item) => item.id), 'g');
+    expect(grouped.exercises.map((item) => item.groupKind)).toEqual(['giant', 'giant', 'giant']);
+    const options = { warmupRestSeconds: 45, userRestSeconds: null };
+    const [a, , c] = grouped.exercises;
+    expect(restSecondsAfter(grouped, a, a.sets[0], options)).toBe(0);
+    const lastRound = { ...grouped, exercises: grouped.exercises.map((item) => ({ ...item, sets: item.sets.map((s) => ({ ...s, completed: true })) })) };
+    expect(restSecondsAfter(lastRound, c, c.sets[0], options)).toBe(120);
   });
 });
