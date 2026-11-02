@@ -21,7 +21,7 @@ import { useLocale, useT } from '@/i18n';
 import { selectActivePlan, selectNextDay, selectPreviewedDay, useExerciseMap, useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Plan, PlanDay, WorkoutSession } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
-import { localName } from '@/lib/exerciseName';
+import { localName, secondaryName } from '@/lib/exerciseName';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -319,10 +319,12 @@ function DayHero({
           <Text style={styles.heroTitle} accessibilityRole="header">
             {day.code}
           </Text>
-          <Text style={styles.heroMuscles}>{day.muscleSummary.en}</Text>
-          <Text style={[styles.arabic, styles.arabicStart]} accessibilityLanguage="ar">
-            {day.muscleSummary.ar}
-          </Text>
+          <Text style={styles.heroMuscles}>{localName(day.muscleSummary, locale)}</Text>
+          {secondaryName(day.muscleSummary, locale) ? (
+            <Text style={[styles.arabic, styles.arabicStart]} accessibilityLanguage={locale === 'ar' ? 'en' : 'ar'}>
+              {secondaryName(day.muscleSummary, locale)}
+            </Text>
+          ) : null}
         </View>
         {isActiveDay ? (
           <ProgressRing size={76} strokeWidth={8} progress={progress} color={theme.colors.tint}>

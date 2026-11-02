@@ -128,7 +128,6 @@ export function ExerciseVideo({ video }: { video: CuratedVideo | null }) {
         />
       ) : null}
       <View style={styles.caption}>
-        <Text style={styles.title}>{t('ios.video.title')}</Text>
         <Text style={styles.note}>{t('ios.video.source')}</Text>
         {state === 'idle' ? <Text style={styles.note}>{t('ios.video.needsInternet')}</Text> : null}
       </View>
@@ -152,7 +151,6 @@ const useStyles = createStyles((t) =>
     retry: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.xs, minHeight: 44, paddingHorizontal: t.spacing.md },
     retryText: { ...t.typography.headline, color: t.colors.link },
     caption: { padding: t.spacing.lg, gap: t.spacing.xxs },
-    title: { ...t.typography.subheadline, color: t.colors.label },
     note: { ...t.typography.footnote, color: t.colors.labelSecondary, padding: 0 },
     pressed: { opacity: 0.7 },
   }),

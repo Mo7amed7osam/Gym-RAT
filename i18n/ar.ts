@@ -524,7 +524,7 @@ export const ar: Dictionary = {
       insufficient_data: 'لا توجد بيانات كافية بعد',
       insufficient_dataBody: 'الجلسات المسجلة: %{sessions} من %{needed}. تبدأ الاقتراحات عندما يظهر نمط يمكن قراءته.',
       progressing: 'تحسّن في %{name}',
-      progressingBody: 'ارتفع تقدير 1RM لديك بحوالي %{percent}% مقارنة بالجلسات الأربع السابقة.',
+      progressingBody: 'ارتفع ‏1RM المقدّر لديك بحوالي %{percent}% مقارنة بالجلسات الأربع السابقة.',
       missing_targets: 'أهداف لم تتحقق في %{name}',
       missing_targetsBody: 'آخر %{sessions} جلسات لم تصل إلى %{min} تكرارات. قد يساعد حمل أخف أو راحة أطول؛ اقتراح البطاقة يتبع ذلك.',
       plateau: 'ثبات محتمل في %{name}',
@@ -535,7 +535,7 @@ export const ar: Dictionary = {
     records: {
       title: 'الأرقام القياسية',
       topWeight: 'أثقل مجموعة',
-      estimated1rm: 'تقدير 1RM',
+      estimated1rm: '‏1RM المقدّر',
       estimateNote: 'تقدير (Epley) من مجموعات 12 تكرارًا أو أقل فقط.',
       setVolume: 'أفضل حجم مجموعة',
       repsAtWeight: 'أكثر تكرارات عند وزن',

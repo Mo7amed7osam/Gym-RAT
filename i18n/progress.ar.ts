@@ -92,7 +92,7 @@ export const progressAr: DeepStrings<typeof progressEn> = {
     title: 'تطور التمارين',
     search: 'ابحث عن تمرين',
     empty: 'لم تسجل أي تمرين بعد.',
-    rowMeta: { zero: '%{count} جلسة · آخرها %{date} · أفضل 1RM مقدّر', one: 'جلسة واحدة · آخرها %{date} · أفضل 1RM مقدّر', two: 'جلستان · آخرها %{date} · أفضل 1RM مقدّر', few: '%{count} جلسات · آخرها %{date} · أفضل 1RM مقدّر', many: '%{count} جلسة · آخرها %{date} · أفضل 1RM مقدّر', other: '%{count} جلسة · آخرها %{date} · أفضل 1RM مقدّر' },
+    rowMeta: { zero: '%{count} جلسة · آخرها %{date} · أفضل ‏1RM مقدّر', one: 'جلسة واحدة · آخرها %{date} · أفضل ‏1RM مقدّر', two: 'جلستان · آخرها %{date} · أفضل ‏1RM مقدّر', few: '%{count} جلسات · آخرها %{date} · أفضل ‏1RM مقدّر', many: '%{count} جلسة · آخرها %{date} · أفضل ‏1RM مقدّر', other: '%{count} جلسة · آخرها %{date} · أفضل ‏1RM مقدّر' },
     e1rmNote: '‏1RM المقدّر = أقصى وزن لتكرار واحد محسوب من أفضل مجموعة.',
   },
   exercise: {
