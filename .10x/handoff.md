@@ -54,3 +54,7 @@ Implementation done (A1–A7): see `decisions/sde/phase4-analytics.md`, `decisio
 Read ADR-013 and `reviews/2026-11-02-phase5-report.md`. Side effects live in `services/` and follow the store; Health is a reconciler over `health_exports` (v10). Next: owner review + merge decision, then physical-device checklist (report §Physical-device-only). Do not run EAS with the current CLI login.
 
 **2026-11-02 — Phase 5 merged into main** (tip `ed724ed`, includes the owner-requested poster restore for dev/internal builds). Next role: DevOps/QA for Phase 6 once the owner authorizes it — start with `specs/2026-11-02-phase6-handoff.md` (regenerate `ios/`, owner EAS login, poster release rule, device checklist).
+
+---
+## Phase 6 track (2026-11-02) — `release/phase6`
+Read ADR-014 and `reviews/2026-11-02-phase6-release-readiness.md`. Recommendation NO-GO for TestFlight. Next, in order: owner review + merge decision; regenerate the main checkout's `ios/` after merge; owner logs into their own Expo account and confirms team/App IDs; physical-iPhone checklist; first EAS build (owner-approved) and `scripts/release/check-unlicensed-assets.sh` on its artifact; owner decisions (Arabic review, D4 starter, illustration waiver, privacy policy URL, backup, D11).

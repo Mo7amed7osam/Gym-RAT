@@ -5,3 +5,4 @@ tsc · lint · doctor · unit suite · protected-UI snapshot · owner verificati
 - [transformation](transformation.md)
 - [phase4-analytics](phase4-analytics.md)
 - phase5-ios — Phase 5 iOS integrations (ADR-013)
+- phase6-release — Phase 6 release readiness (ADR-014)

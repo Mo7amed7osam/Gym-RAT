@@ -108,7 +108,7 @@ describe('ExerciseDetail records', () => {
     expect(screen.getByText('Records')).toBeTruthy();
     expect(screen.getByText(/^110 kg · /)).toBeTruthy();
     expect(screen.getByText('PR history')).toBeTruthy();
-    expect(screen.getByText(/Heaviest set: 110 kg \(was 100\)/)).toBeTruthy();
+    expect(screen.getByText(/Heaviest set: 110 kg \(was 100 kg\)/)).toBeTruthy();
     useWorkoutStore.getState().updateSettings({ hiddenRecordKinds: ['top_weight'] });
     await render(<ExerciseDetail exercise={exercise} onOpenExercise={() => {}} />);
     expect(screen.queryByText(/Heaviest set: 110 kg/)).toBeNull();

@@ -262,16 +262,31 @@ export function addWarmupSets(
   });
 }
 
-/** Groups two or more exercises (by session-exercise id) into a superset / giant set, or ungroups them. */
+/**
+ * Groups two or more exercises (by session-exercise id) into a superset / giant
+ * set, or ungroups them (`groupId` null). Grouping with an exercise that is
+ * already in a group merges the groups (A + [B, C] becomes the giant set
+ * [A, B, C]). Afterwards every group's kind matches its size and a group left
+ * with one member is dissolved, so no exercise is ever a superset of one.
+ */
 export function setGroup(session: WorkoutSession, sessionExerciseIds: string[], groupId: string | null): WorkoutSession {
   const ids = new Set(sessionExerciseIds);
-  const groupKind: SessionExercise['groupKind'] = groupId === null ? null : ids.size >= 3 ? 'giant' : 'superset';
+  if (groupId !== null) {
+    const merged = new Set(session.exercises.filter((exercise) => ids.has(exercise.id) && exercise.groupId).map((exercise) => exercise.groupId));
+    for (const exercise of session.exercises) if (exercise.groupId && merged.has(exercise.groupId)) ids.add(exercise.id);
+  }
+  const regrouped = session.exercises.map((exercise) => (ids.has(exercise.id) ? { ...exercise, groupId } : exercise));
+  const sizes = new Map<string, number>();
+  for (const exercise of regrouped) if (exercise.groupId) sizes.set(exercise.groupId, (sizes.get(exercise.groupId) ?? 0) + 1);
   let changed = false;
-  const exercises = session.exercises.map((exercise) => {
-    if (!ids.has(exercise.id)) return exercise;
-    if (exercise.groupId === groupId && exercise.groupKind === groupKind) return exercise;
+  const exercises = regrouped.map((exercise, index) => {
+    const size = exercise.groupId ? (sizes.get(exercise.groupId) ?? 0) : 0;
+    const nextGroupId = size >= 2 ? exercise.groupId : null;
+    const nextKind: SessionExercise['groupKind'] = size >= 3 ? 'giant' : size === 2 ? 'superset' : null;
+    const original = session.exercises[index];
+    if (original.groupId === nextGroupId && original.groupKind === nextKind) return original;
     changed = true;
-    return { ...exercise, groupId, groupKind };
+    return { ...original, groupId: nextGroupId, groupKind: nextKind };
   });
   return changed ? { ...session, exercises } : session;
 }

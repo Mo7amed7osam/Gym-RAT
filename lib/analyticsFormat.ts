@@ -1,18 +1,11 @@
 /** Display helpers for the Progress screens (locale-aware, Western digits per D8). */
 
 import { getCurrentLocale, intlLocale } from '@/i18n';
-import { formatLongDate, formatShortDate, formatTime } from '@/lib/format';
+import { formatLongDate, formatShortDate, formatTime, latinDigits } from '@/lib/format';
 
 const locale = () => intlLocale(getCurrentLocale());
 
-/**
- * Hermes ignores both the `-u-nu-latn` extension and `numberingSystem` for
- * dates (seen on the iOS simulator), so Arabic-Indic digits are mapped back to
- * Western ones after formatting (decision D8).
- */
-export function latinDigits(text: string): string {
-  return text.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (d) => String((d.charCodeAt(0) & 0xf) % 10));
-}
+export { latinDigits };
 
 /** "November 2026" */
 export function formatMonthYear(date: Date): string {
@@ -81,10 +74,12 @@ export const formatLongDateLatin = (date: Date): string => latinDigits(formatLon
 export const formatTimeLatin = (iso: string): string => latinDigits(formatTime(iso));
 
 /**
- * Wraps a left-to-right run ("95 kg", "72.5 × 8") in Unicode directional
- * isolates so it stays intact inside an Arabic sentence ("(كان 95 kg)" was
- * rendering as "(95 كان kg)"). Invisible in English.
+ * Wraps a value ("95 kg", "72.5 × 8", "95 كجم") in a first-strong Unicode
+ * isolate so it stays intact inside a sentence of the other direction ("(كان
+ * 95 kg)" was rendering as "(95 كان kg)"). The direction comes from the
+ * value itself: Latin or digits-only runs stay left-to-right, a value with an
+ * Arabic unit reads right-to-left. Invisible in English.
  */
-export function ltr(text: string): string {
-  return `⁦${text}⁩`;
+export function isolate(text: string): string {
+  return `\u2068${text}\u2069`;
 }

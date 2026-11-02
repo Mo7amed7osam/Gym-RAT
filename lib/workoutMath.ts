@@ -31,11 +31,12 @@ export function sessionVolumeKg(session: WorkoutSession): number {
   return session.exercises.reduce((total, exercise) => total + exerciseVolumeKg(exercise), 0);
 }
 
-/** Epley formula. Returns 0 for empty sets. */
+/**
+ * Estimated 1RM from the one strength engine (`domain/records`: Epley, no
+ * estimate above 12 reps). 0 when there is no estimate.
+ */
 export function estimateOneRepMax(weightKg: number, reps: number): number {
-  if (weightKg <= 0 || reps <= 0) return 0;
-  if (reps === 1) return weightKg;
-  return weightKg * (1 + reps / 30);
+  return getStrengthMetrics().estimateOneRepMax(weightKg, reps);
 }
 
 export function roundTo(value: number, step: number): number {
@@ -98,16 +99,31 @@ export interface ExerciseBests {
   bestSet: ExerciseSet | null;
 }
 
-export function getExerciseBests(history: readonly WorkoutSession[], exerciseId: string): ExerciseBests {
+/**
+ * Best performance shown on the exercise card, library and Today. Uses the
+ * same engine as Records and the progress charts: `bestSet` is the set with
+ * the highest e1RM; when no set has an estimate (bodyweight, assisted, or only
+ * sets above 12 reps) it falls back to the heaviest set, then the most reps.
+ */
+export function getExerciseBests(
+  history: readonly WorkoutSession[],
+  exerciseId: string,
+  metrics: StrengthMetrics = getStrengthMetrics(),
+): ExerciseBests {
   const bests: ExerciseBests = { topWeightKg: 0, bestOneRepMax: 0, bestSet: null };
+  const loadCounts = metrics.hasComparableLoad(exerciseId);
+  let fallback: ExerciseSet | null = null;
   for (const session of history) {
     if (session.status !== 'completed') continue;
     for (const exercise of session.exercises) {
       if (exercise.exerciseId !== exerciseId) continue;
       for (const set of exercise.sets) {
-        if (!isCountedSet(set)) continue;
-        bests.topWeightKg = Math.max(bests.topWeightKg, set.weightKg);
-        const e1rm = estimateOneRepMax(set.weightKg, set.reps);
+        if (!isCountedSet(set) || set.reps <= 0) continue;
+        if (loadCounts) bests.topWeightKg = Math.max(bests.topWeightKg, set.weightKg);
+        if (!fallback || set.weightKg > (fallback.weightKg ?? 0) || (set.weightKg === fallback.weightKg && set.reps > (fallback.reps ?? 0))) {
+          fallback = set;
+        }
+        const e1rm = loadCounts ? metrics.estimateOneRepMax(set.weightKg, set.reps) : 0;
         if (e1rm > bests.bestOneRepMax) {
           bests.bestOneRepMax = e1rm;
           bests.bestSet = set;
@@ -115,6 +131,7 @@ export function getExerciseBests(history: readonly WorkoutSession[], exerciseId:
       }
     }
   }
+  if (!bests.bestSet) bests.bestSet = fallback;
   return bests;
 }
 

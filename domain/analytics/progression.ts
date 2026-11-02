@@ -55,8 +55,9 @@ function pointFor(session: WorkoutSession, exerciseId: string, metrics: Strength
       point.reps += reps;
       point.volumeKg += weight * reps;
       point.topWeightKg = Math.max(point.topWeightKg, weight);
-      // 0 means the engine has no estimate for this set (no load, or more reps than it trusts); it never wins.
-      const e1rm = metrics.estimateOneRepMax(weight, reps);
+      // 0 means the engine has no estimate for this set (no load, more reps than it trusts, or an
+      // assisted exercise where the weight is help, not load); it never wins.
+      const e1rm = metrics.hasComparableLoad(exerciseId) ? metrics.estimateOneRepMax(weight, reps) : 0;
       if (e1rm > 0 && (e1rm > point.bestE1rmKg || point.bestSet === null)) {
         point.bestE1rmKg = e1rm;
         point.bestSet = { weightKg: weight, reps };

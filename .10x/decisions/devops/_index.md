@@ -4,3 +4,4 @@
 - CNG: never edit `ios/` by hand; config plugins only.
 ## Active features
 - [transformation](transformation.md)
+- [phase6-release](phase6-release.md) — Phase 6 release readiness (ADR-014)

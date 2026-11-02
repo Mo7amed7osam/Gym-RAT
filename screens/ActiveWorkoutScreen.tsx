@@ -32,9 +32,10 @@ import { ProgressRing } from '@/components/ui/ProgressRing';
 import { HIT } from '@/constants/theme';
 import { isSessionForDay } from '@/data/plans';
 import { formatDuration, formatElapsed, formatKg, formatLongDate, formatTime, percentChange } from '@/lib/format';
+import { formatRecordPrevious, formatRecordValue } from '@/lib/recordFormat';
 import { countSets } from '@/lib/workoutMath';
 import { activeSeconds, isPaused } from '@/domain/session/reducer';
-import { useT } from '@/i18n';
+import { useLocale, useT } from '@/i18n';
 import { selectIsWorkoutPaused, selectNextDay, useWorkoutStore, useExerciseMap } from '@/store/useWorkoutStore';
 import type { PersonalRecord, SessionExercise, WorkoutSession } from '@/types/workout';
 import { createStyles, useTheme } from '@/theme';
@@ -185,7 +186,7 @@ function ActiveWorkout({ session, onFinished }: { session: WorkoutSession; onFin
     if (prRecords.length > 0) {
       const record = prRecords[0];
       const kindLabel = t(PR_LABEL_KEY[record.kind]);
-      const value = record.kind === 'reps_at_weight' ? `${record.value} × ${record.weightKg} kg` : record.kind === 'set_volume' ? `${record.value} kg` : `${Math.round(record.value * 2) / 2} kg`;
+      const value = formatRecordValue(record.kind, record.value, record.weightKg);
       setToast(t('coach.records.newPr', { kind: kindLabel, value }));
       setTimeout(() => setToast((current) => (current && current.startsWith(t('coach.records.newPr', { kind: '', value: '' }).slice(0, 6)) ? null : current)), 4000);
       if (useWorkoutStore.getState().settings.hapticsEnabled) hapticSetCompleted();
@@ -527,6 +528,7 @@ const PR_LABEL_KEY: Record<PersonalRecord['kind'], string> = {
 function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; onDone: () => void }) {
   const exerciseMap = useExerciseMap();
   const t = useT();
+  const locale = useLocale();
   const styles = useStyles();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -598,7 +600,7 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
             <View style={styles.prList}>
               {summary.personalRecords.map((record, i) => (
                 <View
-                  key={`${record.exerciseId}:${record.kind}`}
+                  key={`${record.exerciseId}:${record.kind}:${record.setId}`}
                   style={[styles.prRow, i < summary.personalRecords.length - 1 && styles.divider]}
                 >
                   <View style={styles.prStar}>
@@ -606,16 +608,14 @@ function WorkoutCompleteModal({ session, onDone }: { session: WorkoutSession; on
                   </View>
                   <View style={styles.flex}>
                     <Text style={styles.prName} numberOfLines={1}>
-                      {exerciseMap.get(record.exerciseId)?.name.en}
+                      {exerciseMap.get(record.exerciseId)?.name[locale]}
                     </Text>
                     <Text style={styles.prDetail}>
-                      {record.kind === 'reps_at_weight'
-                        ? `${t(PR_LABEL_KEY[record.kind])} · ${t('history.wasLabel', { previous: record.previous ?? t('common.none') })}`
-                        : t('workout.prWas', { kind: t(PR_LABEL_KEY[record.kind]), previous: record.previous === null ? t('common.none') : Math.round(record.previous * 2) / 2 })}
+                      {`${t(PR_LABEL_KEY[record.kind])} · ${t('history.wasLabel', { previous: record.previous === null ? t('common.none') : formatRecordPrevious(record.kind, record.previous) })}`}
                     </Text>
                   </View>
                   <Text style={styles.prValue}>
-                    {record.kind === 'reps_at_weight' ? `${record.value} × ${record.weightKg} kg` : t('workout.prValue', { value: Math.round(record.value * 2) / 2 })}
+                    {formatRecordValue(record.kind, record.value, record.weightKg)}
                   </Text>
                 </View>
               ))}

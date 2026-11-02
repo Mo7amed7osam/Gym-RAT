@@ -6,13 +6,15 @@ const config = getDefaultConfig(__dirname);
 
 /**
  * Media without verified redistribution rights (the Neila Rey warm-up poster)
- * is for development and internal testing only. Store builds resolve the
- * poster module to a stub, so the image never enters the bundle. Excluded when
- * the EAS profile is `production` or GYMRAT_STORE_BUILD=1 (set that for any
- * local release archive meant for TestFlight). Run Metro with --clear after
- * changing it.
+ * is for development and internal local testing only. The poster module is
+ * already empty in every release bundle (`__DEV__` gate in
+ * assets/exercises/index.ts); as a second layer, distributable EAS profiles
+ * and GYMRAT_STORE_BUILD=1 resolve it to a stub even in a dev bundle. Any EAS
+ * profile other than the two development ones counts as distributable.
  */
-const isStoreBuild = process.env.EAS_BUILD_PROFILE === 'production' || process.env.GYMRAT_STORE_BUILD === '1';
+const DEV_PROFILES = new Set(['development', 'development-device']);
+const profile = process.env.EAS_BUILD_PROFILE;
+const isStoreBuild = (profile !== undefined && !DEV_PROFILES.has(profile)) || process.env.GYMRAT_STORE_BUILD === '1';
 const POSTERS_DIR = path.join(__dirname, 'assets', 'exercises');
 const POSTERS_STUB = path.join(POSTERS_DIR, 'index.store.ts');
 

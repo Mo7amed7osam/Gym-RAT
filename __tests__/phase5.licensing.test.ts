@@ -1,12 +1,16 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const root = join(__dirname, '..');
 
 function filesUnder(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
-    entry.isDirectory() ? filesUnder(join(dir, entry.name)) : [join(dir, entry.name)],
-  );
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    if (!entry.isDirectory()) return [join(dir, entry.name)];
+    return ['node_modules', 'ios', 'android', '.git', '.10x', '.expo', 'dist'].includes(entry.name) ? [] : filesUnder(join(dir, entry.name));
+  });
 }
 
 function storeResolver(env: Record<string, string>) {
@@ -33,7 +37,17 @@ describe('bundled media licensing', () => {
     expect(readFileSync(join(root, 'assets/exercises/index.ts'), 'utf8')).toContain('© Neila Rey');
   });
 
-  it('stubs the poster out of store builds (rights unverified)', () => {
+  it('drops the poster from every release bundle (__DEV__ gate, folded by Metro before dependency collection)', () => {
+    const source = readFileSync(join(root, 'assets/exercises/index.ts'), 'utf8');
+    expect(source).toMatch(/= __DEV__\s*\?\s*\{ pre_workout_stretches: require\('\.\/stretches\/pre_workout_stretches\.jpg'\) \}\s*:\s*\{\}/);
+    // The only require of the image is the gated one.
+    const users = filesUnder(root)
+      .filter((file) => !file.includes('node_modules') && !file.includes('/ios/') && !file.includes('/.10x/') && /\.(t|j)sx?$/.test(file))
+      .filter((file) => readFileSync(file, 'utf8').includes('pre_workout_stretches.jpg'));
+    expect(users.map((file) => file.slice(root.length + 1)).sort()).toEqual(['__tests__/phase5.licensing.test.ts', 'assets/exercises/index.ts']);
+  });
+
+  it('stubs the poster for every distributable EAS profile and the explicit flag', () => {
     const stub = readFileSync(join(root, 'assets/exercises/index.store.ts'), 'utf8');
     expect(stub).not.toMatch(/require\(|\.jpe?g/);
 
@@ -42,18 +56,43 @@ describe('bundled media licensing', () => {
     const context = {
       resolveRequest: (_c: unknown, moduleName: string) => ({ type: 'sourceFile', filePath: moduleName }),
     };
-    for (const env of [{ EAS_BUILD_PROFILE: 'production' }, { GYMRAT_STORE_BUILD: '1' }] as Record<string, string>[]) {
+    const eas = JSON.parse(readFileSync(join(root, 'eas.json'), 'utf8'));
+    const distributable = Object.keys(eas.build).filter((name) => !['development', 'development-device'].includes(name));
+    expect(distributable.sort()).toEqual(['preview', 'production']);
+    for (const env of [...distributable.map((name) => ({ EAS_BUILD_PROFILE: name })), { EAS_BUILD_PROFILE: 'some-new-profile' }, { GYMRAT_STORE_BUILD: '1' }] as Record<string, string>[]) {
       const resolve = storeResolver(env);
       expect(resolve).toBeDefined();
       expect(resolve!(context, posterIndex, 'ios')).toEqual({ type: 'sourceFile', filePath: join(root, 'assets/exercises/index.store.ts') });
       expect(resolve!(context, other, 'ios').filePath).toBe(other);
     }
-    // Development and internal (preview) builds keep it.
-    expect(storeResolver({ EAS_BUILD_PROFILE: 'preview' })).toBeFalsy();
-    // The store profile also sets the explicit flag, in case the profile name never reaches Metro.
-    const eas = JSON.parse(readFileSync(join(root, 'eas.json'), 'utf8'));
-    expect(eas.build.production.env).toMatchObject({ GYMRAT_STORE_BUILD: '1' });
-    expect(eas.build.preview.env?.GYMRAT_STORE_BUILD).toBeUndefined();
+    // Development builds keep it.
+    expect(storeResolver({ EAS_BUILD_PROFILE: 'development' })).toBeFalsy();
+    // Distributable profiles also set the explicit flag.
+    for (const name of distributable) expect(eas.build[name].env).toMatchObject({ GYMRAT_STORE_BUILD: '1' });
+  });
+
+  it('fails Release Xcode builds whose product contains a listed asset', () => {
+    const app = JSON.parse(readFileSync(join(root, 'app.json'), 'utf8'));
+    expect(app.expo.plugins).toContain('./plugins/withUnlicensedAssetGuard');
+    const list = readFileSync(join(root, 'assets/exercises/UNLICENSED.sha1'), 'utf8');
+    const poster = readFileSync(join(root, 'assets/exercises/stretches/pre_workout_stretches.jpg'));
+    expect(list).toContain(createHash('sha1').update(poster).digest('hex'));
+
+    const script = join(root, 'scripts/release/check-unlicensed-assets.sh');
+    const clean = mkdtempSync(join(tmpdir(), 'gymrat-clean-'));
+    const dirty = mkdtempSync(join(tmpdir(), 'gymrat-dirty-'));
+    try {
+      writeFileSync(join(clean, 'icon.png'), Buffer.alloc(4096, 1));
+      // Renamed copy, as `expo export` stores assets by hash without an extension.
+      writeFileSync(join(dirty, '2ee0a045f486e62aaecc556739dbd0e8'), poster);
+      expect(spawnSync('sh', [script, clean]).status).toBe(0);
+      const result = spawnSync('sh', [script, dirty], { encoding: 'utf8' });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain('pre_workout_stretches.jpg');
+    } finally {
+      rmSync(clean, { recursive: true, force: true });
+      rmSync(dirty, { recursive: true, force: true });
+    }
   });
 
   it('bundles only RepDB stills that the manifest records with a license', () => {

@@ -11,7 +11,7 @@ import { addDays } from '@/domain/analytics/dates';
 import { PROGRESSION_METRICS, exerciseProgression, metricValue, type ProgressionMetric } from '@/domain/analytics/progression';
 import { trendOf } from '@/domain/analytics/trends';
 import { useT } from '@/i18n';
-import { formatDayMonth, formatDayMonthYear, formatNumber, formatSigned, ltr } from '@/lib/analyticsFormat';
+import { formatDayMonth, formatDayMonthYear, formatNumber, formatSigned, isolate } from '@/lib/analyticsFormat';
 import { formatKg } from '@/lib/format';
 import { useFocusNow } from '@/lib/useFocusNow';
 import { useExercise, useWorkoutStore } from '@/store/useWorkoutStore';
@@ -92,7 +92,7 @@ export default function ExerciseProgressScreen() {
           <View style={styles.tiles}>
             <StatTile label={t('progress.exercise.best')} value={format(best)} />
             <StatTile label={t('progress.exercise.latest')} value={format(latest)} />
-            <StatTile label={t('progress.exercise.change')} value={change === null ? '—' : `${formatSigned(change)}${isKg ? ' kg' : ''}`} />
+            <StatTile label={t('progress.exercise.change')} value={change === null ? '—' : `${formatSigned(change)}${isKg ? ` ${t('common.kg')}` : ''}`} />
             <StatTile label={t('progress.exercise.trend')} value={t(`progress.trend.${trend.direction}`)} />
           </View>
         ) : null}
@@ -109,7 +109,7 @@ export default function ExerciseProgressScreen() {
                   title={formatDayMonth(point.at)}
                   subtitle={t('progress.exercise.sessionMeta', {
                     count: point.workingSets,
-                    best: point.bestSet ? ltr(`${formatNumber(point.bestSet.weightKg)} × ${point.bestSet.reps}`) : '—',
+                    best: point.bestSet ? isolate(`${formatNumber(point.bestSet.weightKg)} × ${point.bestSet.reps}`) : '—',
                   })}
                   value={format(metricValue(point, metric))}
                   isLast={index === list.length - 1}

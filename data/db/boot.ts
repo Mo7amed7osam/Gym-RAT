@@ -3,7 +3,7 @@ import * as SQLite from 'expo-sqlite';
 import { AppState } from 'react-native';
 
 import { registerStrengthMetrics } from '@/domain/analytics/metrics';
-import { deleteAllCustomExercisePhotos } from '@/lib/customMedia';
+import { customMediaDirectoryUri, deleteAllCustomExercisePhotos } from '@/lib/customMedia';
 import { GymFileProtection } from '@/modules/gym-native';
 import { setHealthLedger } from '@/services/healthLedger';
 import { attachProgressPersistence, useProgressStore } from '@/store/useProgressStore';
@@ -162,18 +162,23 @@ export async function resetAllData(): Promise<void> {
 /**
  * Data protection (ADR-013): `NSFileProtectionCompleteUnlessOpen`. The app
  * entitlement covers files created by this build; this upgrades the database,
- * its WAL/SHM and backup from earlier builds, and the directory so new files
- * inherit the class. Unless-open keeps the already-open database writable
- * for the checkpoint that runs as the app goes to the background on lock.
- * Best-effort: a failure is logged and the app keeps working.
+ * its WAL/SHM and backup, and the custom exercise photos from earlier builds,
+ * and the directories so new files inherit the class. Unless-open keeps the
+ * already-open database writable for the checkpoint that runs as the app goes
+ * to the background on lock. Best-effort: a failure is logged and the app
+ * keeps working.
  */
 function protectDatabaseFiles(): void {
-  if (!GymFileProtection || !SQLite.defaultDatabaseDirectory) return;
-  try {
-    const changed = GymFileProtection.protectDirectory(String(SQLite.defaultDatabaseDirectory), 'completeUnlessOpen');
-    console.log(`[db] file protection: completeUnlessOpen on ${changed.length} items`);
-  } catch (error) {
-    console.warn('[db] file protection failed', error);
+  if (!GymFileProtection) return;
+  const directories = [SQLite.defaultDatabaseDirectory ? String(SQLite.defaultDatabaseDirectory) : null, customMediaDirectoryUri()];
+  for (const directory of directories) {
+    if (!directory) continue;
+    try {
+      const changed = GymFileProtection.protectDirectory(directory, 'completeUnlessOpen');
+      console.log(`[db] file protection: completeUnlessOpen on ${changed.length} items`);
+    } catch (error) {
+      console.warn('[db] file protection failed', error);
+    }
   }
 }
 

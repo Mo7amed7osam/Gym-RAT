@@ -19,9 +19,17 @@ import { WorkoutActivityController, workoutActivityProps, type ActivityText, typ
 
 const REST_SOUND = 'rest-complete.wav';
 
+/**
+ * `cancel` only withdraws a pending alert. It must not dismiss a delivered one:
+ * when rest ends while the app is still alive in the background, the store
+ * marks rest elapsed a moment after iOS shows the banner, and dismissing
+ * there removed the banner within a second (seen on the simulator, Phase 6).
+ * A stale delivered alert is cleared when the next rest is scheduled instead.
+ */
 const restAlertAdapter: RestAlertAdapter = {
   async schedule(at, content) {
     const sound = useWorkoutStore.getState().settings.restSoundEnabled ? REST_SOUND : false;
+    await Notifications.dismissNotificationAsync(REST_NOTIFICATION_ID).catch(() => undefined);
     await Notifications.scheduleNotificationAsync({
       identifier: REST_NOTIFICATION_ID,
       content: { title: content.title, body: content.body, sound },
@@ -30,7 +38,6 @@ const restAlertAdapter: RestAlertAdapter = {
   },
   async cancel() {
     await Notifications.cancelScheduledNotificationAsync(REST_NOTIFICATION_ID);
-    await Notifications.dismissNotificationAsync(REST_NOTIFICATION_ID).catch(() => undefined);
   },
 };
 

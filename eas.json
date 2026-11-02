@@ -18,7 +18,10 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "GYMRAT_STORE_BUILD": "1"
+      }
     },
     "production": {
       "distribution": "store",

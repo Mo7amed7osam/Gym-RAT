@@ -1,4 +1,5 @@
-import { estimateOneRepMaxOrNull, isCountedForRecords } from '@/domain/records';
+import { getStrengthMetrics } from '@/domain/analytics/metrics';
+import { isCountedForRecords } from '@/domain/records';
 import { evaluateSession } from '@/domain/progression';
 import type { Exercise, Plan, WorkoutSession } from '@/types/workout';
 
@@ -50,14 +51,16 @@ export interface CoachInput {
 const completed = (history: readonly WorkoutSession[]) => history.filter((session) => session.status === 'completed');
 
 function bestE1rmIn(sessions: WorkoutSession[], exerciseId: string): number {
+  // Same engine and assisted-exercise rule as the records and progress charts.
+  const metrics = getStrengthMetrics();
+  if (!metrics.hasComparableLoad(exerciseId)) return 0;
   let best = 0;
   for (const session of sessions) {
     for (const exercise of session.exercises) {
       if (exercise.exerciseId !== exerciseId) continue;
       for (const set of exercise.sets) {
         if (!isCountedForRecords(set)) continue;
-        const e1rm = estimateOneRepMaxOrNull(set.weightKg, set.reps);
-        if (e1rm !== null && e1rm > best) best = e1rm;
+        best = Math.max(best, metrics.estimateOneRepMax(set.weightKg, set.reps));
       }
     }
   }

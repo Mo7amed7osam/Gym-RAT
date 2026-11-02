@@ -26,7 +26,7 @@ export const progressAr: DeepStrings<typeof progressEn> = {
   },
   tiles: { sessions: 'التمارين', volume: 'الحجم', sets: 'المجموعات الفعلية', activeTime: 'الوقت الفعلي', trainingDays: 'أيام التمرين' },
   trend: { up: 'في ارتفاع', down: 'في انخفاض', flat: 'ثابت' },
-  units: { kgValue: '%{value} kg', cmValue: '%{value} سم', percentValue: '%{value}٪', minutes: '%{m} دقيقة', hours: '%{h} ساعة', hoursMinutes: '%{h} س %{m} د' },
+  units: { kgValue: '%{value} كجم', cmValue: '%{value} سم', percentValue: '%{value}٪', minutes: '%{m} دقيقة', hours: '%{h} ساعة', hoursMinutes: '%{h} س %{m} د' },
   muscles: {
     title: 'المجموعات لكل عضلة',
     hint: 'المجموعات الفعلية في هذه الفترة. العضلة الأساسية تُحسب مجموعة كاملة والثانوية نصف مجموعة.',

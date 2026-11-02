@@ -13,7 +13,10 @@ import { getExerciseMedia } from '@/data/media';
 import { curatedVideo } from '@/data/youtubeVideos';
 import { computeExerciseRecords } from '@/domain/records';
 import { rankSubstitutes } from '@/domain/substitution';
-import { intlLocale, useLocale, useT } from '@/i18n';
+import { useLocale, useT } from '@/i18n';
+import { formatDayMonthYear } from '@/lib/analyticsFormat';
+import { formatKg } from '@/lib/format';
+import { RECORD_KIND_LABEL_KEY, formatRecordPrevious, formatRecordValue } from '@/lib/recordFormat';
 import { formatSet, getExerciseBests, getPreviousPerformance, isCountedSet } from '@/lib/workoutMath';
 import { selectActivePlan, useWorkoutStore } from '@/store/useWorkoutStore';
 import { createStyles, useTheme } from '@/theme';
@@ -58,9 +61,7 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
   const allExercises = useWorkoutStore((state) => state.exercises);
   const ranked = useMemo(() => rankSubstitutes(exercise, allExercises), [exercise, allExercises]);
   const alternatives = ranked.filter((item) => item.listed || item.equivalence === 'equivalent').slice(0, 6);
-  const formatDate = (iso: string) => new Date(iso).toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'short', year: 'numeric' });
-  const recordLabel = (kind: string) =>
-    t(kind === 'top_weight' ? 'coach.records.topWeight' : kind === 'estimated_1rm' ? 'coach.records.estimated1rm' : kind === 'set_volume' ? 'coach.records.setVolume' : 'coach.records.repsAtWeight');
+  const formatDate = (iso: string) => formatDayMonthYear(new Date(iso));
 
   const commitNotes = () => {
     if (notes !== exercise.userNotes) updateExerciseUser(exercise.id, { userNotes: notes });
@@ -207,16 +208,16 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
           ) : (
             <>
               {records.topWeight && !hiddenRecordKinds.includes('top_weight') ? (
-                <LabelRow label={t('coach.records.topWeight')} value={`${records.topWeight.value} kg · ${formatDate(records.topWeight.date)}`} />
+                <LabelRow label={t('coach.records.topWeight')} value={`${formatKg(records.topWeight.value)} · ${formatDate(records.topWeight.date)}`} />
               ) : null}
               {records.bestEstimated1rm && !hiddenRecordKinds.includes('estimated_1rm') ? (
-                <LabelRow label={t('coach.records.estimated1rm')} value={`${Math.round(records.bestEstimated1rm.value * 2) / 2} kg · ${formatDate(records.bestEstimated1rm.date)}`} />
+                <LabelRow label={t('coach.records.estimated1rm')} value={`${formatKg(records.bestEstimated1rm.value)} · ${formatDate(records.bestEstimated1rm.date)}`} />
               ) : null}
               {records.bestSetVolume && !hiddenRecordKinds.includes('set_volume') ? (
-                <LabelRow label={t('coach.records.setVolume')} value={`${records.bestSetVolume.value} kg · ${formatDate(records.bestSetVolume.date)}`} />
+                <LabelRow label={t('coach.records.setVolume')} value={`${formatKg(records.bestSetVolume.value)} · ${formatDate(records.bestSetVolume.date)}`} />
               ) : null}
               {!hiddenRecordKinds.includes('reps_at_weight') ? (
-                <LabelRow label={t('coach.records.repsAtWeight')} value={records.repsAtWeight.slice(0, 3).map((item) => `${item.value} × ${item.weightKg} kg`).join(' · ')} last={records.events.length === 0} />
+                <LabelRow label={t('coach.records.repsAtWeight')} value={records.repsAtWeight.slice(0, 3).map((item) => formatRecordValue('reps_at_weight', item.value, item.weightKg)).join(' · ')} last={records.events.length === 0} />
               ) : null}
               {records.events.length > 0 ? (
                 <View style={styles.labelRow}>
@@ -227,8 +228,8 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
                     .slice(0, 8)
                     .map((event) => (
                       <Text key={`${event.kind}-${event.setId}`} style={styles.secondary}>
-                        {formatDate(event.date)} · {recordLabel(event.kind)}: {event.kind === 'reps_at_weight' ? `${event.value} × ${event.weightKg} kg` : `${Math.round(event.value * 2) / 2} kg`}
-                        {event.previous !== null ? ` (${t('history.wasLabel', { previous: event.kind === 'reps_at_weight' ? event.previous : Math.round(event.previous * 2) / 2 })})` : ''}
+                        {formatDate(event.date)} · {t(RECORD_KIND_LABEL_KEY[event.kind])}: {formatRecordValue(event.kind, event.value, event.weightKg)}
+                        {event.previous !== null ? ` (${t('history.wasLabel', { previous: formatRecordPrevious(event.kind, event.previous) })})` : ''}
                       </Text>
                     ))}
                 </View>
@@ -245,7 +246,7 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
           <LabelRow label={t('library.detail.bestSet')} value={bests.bestSet ? formatSet(bests.bestSet) : t('library.detail.never')} />
           <LabelRow
             label={t('library.detail.lastDone')}
-            value={previous ? new Date(previous.session.startedAt).toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'short', year: 'numeric' }) : t('library.detail.never')}
+            value={previous ? formatDate(previous.session.startedAt) : t('library.detail.never')}
           />
           <LabelRow label={t('library.detail.sessions', { count: sessionCount })} value="" last />
         </View>

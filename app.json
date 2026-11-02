@@ -88,10 +88,13 @@
       [
         "expo-widgets",
         {
+          "bundleIdentifier": "com.gymrat.app.ExpoWidgetsTarget",
+          "groupIdentifier": "group.com.gymrat.app",
           "enablePushNotifications": false,
           "frequentUpdates": false
         }
-      ]
+      ],
+      "./plugins/withUnlicensedAssetGuard"
     ],
     "experiments": {
       "typedRoutes": true
@@ -99,7 +102,6 @@
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "splash": null,
     "locales": {
       "en": "./i18n/native/en.json",
       "ar": "./i18n/native/ar.json"
