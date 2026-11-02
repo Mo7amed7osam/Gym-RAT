@@ -1,7 +1,7 @@
 import { BUILTIN_EXERCISES, builtinContent } from '@/data/exercisesData';
 import { clonePlan } from '@/data/plans';
 import { PDF_PROGRAM_ID, buildPplUlTemplate } from '@/data/seeds/pdfProgram';
-import { STARTER_PLAN_ID, buildStarterTemplate } from '@/data/seeds/starterPlan';
+import { LEGACY_STARTER_NAME_EN, STARTER_DAYS, STARTER_DESCRIPTION, STARTER_NAME, STARTER_PLAN_ID, buildStarterTemplate } from '@/data/seeds/starterPlan';
 import type { Exercise, Plan } from '@/types/workout';
 
 import type { PersistedWorkoutState } from './repository';
@@ -29,6 +29,15 @@ export function seedPlans(state: PersistedWorkoutState, now: string = new Date()
     }
   }
 
+  // Earlier builds shipped the starter as "(draft)" with English-only muscle summaries.
+  // Rename those copies (template and the user's active clone) without touching
+  // their days' exercises, rotation pointer or status; user renames are kept.
+  const renamed = plans.map(upgradeLegacyStarter);
+  if (renamed.some((plan, i) => plan !== plans[i])) {
+    plans = renamed;
+    changed = true;
+  }
+
   if (!plans.some((plan) => plan.kind === 'active')) {
     const hasLegacyHistory = state.history.some((session) => session.planId === PDF_PROGRAM_ID) || state.activeSession?.planId === PDF_PROGRAM_ID;
     const source = byId.get(hasLegacyHistory ? PDF_PROGRAM_ID : STARTER_PLAN_ID) as Plan;
@@ -46,6 +55,21 @@ export function seedPlans(state: PersistedWorkoutState, now: string = new Date()
   }
 
   return changed ? { ...state, plans, settings } : state;
+}
+
+function upgradeLegacyStarter(plan: Plan): Plan {
+  if (plan.id !== STARTER_PLAN_ID && plan.sourcePlanId !== STARTER_PLAN_ID) return plan;
+  if (plan.name.en !== LEGACY_STARTER_NAME_EN) return plan;
+  return {
+    ...plan,
+    name: STARTER_NAME,
+    description: STARTER_DESCRIPTION,
+    days: plan.days.map((day) => {
+      const bundled = STARTER_DAYS.find((item) => item.code === day.code);
+      const englishOnly = day.muscleSummary.ar === day.muscleSummary.en;
+      return bundled && englishOnly && day.muscleSummary.en === bundled.muscleSummary.en ? { ...day, muscleSummary: bundled.muscleSummary } : day;
+    }),
+  };
 }
 
 /** Day after the most recent completed session of the source program. */
