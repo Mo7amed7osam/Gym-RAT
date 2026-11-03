@@ -1,5 +1,7 @@
 # Handoff
 
+**2026-11-03 — Resend email** on `feature/resend-email` (worktree `../Gym RAT-email`). Read ADR-019 and `reviews/2026-11-03-resend-email.md`. Owner: pick the sender domain (DNS already verifies `quantara-eg.com` for Resend), confirm verification, API key into VPS `server/.env`, review Arabic copy and `MAIL_DEFAULT_LOCALE`. Then merge. No email has been sent.
+
 **2026-11-03 — Admin dashboard split** on `feature/admin-dashboard-split` (worktree `../Gym RAT-admin-split`). Read ADR-018, `admin/README.md` (Vercel settings) and `server/README.md` ("Admin dashboard on another origin"). Next, owner only: merge approval; Vercel Hobby vs commercial-use decision; create the Vercel project with the documented settings; DNS `admin`/`api`; VPS `.env` gains `ADMIN_ORIGIN`; first deploy runs `docker compose up -d --build`. Docker clean-clone image build could not run here (Docker Desktop's VM unresponsive since the 2026-11-02 disk-full crash); the clean clone was built and checked without Docker. Do not deploy, push or merge without the owner's word.
 
 # Handoff
