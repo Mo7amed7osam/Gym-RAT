@@ -1,0 +1,56 @@
+# Gym RAT API for Coolify (ADR-015/018/019): add as a "Docker Compose" resource
+# with base directory /server and this file. Coolify's own proxy terminates
+# HTTPS and routes the domain set on the `app` service (https://api.<domain>,
+# port 3000), so there is no Caddy here and nothing binds host ports.
+# PostgreSQL has no `ports:` and lives on this resource's private network only.
+# SERVICE_PASSWORD_* values are generated and stored by Coolify on the server.
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gymrat
+      POSTGRES_USER: gymrat
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+    volumes:
+      - gymrat-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gymrat -d gymrat"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://gymrat:${SERVICE_PASSWORD_POSTGRES}@db:5432/gymrat
+      AUTH_SECRET: ${SERVICE_PASSWORD_64_AUTHSECRET}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-https://api.quantara-eg.com}
+      ADMIN_ORIGIN: ${ADMIN_ORIGIN:-https://admin.quantara-eg.com}
+      TRUST_PROXY: "1"
+      SMTP_HOST: ${SMTP_HOST:-smtp.resend.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-1}
+      SMTP_USER: ${SMTP_USER:-resend}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM:-GYM RAT <no-reply@quantara-eg.com>}
+      MAIL_DEFAULT_LOCALE: ${MAIL_DEFAULT_LOCALE:-en}
+      OFFLINE_LEASE_DAYS: ${OFFLINE_LEASE_DAYS:-7}
+      INVITE_TTL_HOURS: ${INVITE_TTL_HOURS:-72}
+      RESET_TTL_MINUTES: ${RESET_TTL_MINUTES:-60}
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+volumes:
+  gymrat-pgdata:
