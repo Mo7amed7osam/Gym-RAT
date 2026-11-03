@@ -3,7 +3,7 @@
 import { AlertTriangle, Link2, Mail, MailX } from "lucide-react";
 
 import { CopyButton } from "@/components/ui/copy-button";
-import type { IssuedLink } from "@/lib/auth/action-tokens";
+import type { IssuedLink } from "@/lib/api-types";
 import { formatDateTime } from "@/lib/utils";
 
 /**

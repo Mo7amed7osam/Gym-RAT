@@ -14,7 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { TBody, TD, TH, THead, TR, Table } from "@/components/ui/table";
 import { useApi } from "@/lib/client/use-api";
-import type { MemberSummary } from "@/lib/members";
+import type { MemberSummary } from "@/lib/api-types";
 import { cn, formatDateTime, formatRelative } from "@/lib/utils";
 
 const FILTERS = [

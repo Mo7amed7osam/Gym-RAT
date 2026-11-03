@@ -5,7 +5,7 @@ const expoConfig = require('eslint-config-expo/flat');
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*', 'coverage/*', 'server/**', 'release-artifacts/**'],
+    ignores: ['dist/*', 'coverage/*', 'server/**', 'admin/**', 'release-artifacts/**'],
   },
   {
     // Colours come from the theme (ADR-005); literals are allowed only in the token files.

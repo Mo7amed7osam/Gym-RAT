@@ -14,7 +14,7 @@ import { TBody, TD, TH, THead, TR, Table } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { api, describeError } from "@/lib/client/api";
 import { useApi } from "@/lib/client/use-api";
-import type { SessionRow } from "@/lib/members";
+import type { SessionRow } from "@/lib/api-types";
 import { formatDateTime, formatRelative } from "@/lib/utils";
 
 interface ResetRequest {
