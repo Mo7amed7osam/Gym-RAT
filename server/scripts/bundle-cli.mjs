@@ -1,10 +1,10 @@
-// Bundles the server CLI scripts (migrate, bootstrap-admin) into plain ESM
+// Bundles the server CLI scripts (migrate, bootstrap-admin, mail-check) into plain ESM
 // files for the Docker image, so the runtime needs neither tsx nor tsconfig
 // path aliases. `postgres` stays external (it is shipped with the standalone build).
 import { build } from "esbuild";
 
 await build({
-  entryPoints: { migrate: "scripts/migrate.ts", "bootstrap-admin": "scripts/bootstrap-admin.ts" },
+  entryPoints: { migrate: "scripts/migrate.ts", "bootstrap-admin": "scripts/bootstrap-admin.ts", "mail-check": "scripts/mail-check.ts" },
   outdir: "dist/cli",
   bundle: true,
   platform: "node",

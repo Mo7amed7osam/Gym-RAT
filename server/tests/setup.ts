@@ -39,6 +39,7 @@ beforeAll(async () => {
     SMTP_USER: undefined,
     SMTP_PASSWORD: undefined,
     SMTP_FROM: "Gym RAT <no-reply@gymrat.test>",
+    MAIL_DEFAULT_LOCALE: "en",
     APP_NAME: "Gym RAT",
   });
   setMailSenderForTests(async (message) => {

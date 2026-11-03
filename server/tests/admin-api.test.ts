@@ -136,7 +136,7 @@ describe("member management", () => {
     memberId = created.member.id;
     const mail = lastMailedLink("nour@example.com");
     expect(mail.url).toMatch(/^https:\/\/api\.gymrat\.test\/invite\/[A-Za-z0-9_-]{43}$/);
-    expect(mail.text).toMatch(/expires at/);
+    expect(mail.text).toMatch(/expires in 72 hours/);
     expect(mail.text).not.toMatch(/password:/i);
     inviteToken = mail.token;
     const stored = await getDb().select().from(actionTokens).where(eq(actionTokens.userId, memberId));

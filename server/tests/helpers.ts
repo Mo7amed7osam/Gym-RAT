@@ -56,7 +56,7 @@ export async function currentTotp(userId: string, at = Date.now()): Promise<stri
 export const STRONG = "correct horse battery staple 2026";
 
 /** Messages "sent" by the server during the tests (captured instead of SMTP). */
-export const outbox: { to: string; from: string; subject: string; text: string }[] = [];
+export const outbox: { to: string; from: string; subject: string; text: string; html?: string }[] = [];
 
 /** The one-time link in the latest email to `to`. */
 export function lastMailedLink(to: string): { url: string; token: string; text: string } {

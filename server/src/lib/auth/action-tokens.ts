@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { actionTokens, passwordResetRequests, users, type ActionToken, type User } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { HttpError } from "@/lib/http";
+import { invitationEmail, invitationResentEmail, passwordChangedEmail, passwordResetEmail, welcomeEmail, type EmailLocale, type RenderedEmail } from "@/lib/email/templates";
 import { MailDeliveryError, mailConfig, sendMail } from "@/lib/mail";
 
 import { randomToken, sha256 } from "./crypto";
@@ -23,6 +24,13 @@ import { LIMITS, consumeRateLimit } from "./rate-limit";
  * (email_status = failed + reason) for the dashboard; the URL is never handed
  * to the admin instead. Reset links keep the earlier behaviour: emailed when
  * SMTP works, otherwise returned once for the admin to share by hand.
+ *
+ * Email content (ADR-019): branded HTML + plain text in the member's email
+ * language (users.email_locale, else MAIL_DEFAULT_LOCALE). A repeat
+ * invitation uses the "new link" wording. After a link is redeemed the member
+ * gets a welcome (invitation) or a password-changed notice (reset); those are
+ * best effort and never undo the redemption. Tokens appear only inside the
+ * emailed URL, never in logs or the audit trail.
  */
 
 export type ActionKind = ActionToken["kind"];
@@ -45,18 +53,12 @@ export function assertInvitationsDeliverable(): void {
   }
 }
 
-function linkEmail(kind: ActionKind, user: User, url: string, expiresAt: Date): { subject: string; text: string } {
-  const app = env().APP_NAME;
-  if (kind === "reset") {
-    return {
-      subject: `${app}: reset your password`,
-      text: `Hi ${user.displayName},\n\nUse this link to choose a new ${app} password. It works once and expires at ${expiresAt.toISOString()}.\n\n${url}\n\nIf you did not ask for this, ignore this email.`,
-    };
-  }
-  return {
-    subject: `${app}: set up your account`,
-    text: `Hi ${user.displayName},\n\nAn account was created for you in ${app}. Open this link to choose your password. It works once and expires at ${expiresAt.toISOString()}.\n\n${url}\n\nNobody else knows or receives your password. If you were not expecting this, ignore this email.`,
-  };
+export const emailLocaleFor = (user: User): EmailLocale => user.emailLocale ?? env().MAIL_DEFAULT_LOCALE;
+
+function linkEmail(kind: ActionKind, user: User, url: string, expiresAt: Date, resent: boolean): RenderedEmail {
+  const input = { locale: emailLocaleFor(user), displayName: user.displayName || null, email: user.email, url, expiresAt, lifetimeMinutes: ttlMs(kind) / 60_000 };
+  if (kind === "reset") return passwordResetEmail(input);
+  return resent ? invitationResentEmail(input) : invitationEmail(input);
 }
 
 const ttlMs = (kind: ActionKind): number => {
@@ -69,10 +71,11 @@ const pathFor = (kind: ActionKind): string => (kind === "reset" ? "/reset" : kin
 export async function issueActionLink(user: User, kind: ActionKind, actor: { id: string | null; type: "admin" | "system" }, ctx: RequestContext, now = new Date()): Promise<IssuedLink> {
   if (kind === "invite") assertInvitationsDeliverable();
   const db = getDb();
-  await db
+  const superseded = await db
     .update(actionTokens)
     .set({ usedAt: now })
-    .where(and(eq(actionTokens.userId, user.id), eq(actionTokens.kind, kind), isNull(actionTokens.usedAt)));
+    .where(and(eq(actionTokens.userId, user.id), eq(actionTokens.kind, kind), isNull(actionTokens.usedAt)))
+    .returning({ id: actionTokens.id });
   const raw = randomToken();
   const expiresAt = new Date(now.getTime() + ttlMs(kind));
   const url = `${env().PUBLIC_ORIGIN}${pathFor(kind)}/${raw}`;
@@ -96,7 +99,7 @@ export async function issueActionLink(user: User, kind: ActionKind, actor: { id:
   let emailError: string | null = null;
   if (emailed) {
     try {
-      await sendMail({ to: user.email, ...linkEmail(kind, user, url, expiresAt) });
+      await sendMail({ to: user.email, ...linkEmail(kind, user, url, expiresAt, superseded.length > 0) });
       emailStatus = "sent";
     } catch (error) {
       emailStatus = "failed";
@@ -163,7 +166,19 @@ export async function redeemActionToken(raw: string, password: string, ctx: Requ
   await revokeAllMemberSessions(user.id, now);
   await db.update(passwordResetRequests).set({ handledAt: now }).where(and(eq(passwordResetRequests.userId, user.id), isNull(passwordResetRequests.handledAt)));
   await audit({ ...ctx, actorType: "member", actorId: user.id, action: `link.redeemed.${token.kind}`, targetUserId: user.id });
+  await sendRedemptionNotice(token.kind, user, now);
   return { kind: token.kind, email: user.email };
+}
+
+/** Welcome after an invitation, security notice after a reset. Best effort: the password is already set. */
+async function sendRedemptionNotice(kind: ActionKind, user: User, at: Date): Promise<void> {
+  if (kind === "admin_setup" || !mailConfig()) return;
+  const input = { locale: emailLocaleFor(user), displayName: user.displayName || null, email: user.email, at };
+  try {
+    await sendMail({ to: user.email, ...(kind === "invite" ? welcomeEmail(input) : passwordChangedEmail(input)) });
+  } catch {
+    // sendMail already logged a credential-free reason; the member is set up either way.
+  }
 }
 
 /**

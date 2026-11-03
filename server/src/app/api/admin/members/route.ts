@@ -17,7 +17,7 @@ export const GET = withAdmin(async (request) => {
   );
 });
 
-const createSchema = z.object({ email: emailSchema, displayName: z.string().trim().min(1).max(80) });
+const createSchema = z.object({ email: emailSchema, displayName: z.string().trim().min(1).max(80), emailLocale: z.enum(["en", "ar"]).optional() });
 
 export const POST = withAdmin(async (request, auth) => {
   const body = await parseBody(request, createSchema);

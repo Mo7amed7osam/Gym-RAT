@@ -27,6 +27,8 @@ export interface MemberSummary {
   activeSessions: number;
   /** Latest unused invitation of an invited member: was the email accepted by the mail server? */
   invitation: InvitationState | null;
+  /** Stored email language; null means the server default (MAIL_DEFAULT_LOCALE). */
+  emailLocale: "en" | "ar" | null;
 }
 
 export interface Stats {

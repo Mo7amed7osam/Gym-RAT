@@ -2,6 +2,8 @@
 
 **Feature slug:** `transformation` (existing app → premium offline-first iOS workout tracker)
 **Spec:** `specs/2026-11-01-gym-rat-transformation-design.md` (Master Plan v3)
+**Resend email (2026-11-03):** `feature/resend-email` (worktree `../Gym RAT-email`, ADR-019), from `main @ 6e78b7b`. Resend SMTP config, 5 branded bilingual templates, `users.email_locale`, `mail-check` CLI, 95 server tests. Not merged, not deployed, no email sent. Review `reviews/2026-11-03-resend-email.md`.
+
 **Admin dashboard split (2026-11-03):** `feature/admin-dashboard-split` (worktree `../Gym RAT-admin-split`, ADR-018), based on `main @ 866dd27` (tag `backup/main-before-admin-split`). New `admin/` app (Vercel-ready, not deployed); VPS API gains exact-origin CORS/CSRF (`ADMIN_ORIGIN`); old VPS dashboard removed; open redirect and Dockerfile `public/` fixed. Verified locally across two origins (36/36 browser checks). Not merged, not pushed, not deployed.
 
 **Phase 7 (2026-11-02):** private members platform on `feature/phase7-private-auth @ 3fb949c` (worktree `../Gym RAT-phase7`, ADR-015/016). Implemented and verified; not merged. Report `reviews/2026-11-02-phase7-report.md`. IPA blocked on the owner accepting Apple's updated PLA.
