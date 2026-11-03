@@ -28,6 +28,13 @@ export interface AdminAuth {
   mfaVerified: boolean;
 }
 
+/**
+ * HttpOnly, Secure (on https), SameSite=Strict and host-only: there is no
+ * Domain attribute, so the cookie belongs to the API host alone and is never
+ * sent to the dashboard's host (ADR-018). The dashboard and the API are the
+ * same site, so the Strict cookie still rides along on the dashboard's
+ * credentialed requests.
+ */
 export function adminCookieOptions(expires: Date) {
   const secure = env().PUBLIC_ORIGIN.startsWith("https://");
   return { httpOnly: true, secure, sameSite: "strict" as const, path: "/", expires };

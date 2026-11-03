@@ -9,9 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
-import type { IssuedLink } from "@/lib/auth/action-tokens";
+import type { IssuedLink, MemberSummary } from "@/lib/api-types";
 import { api, describeError } from "@/lib/client/api";
-import type { MemberSummary } from "@/lib/members";
 
 export function NewMember() {
   const toast = useToast();

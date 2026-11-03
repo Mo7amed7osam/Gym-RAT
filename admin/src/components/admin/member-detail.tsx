@@ -16,10 +16,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
-import type { IssuedLink } from "@/lib/auth/action-tokens";
+import type { IssuedLink, MemberDetail } from "@/lib/api-types";
 import { api, describeError } from "@/lib/client/api";
 import { useApi } from "@/lib/client/use-api";
-import type { MemberDetail } from "@/lib/members";
 import { formatDateTime, formatRelative } from "@/lib/utils";
 
 type Pending = "disable" | "enable" | "revokeAll" | "delete" | "link" | "rename" | null;

@@ -1,5 +1,9 @@
 # Handoff
 
+**2026-11-03 — Admin dashboard split** on `feature/admin-dashboard-split` (worktree `../Gym RAT-admin-split`). Read ADR-018, `admin/README.md` (Vercel settings) and `server/README.md` ("Admin dashboard on another origin"). Next, owner only: merge approval; Vercel Hobby vs commercial-use decision; create the Vercel project with the documented settings; DNS `admin`/`api`; VPS `.env` gains `ADMIN_ORIGIN`; first deploy runs `docker compose up -d --build`. Docker clean-clone image build could not run here (Docker Desktop's VM unresponsive since the 2026-11-02 disk-full crash); the clean clone was built and checked without Docker. Do not deploy, push or merge without the owner's word.
+
+# Handoff
+
 **2026-11-02 — Phase 7 private members platform** on `feature/phase7-private-auth @ 3fb949c` (worktree `../Gym RAT-phase7`). Read `reviews/2026-11-02-phase7-report.md`, ADR-015/016, `server/README.md`. Next, in order: owner accepts the Apple PLA and re-runs the archive/export commands in the report; owner provides VPS + domain and follows the README deploy; owner approves merge into `main` (then regenerate the main checkout's `ios/`, since `expo-secure-store` added a native module); physical-iPhone checklist. Do not merge, push, deploy or upload without the owner's word. Local demo stack: Postgres container on 5433 (running), `npm run dev` in `server/` for the dashboard, simulator `GymRAT-Phase7`.
 
 # Handoff

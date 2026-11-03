@@ -80,21 +80,15 @@ export function requestContext(request: Request): RequestContext {
   return { ip: ip || null, userAgent: request.headers.get("user-agent") };
 }
 
-/** For a request authenticated by a cookie, every state change must come from our own origin (CSRF). */
-export function assertSameOrigin(request: Request): void {
-  const origin = request.headers.get("origin");
-  const fetchSite = request.headers.get("sec-fetch-site");
-  const expected = new URL(env().PUBLIC_ORIGIN).origin;
-  if (origin) {
-    if (origin !== expected) throw new HttpError(403, "csrf");
-    return;
-  }
-  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") throw new HttpError(403, "csrf");
-  if (!fetchSite) {
-    // No Origin and no Fetch Metadata: only accept if the Referer is ours.
-    const referer = request.headers.get("referer");
-    if (!referer || new URL(referer).origin !== expected) throw new HttpError(403, "csrf");
-  }
+/**
+ * For a request authenticated by the admin cookie, every state change must
+ * come from the dashboard's exact origin (CSRF). The dashboard is a separate
+ * site (ADMIN_ORIGIN) calling this API cross-origin; browsers always send
+ * `Origin` on cross-origin requests and on every non-GET fetch, so a state
+ * change without it, or with any other value, did not come from the dashboard.
+ */
+export function assertAdminOrigin(request: Request): void {
+  if (request.headers.get("origin") !== env().ADMIN_ORIGIN) throw new HttpError(403, "csrf");
 }
 
 export const emailSchema = z.string().trim().toLowerCase().email().max(254);

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Input } from "@/components/ui/input";
 import { api, describeError } from "@/lib/client/api";
+import { safeNextPath } from "@/lib/safe-next";
 
 type Step = "password" | "mfa" | "enrol" | "recovery";
 
@@ -25,7 +26,7 @@ interface Who {
 export function LoginFlow() {
   const router = useRouter();
   const search = useSearchParams();
-  const next = search.get("next") && search.get("next")!.startsWith("/") ? search.get("next")! : "/";
+  const next = safeNextPath(search.get("next"));
   const [step, setStep] = useState<Step | "checking">("checking");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

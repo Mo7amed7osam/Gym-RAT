@@ -18,7 +18,7 @@ describe("SMTP configuration and failures", () => {
   });
 
   it("validates the variables: host needs a sender; user and password come together", () => {
-    const base = { NODE_ENV: "test", DATABASE_URL: "postgres://x", AUTH_SECRET: "x".repeat(40), PUBLIC_ORIGIN: "https://auth.example.org" } as const;
+    const base = { NODE_ENV: "test", DATABASE_URL: "postgres://x", AUTH_SECRET: "x".repeat(40), PUBLIC_ORIGIN: "https://api.example.org", ADMIN_ORIGIN: "https://admin.example.org" } as const;
     expect(() => loadEnv({ ...base, SMTP_HOST: "smtp.example.org" } as NodeJS.ProcessEnv)).toThrow(/SMTP_FROM is required/);
     expect(() => loadEnv({ ...base, SMTP_HOST: "smtp.example.org", SMTP_FROM: "a@b.c", SMTP_USER: "u" } as NodeJS.ProcessEnv)).toThrow(/SMTP_USER and SMTP_PASSWORD/);
     const ok = loadEnv({ ...base, SMTP_HOST: "smtp.example.org", SMTP_FROM: "Gym RAT <a@b.c>", SMTP_PORT: "465", SMTP_SECURE: "1" } as NodeJS.ProcessEnv);

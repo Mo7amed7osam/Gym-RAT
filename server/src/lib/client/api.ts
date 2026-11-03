@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Browser-side fetch wrapper for the admin API. Same-origin, credentials via
- * the HttpOnly cookie, JSON in and out, typed errors with the server's code.
+ * Browser-side fetch wrapper for the member link pages (/invite, /reset,
+ * /setup). Same-origin, JSON in and out, typed errors with the server's code.
  */
 export class ApiError extends Error {
   constructor(

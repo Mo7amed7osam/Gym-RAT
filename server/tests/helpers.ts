@@ -7,17 +7,19 @@ import { getDb } from "@/lib/db";
 import { adminTotp, users } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 
-export const ORIGIN = "https://admin.gymrat.test";
+/** The API (PUBLIC_ORIGIN) and the separate dashboard app (ADMIN_ORIGIN): same site, different origins (ADR-018). */
+export const API_ORIGIN = "https://api.gymrat.test";
+export const DASHBOARD_ORIGIN = "https://admin.gymrat.test";
 
 export function req(path: string, init: { method?: string; body?: unknown; headers?: Record<string, string>; cookie?: string | null; ip?: string } = {}): Request {
   const headers: Record<string, string> = { "x-forwarded-for": init.ip ?? "203.0.113.10", "user-agent": "vitest", ...(init.headers ?? {}) };
   if (init.body !== undefined) headers["content-type"] = "application/json";
   if (init.cookie) headers.cookie = init.cookie;
-  return new Request(`${ORIGIN}${path}`, { method: init.method ?? (init.body !== undefined ? "POST" : "GET"), headers, body: init.body === undefined ? undefined : JSON.stringify(init.body) });
+  return new Request(`${API_ORIGIN}${path}`, { method: init.method ?? (init.body !== undefined ? "POST" : "GET"), headers, body: init.body === undefined ? undefined : JSON.stringify(init.body) });
 }
 
-/** Like `req` but with the headers a browser sends for a same-origin fetch. */
-export const browserReq = (path: string, init: Parameters<typeof req>[1] = {}) => req(path, { ...init, headers: { origin: ORIGIN, "sec-fetch-site": "same-origin", ...(init.headers ?? {}) } });
+/** Like `req` but with the headers a browser sends for the dashboard's credentialed cross-origin fetch. */
+export const browserReq = (path: string, init: Parameters<typeof req>[1] = {}) => req(path, { ...init, headers: { origin: DASHBOARD_ORIGIN, "sec-fetch-site": "same-site", ...(init.headers ?? {}) } });
 
 export const params = <T extends Record<string, string>>(value: T) => ({ params: Promise.resolve(value) });
 

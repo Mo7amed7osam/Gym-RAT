@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# Gym RAT auth server + admin dashboard (ADR-015). Multi-stage: deps → build → slim runtime.
+# Gym RAT auth + admin API and member link pages (ADR-015; dashboard is the separate admin/ app, ADR-018). Multi-stage: deps → build → slim runtime.
 
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
@@ -12,13 +12,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Placeholder values so `next build` can evaluate config; real values come from the runtime environment.
-RUN DATABASE_URL=postgres://build:build@localhost:5432/build AUTH_SECRET=build-time-placeholder-secret-0123456789abcdef PUBLIC_ORIGIN=https://localhost npm run build
+RUN DATABASE_URL=postgres://build:build@localhost:5432/build AUTH_SECRET=build-time-placeholder-secret-0123456789abcdef PUBLIC_ORIGIN=https://localhost ADMIN_ORIGIN=https://localhost npm run build
 
 FROM node:22-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 RUN groupadd --system app && useradd --system --gid app --home /app app
-# Standalone server + static assets.
+# Standalone server + static assets. public/ is tracked (robots.txt), so a clean clone builds.
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public

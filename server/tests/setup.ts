@@ -9,7 +9,7 @@ import * as schema from "@/lib/db/schema";
 import { setEnvForTests } from "@/lib/env";
 import { setMailSenderForTests } from "@/lib/mail";
 
-import { outbox } from "./helpers";
+import { API_ORIGIN, DASHBOARD_ORIGIN, outbox } from "./helpers";
 
 /**
  * Every test file gets a fresh in-memory PostgreSQL (PGlite) migrated with
@@ -22,7 +22,8 @@ beforeAll(async () => {
     NODE_ENV: "test",
     DATABASE_URL: "postgres://unused",
     AUTH_SECRET: "test-secret-test-secret-test-secret-0123456789",
-    PUBLIC_ORIGIN: "https://admin.gymrat.test",
+    PUBLIC_ORIGIN: API_ORIGIN,
+    ADMIN_ORIGIN: DASHBOARD_ORIGIN,
     ACCESS_TOKEN_TTL_SECONDS: 900,
     REFRESH_TOKEN_TTL_DAYS: 30,
     OFFLINE_LEASE_DAYS: 7,

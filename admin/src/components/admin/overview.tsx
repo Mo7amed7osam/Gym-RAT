@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatTile } from "@/components/ui/stat";
 import { useApi } from "@/lib/client/use-api";
-import type { Stats } from "@/lib/members";
+import type { Stats } from "@/lib/api-types";
 import { formatRelative } from "@/lib/utils";
 
 export function Overview() {

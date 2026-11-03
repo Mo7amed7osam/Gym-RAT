@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 /**
- * Admin dashboard + auth API (ADR-015). Every page is behind a session cookie
- * and every API answer is per-request, so Cache Components is off: nothing
- * here should ever be prerendered or cached.
+ * Auth + admin API and the member link pages (ADR-015). The admin dashboard
+ * is the separate `admin/` app (ADR-018). Every answer is per-request, so
+ * Cache Components is off: nothing here should ever be prerendered or cached.
  */
 // React dev tooling needs eval(); production never does.
 const scriptSrc = process.env.NODE_ENV === "development" ? "'self' 'unsafe-inline' 'unsafe-eval'" : "'self' 'unsafe-inline'";

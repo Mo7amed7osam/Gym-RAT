@@ -73,6 +73,7 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/server/",
+      "/admin/",
       "/ios/",
       "/release-artifacts/"
     ],
@@ -81,6 +82,7 @@
     ],
     "modulePathIgnorePatterns": [
       "<rootDir>/server/",
+      "<rootDir>/admin/",
       "<rootDir>/release-artifacts/"
     ]
   }
