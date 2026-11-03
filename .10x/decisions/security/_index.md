@@ -9,3 +9,4 @@
 - phase6-release — Phase 6 release readiness (ADR-014)
 - [phase7-private-auth](phase7-private-auth.md) — Phase 7 private members platform (ADR-015, ADR-016)
 - integration-phase7-l10n — email-only invitations, backup kept (ADR-017)
+- [admin-dashboard-split](admin-dashboard-split.md) — cross-origin admin: exact-origin CORS + CSRF, host-only Strict cookie (ADR-018)
