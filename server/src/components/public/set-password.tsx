@@ -1,7 +1,6 @@
 "use client";
 
 import { CheckCircle2, Eye, EyeOff, Link2Off } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -21,9 +20,11 @@ const COPY = {
   admin_setup: { title: "Set up the admin account", lead: "Choose the dashboard password. You will enrol an authenticator app on first sign-in.", done: "Done. Sign in to the dashboard to enrol your authenticator." },
 } as const;
 
-/** Shared page body for /invite, /reset and /setup links (ADR-015 §5). */
-export function SetPassword({ token }: { token: string }) {
-  const router = useRouter();
+/**
+ * Shared page body for /invite, /reset and /setup links (ADR-015 §5). The
+ * admin dashboard is a separate app (ADR-018); /setup passes its sign-in URL.
+ */
+export function SetPassword({ token, dashboardLoginUrl }: { token: string; dashboardLoginUrl?: string }) {
   const [preview, setPreview] = useState<Preview | null | "invalid">(null);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -96,8 +97,8 @@ export function SetPassword({ token }: { token: string }) {
           All set
         </h1>
         <p className="mt-2 text-[14px] text-fg-muted">{copy.done}</p>
-        {preview.kind === "admin_setup" ? (
-          <Button className="mt-6" onClick={() => router.push("/login")}>
+        {preview.kind === "admin_setup" && dashboardLoginUrl ? (
+          <Button className="mt-6" onClick={() => window.location.assign(dashboardLoginUrl)}>
             Go to sign in
           </Button>
         ) : null}

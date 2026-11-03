@@ -2,13 +2,13 @@ import { z } from "zod";
 
 import { ADMIN_COOKIE, adminCookieOptions, resolveAdminSession, revokeAdminSession, startAdminSession } from "@/lib/auth/admin-sessions";
 import { clearCookie, readCookie, serializeCookie } from "@/lib/cookies";
-import { assertSameOrigin, emailSchema, handler, json, parseBody, requestContext } from "@/lib/http";
+import { assertAdminOrigin, emailSchema, handler, json, parseBody, requestContext } from "@/lib/http";
 
 const schema = z.object({ email: emailSchema, password: z.string().min(1).max(256) });
 
 /** Step 1 of the admin login: password. Sets the session cookie; MFA follows. */
 export const POST = handler(async (request: Request) => {
-  assertSameOrigin(request);
+  assertAdminOrigin(request);
   const body = await parseBody(request, schema);
   const { rawToken, auth } = await startAdminSession(body, requestContext(request));
   return json(
@@ -25,7 +25,7 @@ export const GET = handler(async (request: Request) => {
 });
 
 export const DELETE = handler(async (request: Request) => {
-  assertSameOrigin(request);
+  assertAdminOrigin(request);
   const auth = await resolveAdminSession(readCookie(request, ADMIN_COOKIE));
   if (auth) await revokeAdminSession(auth.session.id);
   const options = adminCookieOptions(new Date(0));

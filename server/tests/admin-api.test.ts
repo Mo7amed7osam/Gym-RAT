@@ -135,7 +135,7 @@ describe("member management", () => {
     expect(created.link.url).toBeUndefined();
     memberId = created.member.id;
     const mail = lastMailedLink("nour@example.com");
-    expect(mail.url).toMatch(/^https:\/\/admin\.gymrat\.test\/invite\/[A-Za-z0-9_-]{43}$/);
+    expect(mail.url).toMatch(/^https:\/\/api\.gymrat\.test\/invite\/[A-Za-z0-9_-]{43}$/);
     expect(mail.text).toMatch(/expires at/);
     expect(mail.text).not.toMatch(/password:/i);
     inviteToken = mail.token;

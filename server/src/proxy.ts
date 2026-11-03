@@ -1,23 +1,22 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { ADMIN_COOKIE } from "@/lib/auth/admin-sessions";
+import { corsHeaders, preflight } from "@/lib/cors";
+import { env } from "@/lib/env";
 
 /**
- * Cheap gate for dashboard pages: no admin cookie → /login. The real check
- * (live session, MFA) happens in every API handler; this only avoids
- * rendering a dashboard shell for anonymous visitors.
+ * Cross-origin access for the admin dashboard (ADR-018): answers preflights
+ * and adds the CORS headers for ADMIN_ORIGIN to every /api/admin/* response.
+ * Authentication, MFA and the CSRF origin check stay in the route handlers.
  */
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  if (!request.cookies.get(ADMIN_COOKIE)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.search = pathname === "/" ? "" : `?next=${encodeURIComponent(pathname)}`;
-    return NextResponse.redirect(url);
-  }
-  return NextResponse.next();
+  const adminOrigin = env().ADMIN_ORIGIN;
+  if (request.method === "OPTIONS") return preflight(request, adminOrigin);
+  const response = NextResponse.next();
+  response.headers.append("Vary", "Origin");
+  for (const [name, value] of Object.entries(corsHeaders(request.headers.get("origin"), adminOrigin) ?? {})) response.headers.set(name, value);
+  return response;
 }
 
 export const config = {
-  matcher: ["/", "/members/:path*", "/security", "/audit", "/settings"],
+  matcher: ["/api/admin/:path*"],
 };

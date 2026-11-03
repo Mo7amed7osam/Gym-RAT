@@ -1,7 +1,10 @@
-# Gym RAT auth server + admin dashboard
+# Gym RAT auth + admin API
 
-Self-hosted accounts for the Gym RAT iPhone app (Phase 7, ADR-015/016). One Next.js
-application serves the JSON API the app talks to and the admin dashboard the owner uses.
+Self-hosted accounts for the Gym RAT iPhone app (Phase 7, ADR-015/016). This Next.js
+application serves the JSON API the app talks to, the admin API, and the member link pages
+(invitation, password reset, admin setup). The admin dashboard is a separate app in
+[`../admin`](../admin/README.md) (ADR-018), hosted on its own origin (`ADMIN_ORIGIN`), which
+calls the admin API here directly from the browser.
 PostgreSQL stores accounts, sessions, one-time links and the audit log. **No workout data
 ever reaches this server**: workouts live in SQLite on each member's iPhone.
 
@@ -15,9 +18,9 @@ ever reaches this server**: workouts live in SQLite on each member's iPhone.
 ```
 server/
 ├── src/app/api/auth/*        member API: login, refresh, me, logout, forgot-password, links/[token]
-├── src/app/api/admin/*       admin API (cookie + TOTP + Origin check on every mutation)
-├── src/app/(public)          /login, /invite/[t], /reset/[t], /setup/[t]
-├── src/app/(admin)           /, /members, /members/new, /members/[id], /security, /audit, /settings
+├── src/app/api/admin/*       admin API (cookie + TOTP + exact ADMIN_ORIGIN check on every mutation)
+├── src/app/(public)          /invite/[t], /reset/[t], /setup/[t] (member and admin-setup link pages)
+├── src/proxy.ts, src/lib/cors.ts  exact-origin CORS for /api/admin/* (ADMIN_ORIGIN only)
 ├── src/lib/auth/*            password (Argon2id), jwt (jose), member + admin sessions, action tokens, rate limit
 ├── src/lib/db/schema.ts      Drizzle schema → drizzle/*.sql migrations
 ├── scripts/                  migrate.ts, bootstrap-admin.ts, dev/totp-code.mts
@@ -35,16 +38,22 @@ docker compose -f docker-compose.dev.yml up -d      # Postgres on 127.0.0.1:5433
 npm run db:migrate                                   # uses .env.development
 npm run bootstrap-admin -- --email you@example.com   # prints a one-time setup link
 npm run dev                                          # http://localhost:3100
+cd ../admin && npm install && npm run dev            # the dashboard, http://localhost:3200
 ```
 
-Open the setup link, choose a password, sign in, scan the QR with an authenticator app
+`.env.development` needs `ADMIN_ORIGIN=http://localhost:3200` (the dashboard) next to
+`PUBLIC_ORIGIN`, and the dashboard's `.env.local` needs
+`NEXT_PUBLIC_API_ORIGIN=http://localhost:3100`. For a test that keeps the two hosts apart
+(as in production) see "Local cross-origin test" in `../admin/README.md`.
+
+Open the setup link, choose a password, sign in to the dashboard, scan the QR with an authenticator app
 (for scripted testing `npx tsx scripts/dev/totp-code.mts` prints the current code from the
 dev database). The iPhone app's Debug builds talk to `http://127.0.0.1:3100` by default
 (`EXPO_PUBLIC_AUTH_API_URL` in the app's `.env` overrides it).
 
 ```bash
-npm test          # 30 API integration tests on an in-memory PostgreSQL (PGlite)
-npm run typecheck
+npm test          # API integration + cross-origin security tests on an in-memory PostgreSQL (PGlite)
+npm run typecheck # also checks tests/admin-contract.ts: the dashboard's response types match the server's
 npm run lint
 npm run build     # production build (standalone output)
 ```
@@ -59,7 +68,7 @@ stay on the internal Docker network; Caddy terminates HTTPS with automatic Let's
 # on the VPS
 git clone <repo> /opt/gymrat && cd /opt/gymrat/server
 cp .env.example .env
-# edit .env: SITE_ADDRESS, PUBLIC_ORIGIN, ACME_EMAIL,
+# edit .env: SITE_ADDRESS, PUBLIC_ORIGIN, ADMIN_ORIGIN, ACME_EMAIL,
 #   POSTGRES_PASSWORD=$(openssl rand -base64 24)
 #   AUTH_SECRET=$(openssl rand -base64 48)
 docker compose up -d --build
@@ -114,9 +123,10 @@ entry to `db`. Example with ufw: `ufw default deny incoming; ufw allow 22; ufw a
   refresh / me; the app enforces it with a clock high-water mark, so turning the clock back
   cannot extend it. Revocation while a phone is offline takes effect when it reconnects or
   when the lease runs out, whichever comes first. The product copy says so.
-- Admin: HttpOnly, Secure, SameSite=Strict cookie; 12 h absolute / 60 min idle; mandatory
-  TOTP with ten hashed recovery codes; every non-GET request must carry a matching `Origin`
-  (or same-origin Fetch Metadata); CSP, `X-Frame-Options: DENY`, HSTS at Caddy.
+- Admin: HttpOnly, Secure, SameSite=Strict, host-only cookie (no `Domain`); 12 h absolute /
+  60 min idle; mandatory TOTP with ten hashed recovery codes; every non-GET request must carry
+  `Origin` exactly equal to `ADMIN_ORIGIN` (requests without `Origin` are refused); CSP,
+  `X-Frame-Options: DENY`, HSTS at Caddy. See "Admin dashboard on another origin" below.
 - Rate limits (Postgres fixed windows, keys hashed): login 20/15 min per IP and 5/15 min per
   IP+email; refresh 120/min per IP; forgot-password 5/h per IP and 3/h per email; link
   redemption 10/15 min per IP; admin login 10/15 min per IP; TOTP 8/15 min per session.
@@ -126,6 +136,31 @@ entry to `db`. Example with ufw: `ufw default deny incoming; ufw allow 22; ufw a
   No endpoint writes `users.role`; admins exist only through the server CLI.
 - Audit: `audit_events` (actor, action, target, IP, user agent, success, metadata) — never
   passwords, tokens or codes.
+
+### Admin dashboard on another origin (ADR-018)
+
+The dashboard (`../admin`, e.g. on Vercel at `https://admin.<domain>`) calls this API
+(`https://api.<domain>`) straight from the browser with `credentials: "include"`. Nothing
+goes through the dashboard's host: passwords, TOTP codes and the admin cookie travel only
+between the browser and this server.
+
+- **Same site, different origins.** Both hosts must sit under the same registrable domain.
+  SameSite is decided per *site*, so the `SameSite=Strict` cookie set by `api.<domain>` is
+  sent on the dashboard's requests; no `SameSite=None` is needed. The cookie has no `Domain`
+  attribute, so it is never sent to `admin.<domain>` itself.
+- **CORS** (`src/proxy.ts`, `src/lib/cors.ts`, `/api/admin/*` only): the response carries
+  `Access-Control-Allow-Origin: <ADMIN_ORIGIN>` and `Allow-Credentials: true` only when the
+  request's `Origin` is byte-for-byte `ADMIN_ORIGIN`. No wildcard, no reflection. Preflights
+  allow `GET, POST, PUT, PATCH, DELETE` with `Accept, Content-Type`; anything else gets 403.
+  `Retry-After` is exposed for the rate-limit message. The member API (`/api/auth/*`) has no
+  CORS: the iPhone app does not need it.
+- **CSRF**: every admin mutation needs `Origin == ADMIN_ORIGIN`. CORS only controls who can
+  read responses; this check and the Strict cookie are what stop forged requests.
+- **Previews**: Vercel preview URLs (`*.vercel.app`) are a different site and not
+  `ADMIN_ORIGIN`, so they can neither send the cookie nor pass CORS/CSRF. Never put a
+  preview origin in `ADMIN_ORIGIN`, and never give previews a custom domain under `<domain>`.
+- The setup page (`/setup/[token]`) sends the new admin to `ADMIN_ORIGIN/login`. This server
+  serves no dashboard pages; `/` is a 404.
 
 ### Email (SMTP) — invitations
 

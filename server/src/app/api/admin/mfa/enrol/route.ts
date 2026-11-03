@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { ADMIN_COOKIE, beginTotpEnrolment, confirmTotpEnrolment, resolveAdminSession } from "@/lib/auth/admin-sessions";
 import { readCookie } from "@/lib/cookies";
-import { HttpError, assertSameOrigin, handler, json, parseBody, requestContext } from "@/lib/http";
+import { HttpError, assertAdminOrigin, handler, json, parseBody, requestContext } from "@/lib/http";
 
 /**
  * TOTP enrolment for an admin whose session passed the password step but
@@ -18,7 +18,7 @@ async function pendingAdmin(request: Request) {
 }
 
 export const POST = handler(async (request: Request) => {
-  assertSameOrigin(request);
+  assertAdminOrigin(request);
   const auth = await pendingAdmin(request);
   const { otpauthUri, secretBase32 } = await beginTotpEnrolment(auth);
   const qrDataUrl = await QRCode.toDataURL(otpauthUri, { margin: 1, width: 240 });
@@ -28,7 +28,7 @@ export const POST = handler(async (request: Request) => {
 const confirmSchema = z.object({ code: z.string().min(6).max(10) });
 
 export const PUT = handler(async (request: Request) => {
-  assertSameOrigin(request);
+  assertAdminOrigin(request);
   const auth = await pendingAdmin(request);
   const { code } = await parseBody(request, confirmSchema);
   return json(await confirmTotpEnrolment(auth, code, requestContext(request)));

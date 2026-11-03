@@ -10,8 +10,14 @@ const schema = z.object({
   DATABASE_URL: z.string().url(),
   /** ≥ 32 random bytes, base64 or hex. Signs access tokens and derives the TOTP seed key. */
   AUTH_SECRET: z.string().min(32),
-  /** Public HTTPS origin of this deployment, e.g. https://auth.example.com. Used for CSRF checks and links. */
+  /** Public HTTPS origin of this API, e.g. https://api.example.com. Base of the invitation, reset and setup links. */
   PUBLIC_ORIGIN: z.string().url(),
+  /**
+   * Exact origin of the admin dashboard (the separate `admin/` app), e.g.
+   * https://admin.example.com. The only origin allowed to call /api/admin/*
+   * from a browser (CORS) and to change anything with the admin cookie (CSRF).
+   */
+  ADMIN_ORIGIN: z.string().url(),
   ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   OFFLINE_LEASE_DAYS: z.coerce.number().int().min(1).max(30).default(7),
@@ -48,6 +54,10 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     const issues = parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
     throw new Error(`Invalid server configuration: ${issues}`);
   }
+  const admin = new URL(parsed.data.ADMIN_ORIGIN);
+  if (admin.origin !== parsed.data.ADMIN_ORIGIN) throw new Error("Invalid server configuration: ADMIN_ORIGIN must be an origin only (scheme, host, optional port), without a path or trailing slash");
+  const local = admin.hostname === "localhost" || admin.hostname.endsWith(".localhost") || admin.hostname === "127.0.0.1";
+  if (parsed.data.NODE_ENV === "production" && admin.protocol !== "https:" && !local) throw new Error("Invalid server configuration: ADMIN_ORIGIN must use https in production");
   const smtp = parsed.data;
   if (smtp.SMTP_HOST && !smtp.SMTP_FROM) throw new Error("Invalid server configuration: SMTP_FROM is required when SMTP_HOST is set");
   if (Boolean(smtp.SMTP_USER) !== Boolean(smtp.SMTP_PASSWORD)) throw new Error("Invalid server configuration: set both SMTP_USER and SMTP_PASSWORD, or neither");

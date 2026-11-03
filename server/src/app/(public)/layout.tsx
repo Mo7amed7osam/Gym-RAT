@@ -1,6 +1,6 @@
 import { Wordmark } from "@/components/ui/wordmark";
 
-/** Centered single-card layout for sign-in and the one-time link pages. */
+/** Centered single-card layout for the one-time link pages. */
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="glow relative flex min-h-dvh flex-col items-center justify-center px-4 py-10">
