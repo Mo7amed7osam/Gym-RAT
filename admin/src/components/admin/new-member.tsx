@@ -12,10 +12,16 @@ import { useToast } from "@/components/ui/toast";
 import type { IssuedLink, MemberSummary } from "@/lib/api-types";
 import { api, describeError } from "@/lib/client/api";
 
+const EMAIL_LOCALES = [
+  { id: "en", label: "English" },
+  { id: "ar", label: "العربية" },
+] as const;
+
 export function NewMember() {
   const toast = useToast();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [emailLocale, setEmailLocale] = useState<"en" | "ar">("en");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ member: MemberSummary; link: IssuedLink } | null>(null);
@@ -25,7 +31,7 @@ export function NewMember() {
     setBusy(true);
     setError(null);
     try {
-      const result = await api<{ member: MemberSummary; link: IssuedLink }>("/api/admin/members", { body: { email, displayName } });
+      const result = await api<{ member: MemberSummary; link: IssuedLink }>("/api/admin/members", { body: { email, displayName, emailLocale } });
       setCreated(result);
       if (result.link.emailStatus === "failed") toast.error("Invitation email failed", result.link.emailError ?? "The mail server refused the message.");
       else toast.success("Invitation emailed", `${result.member.displayName} will get a link to set a password.`);
@@ -60,6 +66,7 @@ export function NewMember() {
                       setCreated(null);
                       setEmail("");
                       setDisplayName("");
+                      setEmailLocale("en");
                     }}
                   >
                     Create another
@@ -70,6 +77,23 @@ export function NewMember() {
               <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
                 <Input label="Display name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Nour Hassan" autoComplete="off" required autoFocus maxLength={80} />
                 <Input label="Email" type="email" inputMode="email" autoCapitalize="none" autoComplete="off" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nour@example.com" hint="They will sign in with this address." required />
+                <fieldset className="flex flex-col gap-1.5">
+                  <legend className="eyebrow mb-1.5">Email language</legend>
+                  <div className="flex gap-2">
+                    {EMAIL_LOCALES.map((option) => (
+                      <label
+                        key={option.id}
+                        className={`flex h-11 cursor-pointer items-center rounded-tile border px-4 text-[14px] font-semibold transition-colors focus-within:border-accent ${emailLocale === option.id ? "border-accent bg-accent-muted text-fg" : "border-border bg-surface-raised text-fg-muted hover:text-fg"}`}
+                      >
+                        <input type="radio" name="emailLocale" value={option.id} checked={emailLocale === option.id} onChange={() => setEmailLocale(option.id)} className="sr-only" />
+                        <span lang={option.id} dir={option.id === "ar" ? "rtl" : "ltr"}>
+                          {option.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-[13px] text-fg-muted">Invitation, password-reset and account emails go out in this language.</p>
+                </fieldset>
                 {error ? (
                   <p role="alert" className="rounded-row bg-danger-muted px-3 py-2 text-[13px] font-semibold text-danger">
                     {error}

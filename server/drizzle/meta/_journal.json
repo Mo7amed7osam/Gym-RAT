@@ -15,6 +15,13 @@
       "when": 1793634186120,
       "tag": "0001_invitation_email_status",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793669891387,
+      "tag": "0002_member_email_locale",
+      "breakpoints": true
     }
   ]
 }

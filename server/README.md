@@ -171,25 +171,58 @@ on the members list and the member page ("Invite email failed" + the mail server
 with **Resend invitation** to try again once fixed. The link itself is never shown to the
 admin.
 
-Set these in `server/.env` on the VPS (never in the iPhone app):
+The provider is **Resend**, used through its SMTP relay (owner decision 2026-11-03, ADR-019);
+any other SMTP relay works with the same variables. Set these in `server/.env` on the VPS
+only (never in the iPhone app, the Vercel dashboard or Git):
 
-| Variable | Required | Meaning |
+| Variable | Resend value | Meaning |
 |---|---|---|
-| `SMTP_HOST` | yes | SMTP relay host of your mail provider |
-| `SMTP_PORT` | no (587) | 587 for STARTTLS, 465 for implicit TLS |
-| `SMTP_SECURE` | no (`0`) | `1` = implicit TLS (465); `0` = STARTTLS, which is then required |
-| `SMTP_USER` / `SMTP_PASSWORD` | together, or neither | relay credentials |
-| `SMTP_FROM` | yes | sender, e.g. `Gym RAT <no-reply@your-domain>`; must be allowed by the relay (SPF/DKIM for the domain) |
-| `INVITE_TTL_HOURS` | no (72) | invitation lifetime |
+| `SMTP_HOST` | `smtp.resend.com` | relay host |
+| `SMTP_PORT` | `465` | 465 = implicit TLS; 587 with `SMTP_SECURE=0` also works (STARTTLS, required) |
+| `SMTP_SECURE` | `1` | `1` = implicit TLS (465); `0` = STARTTLS, which is then required |
+| `SMTP_USER` | `resend` | literally the word `resend` |
+| `SMTP_PASSWORD` | a Resend API key | create one in Resend with **Sending access** limited to the sending domain |
+| `SMTP_FROM` | e.g. `GYM RAT <no-reply@…>` | must be an address on a domain verified in Resend (see below) |
+| `MAIL_DEFAULT_LOCALE` | `en` | email language for members without a stored choice (`en` or `ar`) |
+| `INVITE_TTL_HOURS` | `72` | invitation lifetime (`RESET_TTL_MINUTES` for reset links, default 60) |
 
-`docker compose up -d` after editing `.env`; Settings in the dashboard then shows
-"Outbound email: Configured". Failure reasons stored and displayed are stripped of the SMTP
-user and password.
+Blank values count as unset. Then:
+
+```bash
+docker compose up -d                                   # picks up .env
+docker compose exec app node dist/cli/mail-check.mjs   # TLS + login to the relay; sends nothing
+docker compose exec app node dist/cli/mail-check.mjs --to you@your-domain   # one plain test message
+```
+
+`mail-check` prints host, port, TLS mode and sender, never the user or key. Failure reasons
+stored, displayed and logged are stripped of the SMTP user and password, and no log line
+contains a link or token. Nodemailer does not retry, so a request sends at most one message.
+
+#### Sending domain (Resend)
+
+Resend shows the exact records to create under **Domains** after you add the domain; copy
+them from there. For a domain `D` they have this shape: `TXT resend._domainkey.D` (DKIM
+public key), `MX send.D → feedback-smtp.<region>.amazonses.com` (priority 10) and
+`TXT send.D "v=spf1 include:amazonses.com ~all"` (SPF for the bounce address). DMARC
+(`TXT _dmarc.<root>`, e.g. `v=DMARC1; p=none;`) is recommended. Only send once Resend
+shows the domain as **Verified**.
+
+#### Templates
+
+Five branded emails (`src/lib/email/`): invitation, resent invitation (earlier links no longer
+work), welcome after activation, password reset, and a password-changed security notice. Each
+has HTML (dark charcoal card, gold accent, button, expiry box, copy-paste fallback link) and a
+plain-text part, in English or Egyptian Arabic (right to left, Western digits, addresses and
+links kept left to right). The language is the member's **Email language** (chosen when the
+admin creates the member; stored in `users.email_locale`), else `MAIL_DEFAULT_LOCALE`.
+Expiry times are shown in Cairo time. `npm run email:preview -- <dir>` writes all ten
+versions as HTML and text for review.
 
 Invitation security: 32 random bytes (base64url) per link; only the SHA-256 is stored; single
 use; expires after `INVITE_TTL_HOURS`; issuing a new one cancels the previous. The email
 contains only the link and its expiry, never a password; the member chooses the password on
-the link page (Argon2id).
+the link page (Argon2id). The welcome and password-changed emails are best effort: if they
+fail, the account change still stands and the failure is logged without any link or token.
 
 ### Password-reset links
 

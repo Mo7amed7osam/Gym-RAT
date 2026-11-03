@@ -40,6 +40,8 @@ const schema = z.object({
   SMTP_PASSWORD: z.string().min(1).optional(),
   /** Sender, e.g. "Gym RAT <no-reply@your-domain>". Must be an address the relay may send from. */
   SMTP_FROM: z.string().min(3).optional(),
+  /** Email language for members without a stored preference ("en" or "ar"); see ADR-019. */
+  MAIL_DEFAULT_LOCALE: z.enum(["en", "ar"]).default("en"),
   APP_NAME: z.string().default("Gym RAT"),
 });
 
@@ -49,7 +51,8 @@ let cached: Env | null = null;
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   if (cached && source === process.env) return cached;
-  const parsed = schema.safeParse(source);
+  // An empty value means "not set": docker-compose passes `${SMTP_HOST:-}` etc. as "" when .env leaves them blank.
+  const parsed = schema.safeParse(Object.fromEntries(Object.entries(source).filter(([, value]) => value !== "")));
   if (!parsed.success) {
     const issues = parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
     throw new Error(`Invalid server configuration: ${issues}`);

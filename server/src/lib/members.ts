@@ -23,6 +23,8 @@ export interface MemberSummary {
   activeSessions: number;
   /** Latest unused invitation of an invited member: was the email accepted by the mail server? */
   invitation: InvitationState | null;
+  /** Stored email language; null means the server default (MAIL_DEFAULT_LOCALE). */
+  emailLocale: "en" | "ar" | null;
 }
 
 export interface InvitationState {
@@ -50,6 +52,7 @@ const toSummary = (row: User, activeSessions: number, invitation: InvitationStat
   createdAt: row.createdAt.toISOString(),
   activeSessions,
   invitation: row.status === "invited" ? invitation : null,
+  emailLocale: row.emailLocale,
 });
 
 /** Latest unused invitation per invited member (delivery status for the dashboard). */
@@ -175,7 +178,7 @@ export async function memberDetail(id: string, now = new Date()): Promise<Member
   };
 }
 
-export async function createMember(input: { email: string; displayName: string }, admin: { id: string }, ctx: RequestContext, now = new Date()): Promise<{ member: MemberSummary; link: IssuedLink }> {
+export async function createMember(input: { email: string; displayName: string; emailLocale?: "en" | "ar" }, admin: { id: string }, ctx: RequestContext, now = new Date()): Promise<{ member: MemberSummary; link: IssuedLink }> {
   // Invitations are emailed only: refuse before creating anything when the server cannot send mail.
   assertInvitationsDeliverable();
   const db = getDb();
@@ -183,7 +186,7 @@ export async function createMember(input: { email: string; displayName: string }
   if (existing.length > 0) throw new HttpError(409, "conflict", "An account with this email already exists");
   const rows = await db
     .insert(users)
-    .values({ email: input.email.toLowerCase(), displayName: input.displayName.trim(), role: "member", status: "invited", createdBy: admin.id, createdAt: now, updatedAt: now })
+    .values({ email: input.email.toLowerCase(), displayName: input.displayName.trim(), role: "member", status: "invited", emailLocale: input.emailLocale ?? null, createdBy: admin.id, createdAt: now, updatedAt: now })
     .returning();
   const user = rows[0];
   await audit({ ...ctx, actorType: "admin", actorId: admin.id, action: "member.created", targetUserId: user.id, metadata: { email: user.email } });
@@ -191,14 +194,14 @@ export async function createMember(input: { email: string; displayName: string }
   return { member: toSummary(user, 0), link };
 }
 
-export async function updateMember(id: string, patch: { displayName?: string; status?: "active" | "disabled" }, admin: { id: string }, ctx: RequestContext, now = new Date()): Promise<MemberSummary> {
+export async function updateMember(id: string, patch: { displayName?: string; status?: "active" | "disabled"; emailLocale?: "en" | "ar" }, admin: { id: string }, ctx: RequestContext, now = new Date()): Promise<MemberSummary> {
   const user = await getMember(id);
   if (user.role === "admin" && patch.status === "disabled" && user.id === admin.id) throw new HttpError(400, "validation", "You cannot disable your own account");
   if (patch.status && user.status === "invited" && patch.status === "active") throw new HttpError(400, "validation", "An invited member becomes active by setting a password");
   const db = getDb();
   const rows = await db
     .update(users)
-    .set({ ...(patch.displayName !== undefined ? { displayName: patch.displayName.trim() } : {}), ...(patch.status ? { status: patch.status } : {}), updatedAt: now })
+    .set({ ...(patch.displayName !== undefined ? { displayName: patch.displayName.trim() } : {}), ...(patch.status ? { status: patch.status } : {}), ...(patch.emailLocale ? { emailLocale: patch.emailLocale } : {}), updatedAt: now })
     .where(eq(users.id, id))
     .returning();
   if (patch.status === "disabled") {
@@ -208,6 +211,7 @@ export async function updateMember(id: string, patch: { displayName?: string; st
     await audit({ ...ctx, actorType: "admin", actorId: admin.id, action: "member.enabled", targetUserId: id });
   }
   if (patch.displayName !== undefined) await audit({ ...ctx, actorType: "admin", actorId: admin.id, action: "member.renamed", targetUserId: id });
+  if (patch.emailLocale) await audit({ ...ctx, actorType: "admin", actorId: admin.id, action: "member.email_locale_changed", targetUserId: id, metadata: { emailLocale: patch.emailLocale } });
   return toSummary(rows[0], 0);
 }
 

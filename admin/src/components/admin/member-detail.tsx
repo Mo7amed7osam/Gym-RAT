@@ -213,6 +213,8 @@ export function MemberDetailView({ id }: { id: string }) {
                 <dd>{member ? formatDateTime(member.lastLoginAt) : <Skeleton />}</dd>
                 <dt className="text-fg-muted">Created</dt>
                 <dd>{member ? formatDateTime(member.createdAt) : <Skeleton />}</dd>
+                <dt className="text-fg-muted">Email language</dt>
+                <dd>{member ? (member.emailLocale === "ar" ? "Arabic" : member.emailLocale === "en" ? "English" : "Server default") : <Skeleton />}</dd>
                 <dt className="text-fg-muted">Devices</dt>
                 <dd className="tnum">{member ? member.activeSessions : <Skeleton className="w-6" />}</dd>
                 <dt className="text-fg-muted">Member id</dt>

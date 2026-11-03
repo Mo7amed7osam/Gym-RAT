@@ -19,6 +19,8 @@ export const users = pgTable(
     passwordHash: text("password_hash"),
     passwordUpdatedAt: timestamp("password_updated_at", { withTimezone: true }),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+    /** Language of the emails this account receives (invitation, reset, notices). Null = MAIL_DEFAULT_LOCALE. */
+    emailLocale: text("email_locale", { enum: ["en", "ar"] }),
     createdBy: uuid("created_by"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
