@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.gymrat.app",
+      "bundleIdentifier": "com.mohamedhosam.gymrat",
       "appleTeamId": "8TBB6SU34J",
       "config": {
         "usesNonExemptEncryption": false
@@ -88,8 +88,8 @@
       [
         "expo-widgets",
         {
-          "bundleIdentifier": "com.gymrat.app.ExpoWidgetsTarget",
-          "groupIdentifier": "group.com.gymrat.app",
+          "bundleIdentifier": "com.mohamedhosam.gymrat.ExpoWidgetsTarget",
+          "groupIdentifier": "group.com.mohamedhosam.gymrat",
           "enablePushNotifications": false,
           "frequentUpdates": false
         }

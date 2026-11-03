@@ -24,7 +24,7 @@ describe('exercise video', () => {
     await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Video tutorial, YouTube' })));
     const player = screen.getByTestId('youtube-player');
     expect(player.props).toMatchObject({ videoId: 'abcdefghijk', useLocalHTML: true, baseUrlOverride: PLAYER_ORIGIN, width: 360, height: 203 });
-    expect(PLAYER_ORIGIN).toBe('https://com.gymrat.app');
+    expect(PLAYER_ORIGIN).toBe('https://com.mohamedhosam.gymrat');
   });
 
   it('falls back with retry when the video cannot be embedded or the network is down', async () => {

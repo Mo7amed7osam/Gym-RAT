@@ -1,6 +1,6 @@
 # ADR-014: Media without verified rights never reaches a distributable build
 
-**Status:** Accepted
+**Status:** Superseded by ADR-020 for the Neila Rey poster (2026-11-03, owner decision: the poster ships in every build). The guard script and build phase remain for other assets.
 **Date:** 2026-11-02
 **Feature:** phase6-release
 **Author:** 10x-Team (Architect + DevOps + Security)

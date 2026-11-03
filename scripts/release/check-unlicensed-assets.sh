@@ -7,7 +7,8 @@
 #
 # Runs automatically as the last build phase of every Release Xcode build
 # (plugins/withUnlicensedAssetGuard.js), so an EAS build or local archive that
-# would ship the poster fails instead.
+# would ship a listed asset fails instead. The Neila Rey poster was removed
+# from the list by owner decision on 2026-11-03 (ADR-020).
 set -eu
 
 TARGET=${1:?usage: check-unlicensed-assets.sh <.app | .ipa | directory>}

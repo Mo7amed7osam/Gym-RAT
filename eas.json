@@ -18,17 +18,11 @@
       }
     },
     "preview": {
-      "distribution": "internal",
-      "env": {
-        "GYMRAT_STORE_BUILD": "1"
-      }
+      "distribution": "internal"
     },
     "production": {
       "distribution": "store",
-      "autoIncrement": true,
-      "env": {
-        "GYMRAT_STORE_BUILD": "1"
-      }
+      "autoIncrement": true
     }
   },
   "submit": {

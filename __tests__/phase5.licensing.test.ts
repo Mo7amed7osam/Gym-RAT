@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -13,20 +13,6 @@ function filesUnder(dir: string): string[] {
   });
 }
 
-function storeResolver(env: Record<string, string>) {
-  const saved = { ...process.env };
-  Object.assign(process.env, env);
-  try {
-    let config: { resolver: { resolveRequest?: (c: unknown, m: string, p: string | null) => { type: string; filePath?: string } } } | undefined;
-    jest.isolateModules(() => {
-      config = require('../metro.config.js');
-    });
-    return config!.resolver.resolveRequest;
-  } finally {
-    process.env = saved;
-  }
-}
-
 describe('bundled media licensing', () => {
   it('keeps the Neila Rey poster as the only third-party image, unchanged', () => {
     const images = filesUnder(join(root, 'assets')).filter((file) => /\.(jpe?g|png|webp)$/i.test(file));
@@ -37,61 +23,47 @@ describe('bundled media licensing', () => {
     expect(readFileSync(join(root, 'assets/exercises/index.ts'), 'utf8')).toContain('© Neila Rey');
   });
 
-  it('drops the poster from every release bundle (__DEV__ gate, folded by Metro before dependency collection)', () => {
+  it('bundles the poster in every build, Development and Release (owner decision, ADR-020)', () => {
     const source = readFileSync(join(root, 'assets/exercises/index.ts'), 'utf8');
-    expect(source).toMatch(/= __DEV__\s*\?\s*\{ pre_workout_stretches: require\('\.\/stretches\/pre_workout_stretches\.jpg'\) \}\s*:\s*\{\}/);
-    // The only require of the image is the gated one.
-    const users = filesUnder(root)
-      .filter((file) => !file.includes('node_modules') && !file.includes('/ios/') && !file.includes('/.10x/') && /\.(t|j)sx?$/.test(file))
-      .filter((file) => readFileSync(file, 'utf8').includes('pre_workout_stretches.jpg'));
-    expect(users.map((file) => file.slice(root.length + 1)).sort()).toEqual(['__tests__/phase5.licensing.test.ts', 'assets/exercises/index.ts']);
-  });
-
-  it('stubs the poster for every distributable EAS profile and the explicit flag', () => {
-    const stub = readFileSync(join(root, 'assets/exercises/index.store.ts'), 'utf8');
-    expect(stub).not.toMatch(/require\(|\.jpe?g/);
-
-    const posterIndex = join(root, 'assets/exercises/index.ts');
-    const other = join(root, 'components/WarmupRoutine.tsx');
-    const context = {
-      resolveRequest: (_c: unknown, moduleName: string) => ({ type: 'sourceFile', filePath: moduleName }),
-    };
+    expect(source).toMatch(/STRETCH_POSTERS[^=]*= \{\s*pre_workout_stretches: require\('\.\/stretches\/pre_workout_stretches\.jpg'\),\s*\};/);
+    expect(source).not.toContain('__DEV__');
+    // No build-time swap or stub can drop it again.
+    expect(readFileSync(join(root, 'metro.config.js'), 'utf8')).not.toMatch(/resolveRequest|GYMRAT_STORE_BUILD|index\.store/);
+    expect(existsSync(join(root, 'assets/exercises/index.store.ts'))).toBe(false);
     const eas = JSON.parse(readFileSync(join(root, 'eas.json'), 'utf8'));
-    const distributable = Object.keys(eas.build).filter((name) => !['development', 'development-device'].includes(name));
-    expect(distributable.sort()).toEqual(['preview', 'production']);
-    for (const env of [...distributable.map((name) => ({ EAS_BUILD_PROFILE: name })), { EAS_BUILD_PROFILE: 'some-new-profile' }, { GYMRAT_STORE_BUILD: '1' }] as Record<string, string>[]) {
-      const resolve = storeResolver(env);
-      expect(resolve).toBeDefined();
-      expect(resolve!(context, posterIndex, 'ios')).toEqual({ type: 'sourceFile', filePath: join(root, 'assets/exercises/index.store.ts') });
-      expect(resolve!(context, other, 'ios').filePath).toBe(other);
-    }
-    // Development builds keep it.
-    expect(storeResolver({ EAS_BUILD_PROFILE: 'development' })).toBeFalsy();
-    // Distributable profiles also set the explicit flag.
-    for (const name of distributable) expect(eas.build[name].env).toMatchObject({ GYMRAT_STORE_BUILD: '1' });
+    for (const profile of Object.values(eas.build) as { env?: Record<string, string> }[]) expect(profile.env?.GYMRAT_STORE_BUILD).toBeUndefined();
+    // The release guard no longer lists the poster.
+    const poster = readFileSync(join(root, 'assets/exercises/stretches/pre_workout_stretches.jpg'));
+    const list = readFileSync(join(root, 'assets/exercises/UNLICENSED.sha1'), 'utf8');
+    expect(list).not.toContain(createHash('sha1').update(poster).digest('hex'));
+    expect(list).not.toMatch(/^[0-9a-f]{40}\s+pre_workout_stretches/m);
   });
 
-  it('fails Release Xcode builds whose product contains a listed asset', () => {
+  it('keeps the Release guard working for any asset that is listed', () => {
     const app = JSON.parse(readFileSync(join(root, 'app.json'), 'utf8'));
     expect(app.expo.plugins).toContain('./plugins/withUnlicensedAssetGuard');
-    const list = readFileSync(join(root, 'assets/exercises/UNLICENSED.sha1'), 'utf8');
-    const poster = readFileSync(join(root, 'assets/exercises/stretches/pre_workout_stretches.jpg'));
-    expect(list).toContain(createHash('sha1').update(poster).digest('hex'));
-
     const script = join(root, 'scripts/release/check-unlicensed-assets.sh');
-    const clean = mkdtempSync(join(tmpdir(), 'gymrat-clean-'));
-    const dirty = mkdtempSync(join(tmpdir(), 'gymrat-dirty-'));
+    const work = mkdtempSync(join(tmpdir(), 'gymrat-guard-'));
     try {
+      const clean = join(work, 'clean');
+      const dirty = join(work, 'dirty');
+      for (const dir of [clean, dirty]) mkdirSync(dir);
+      const blocked = Buffer.alloc(4096, 7);
       writeFileSync(join(clean, 'icon.png'), Buffer.alloc(4096, 1));
       // Renamed copy, as `expo export` stores assets by hash without an extension.
-      writeFileSync(join(dirty, '2ee0a045f486e62aaecc556739dbd0e8'), poster);
-      expect(spawnSync('sh', [script, clean]).status).toBe(0);
-      const result = spawnSync('sh', [script, dirty], { encoding: 'utf8' });
+      writeFileSync(join(dirty, '2ee0a045f486e62aaecc556739dbd0e8'), blocked);
+      const list = join(work, 'UNLICENSED.sha1');
+      writeFileSync(list, `${createHash('sha1').update(blocked).digest('hex')}  blocked_art.jpg  test fixture\n`);
+      const env = { ...process.env, UNLICENSED_LIST: list };
+      expect(spawnSync('sh', [script, clean], { env }).status).toBe(0);
+      const result = spawnSync('sh', [script, dirty], { encoding: 'utf8', env });
       expect(result.status).toBe(1);
-      expect(result.stderr).toContain('pre_workout_stretches.jpg');
+      expect(result.stderr).toContain('blocked_art.jpg');
+      // The real list (poster removed) passes a directory that contains the poster.
+      writeFileSync(join(clean, 'pre_workout_stretches.jpg'), readFileSync(join(root, 'assets/exercises/stretches/pre_workout_stretches.jpg')));
+      expect(spawnSync('sh', [script, clean]).status).toBe(0);
     } finally {
-      rmSync(clean, { recursive: true, force: true });
-      rmSync(dirty, { recursive: true, force: true });
+      rmSync(work, { recursive: true, force: true });
     }
   });
 

@@ -1,1 +1,4 @@
-208478d843a33820f44d58af80c6b8cb32c0d981  pre_workout_stretches.jpg  Neila Rey pre-workout stretching poster (rights unverified)
+# Media whose redistribution rights are unverified and must never ship in a Release build.
+# Format: <sha1>  <file name>  <description>
+# Checked by scripts/release/check-unlicensed-assets.sh (Release build phase and by hand on an .ipa).
+# The Neila Rey warm-up poster was removed from this list on 2026-11-03 by owner decision (ADR-020).

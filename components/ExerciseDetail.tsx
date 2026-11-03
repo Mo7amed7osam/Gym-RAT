@@ -112,6 +112,11 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
         </View>
       </View>
 
+      <View style={styles.section}>
+        <SectionHeader title={t('library.detail.video')} />
+        <ExerciseVideo video={exercise.origin === 'builtin' ? curatedVideo(exercise.id) : null} />
+      </View>
+
       {exercise.instructions.length > 0 ? (
         <View style={styles.section}>
           <SectionHeader title={t('library.detail.instructions')} />
@@ -251,11 +256,6 @@ export function ExerciseDetail({ exercise, onOpenExercise, onEdit }: ExerciseDet
           />
           <LabelRow label={t('library.detail.sessions', { count: sessionCount })} value="" last />
         </View>
-      </View>
-
-      <View style={styles.section}>
-        <SectionHeader title={t('library.detail.video')} />
-        <ExerciseVideo video={exercise.origin === 'builtin' ? curatedVideo(exercise.id) : null} />
       </View>
     </View>
   );

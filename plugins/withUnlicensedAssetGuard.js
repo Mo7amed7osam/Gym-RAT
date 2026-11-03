@@ -1,6 +1,8 @@
 // Adds a final build phase to the iOS app target that fails every Release
 // build (EAS profiles, local Archive) whose product contains media without
-// verified redistribution rights. See scripts/release/check-unlicensed-assets.sh.
+// verified redistribution rights, as listed in assets/exercises/UNLICENSED.sha1.
+// See scripts/release/check-unlicensed-assets.sh. The Neila Rey poster is no
+// longer listed (owner decision 2026-11-03, ADR-020) and ships in Release.
 const { withXcodeProject } = require('expo/config-plugins');
 
 const PHASE_NAME = '[Gym RAT] Check unlicensed assets';
